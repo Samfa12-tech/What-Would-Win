@@ -19,6 +19,7 @@
 - Added axe, focus, keyboard and native-control browser tests across Chromium desktop/mobile, Firefox and WebKit.
 - Added a visible methodology/about panel and model/data reproducibility identity in result assumptions.
 - Added CI gates for typecheck, unit/calibration tests, technical-depth simulation duration, the full browser matrix, production build and asset-size budgets.
+- Updated checkout and Node setup to the current official GitHub Actions v7 runtimes.
 - Added schema-validated field provenance for seven high-use profiles, explicitly separating external orientation from authored model inputs.
 
 ## 0.1.0 — 2026-07-17

@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://samfa12.com/what-would-win/schemas/scenario.schema.json",
+  "title": "What Would Win scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "soloId",
+    "groupId",
+    "groupQuantity",
+    "soloSize",
+    "groupSize",
+    "scalingMode",
+    "terrain",
+    "weather",
+    "startingDistanceM",
+    "preparationMinutes",
+    "timeOfDay",
+    "ambush",
+    "defensivePosition",
+    "escapeAllowed",
+    "resourcesPercent",
+    "reportDepth",
+    "soloOverrides",
+    "groupOverrides",
+    "seed"
+  ],
+  "properties": {
+    "soloId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "groupId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "groupQuantity": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Positive whole-number quantity. Runtime validation accepts integer, scientific and 10^n notation after separator normalization."
+    },
+    "soloSize": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "normal"
+            },
+            "value": {
+              "const": "normal"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "named"
+            },
+            "value": {
+              "enum": [
+                "mouse",
+                "duck",
+                "dog",
+                "human",
+                "horse",
+                "elephant"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "exact"
+            },
+            "value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "relative"
+            },
+            "value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "groupSize": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "normal"
+            },
+            "value": {
+              "const": "normal"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "named"
+            },
+            "value": {
+              "enum": [
+                "mouse",
+                "duck",
+                "dog",
+                "human",
+                "horse",
+                "elephant"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "exact"
+            },
+            "value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value"
+          ],
+          "properties": {
+            "method": {
+              "const": "relative"
+            },
+            "value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "scalingMode": {
+      "enum": [
+        "strict",
+        "functional",
+        "magical"
+      ]
+    },
+    "terrain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "weather": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startingDistanceM": {
+      "type": "number",
+      "minimum": 0
+    },
+    "preparationMinutes": {
+      "type": "number",
+      "minimum": 0
+    },
+    "timeOfDay": {
+      "enum": [
+        "day",
+        "night"
+      ]
+    },
+    "ambush": {
+      "enum": [
+        "none",
+        "solo",
+        "group"
+      ]
+    },
+    "defensivePosition": {
+      "enum": [
+        "none",
+        "solo",
+        "group"
+      ]
+    },
+    "escapeAllowed": {
+      "type": "boolean"
+    },
+    "resourcesPercent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "reportDepth": {
+      "enum": [
+        "verdict",
+        "assumptions",
+        "transparent",
+        "technical"
+      ]
+    },
+    "soloOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attack": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "defense": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "durability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "agility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "stamina": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "intelligence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "aggression": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "coordination": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "morale": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "armor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "multi_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "groupOverrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attack": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "defense": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "durability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "agility": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "stamina": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "intelligence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "aggression": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "coordination": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "morale": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "armor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "multi_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    }
+  }
+}

@@ -1,0 +1,156 @@
+[
+  {
+    "id": "duck-horse-classic-functional",
+    "title": "100 duck-sized horses vs one horse-sized duck",
+    "solo_id": "mallard-duck",
+    "group_id": "horse",
+    "group_quantity": "100",
+    "solo_size": {
+      "method": "named",
+      "value": "horse"
+    },
+    "group_size": {
+      "method": "named",
+      "value": "duck"
+    },
+    "scaling_mode": "functional",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 25,
+    "expected_solo_win_probability_min": 0.9,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Canonical viral scenario; verifies size presets, quantity scaling and textual explanation."
+  },
+  {
+    "id": "elephant-wolves",
+    "title": "One African elephant vs 20 gray wolves",
+    "solo_id": "african-bush-elephant",
+    "group_id": "gray-wolf",
+    "group_quantity": "20",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 30,
+    "expected_solo_win_probability_min": 0.9,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Checks megafauna durability, pack coordination and open-terrain contact limits."
+  },
+  {
+    "id": "gorilla-ducks",
+    "title": "One silverback gorilla vs 50 mallard ducks",
+    "solo_id": "silverback-gorilla",
+    "group_id": "mallard-duck",
+    "group_quantity": "50",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "forest",
+    "weather": "clear",
+    "starting_distance_m": 10,
+    "expected_solo_win_probability_min": 0.88,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Checks multi-target limits without allowing harmless mass to dominate automatically."
+  },
+  {
+    "id": "dragon-archers",
+    "title": "One western dragon vs 200 prepared archers",
+    "solo_id": "western-dragon",
+    "group_id": "prepared-archer",
+    "group_quantity": "200",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "magical",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 150,
+    "expected_solo_win_probability_min": 0.75,
+    "expected_solo_win_probability_max": 0.96,
+    "purpose": "Checks flight, range, ammunition, area effects and fantasy scaling."
+  },
+  {
+    "id": "trex-chickens",
+    "title": "One Tyrannosaurus rex vs 1,000 roosters",
+    "solo_id": "tyrannosaurus-rex",
+    "group_id": "rooster",
+    "group_quantity": "1000",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 40,
+    "expected_solo_win_probability_min": 0.85,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Stress-tests large quantities, contact saturation and attrition reporting."
+  },
+  {
+    "id": "kraken-orcas-water",
+    "title": "One kraken vs 20 orcas in deep ocean",
+    "solo_id": "kraken",
+    "group_id": "orca",
+    "group_quantity": "20",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "magical",
+    "terrain": "deep-ocean",
+    "weather": "storm",
+    "starting_distance_m": 80,
+    "expected_solo_win_probability_min": 0.45,
+    "expected_solo_win_probability_max": 0.75,
+    "purpose": "Checks aquatic suitability, high coordination and many-limb area control."
+  },
+  {
+    "id": "extreme-quantity",
+    "title": "One stone golem vs 10^100 house mice",
+    "solo_id": "stone-golem",
+    "group_id": "house-mouse",
+    "group_quantity": "1e100",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "magical",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 20,
+    "expected_solo_win_probability_min": 0.0,
+    "expected_solo_win_probability_max": 0.1,
+    "purpose": "Verifies arbitrary scientific notation, logarithmic force modelling and conceptual-result warnings."
+  }
+]

@@ -13,8 +13,37 @@ Desktop.ini
 *.bak
 ~$*
 
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+.yarnrc.yml
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
 # Common dependency and build output folders
 node_modules/
 dist/
 build/
 .cache/
+
+# Project-local dependency and generated metadata
+app/node_modules/
+app/*.tsbuildinfo
+app/vite.config.js
+app/vite.config.d.ts
+
+# Internal QA renders and screenshots
+qa/
+output/playwright/
+app/playwright-report/
+app/test-results/
+coverage/
+
+# Editor swap files
+*.swp

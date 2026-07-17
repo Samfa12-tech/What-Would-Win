@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://samfa12.com/what-would-win/schemas/creature.schema.json",
+  "title": "What Would Win creature profile",
+  "description": "Prototype profile schema. Physical fields and normalized model scores must remain distinguishable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "category",
+    "icon",
+    "representative_peak_mass_kg",
+    "body_length_m",
+    "shoulder_or_body_height_m",
+    "burst_speed_kph",
+    "effective_reach_m",
+    "attack",
+    "defense",
+    "durability",
+    "agility",
+    "stamina",
+    "intelligence",
+    "aggression",
+    "coordination",
+    "morale",
+    "armor",
+    "multi_target",
+    "habitats",
+    "attack_modes",
+    "traits",
+    "can_fly",
+    "aquatic",
+    "venomous",
+    "ranged",
+    "regenerates",
+    "undead_or_construct",
+    "data_confidence",
+    "source_label",
+    "source_url",
+    "model_notes"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*|custom:[a-z0-9]+(?:-[a-z0-9]+)*)$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "kind": {
+      "enum": [
+        "animal",
+        "extinct",
+        "fantasy",
+        "human"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "icon": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8
+    },
+    "representative_peak_mass_kg": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1000000000000.0
+    },
+    "body_length_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000.0
+    },
+    "shoulder_or_body_height_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000.0
+    },
+    "burst_speed_kph": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000.0
+    },
+    "effective_reach_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000.0
+    },
+    "attack": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "defense": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "durability": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "agility": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "stamina": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "intelligence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "aggression": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "coordination": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "morale": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "armor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "multi_target": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "habitats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "attack_modes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "traits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "can_fly": {
+      "type": "boolean"
+    },
+    "aquatic": {
+      "type": "boolean"
+    },
+    "venomous": {
+      "type": "boolean"
+    },
+    "ranged": {
+      "type": "boolean"
+    },
+    "regenerates": {
+      "type": "boolean"
+    },
+    "undead_or_construct": {
+      "type": "boolean"
+    },
+    "data_confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "modelled"
+      ]
+    },
+    "source_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "model_notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -14,6 +14,12 @@
 - Restricted imported and shared creature source links to public HTTP(S) URLs and made saved local profiles win any shared-ID collision.
 - Expanded ignore rules for environment files, credentials, private keys and browser-test artifacts before the first public push.
 - Audited source, dependency locks, documents, screenshots and Git metadata for secrets and private information.
+- Added compact v2 share tuples while retaining explicit migration for v1 envelopes and delivered unversioned links.
+- Added versioned, strictly validated recent-history storage with safe legacy migration, bounded records and unavailable-custom recovery states.
+- Added axe, focus, keyboard and native-control browser tests across Chromium desktop/mobile, Firefox and WebKit.
+- Added a visible methodology/about panel and model/data reproducibility identity in result assumptions.
+- Added CI gates for typecheck, unit/calibration tests, technical-depth simulation duration, the full browser matrix, production build and asset-size budgets.
+- Added schema-validated field provenance for seven high-use profiles, explicitly separating external orientation from authored model inputs.
 
 ## 0.1.0 — 2026-07-17
 

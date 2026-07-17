@@ -101,7 +101,7 @@ export type ScenarioDecodeFailureReason = 'corrupt' | 'oversized' | 'incompatibl
 export type ScenarioDecodeResult =
   | {
       ok: true
-      status: 'current' | 'migrated-legacy'
+      status: 'current' | 'migrated-v1' | 'migrated-legacy'
       payload: ScenarioSharePayload
     }
   | {
@@ -178,6 +178,9 @@ export interface SimulationResult {
 }
 
 export interface HistoryItem {
+  formatVersion: number
+  modelVersion: string
+  dataVersion: string
   id: string
   createdAt: string
   scenario: Scenario
@@ -185,4 +188,9 @@ export interface HistoryItem {
   soloName: string
   groupName: string
   soloWinProbability: number
+}
+
+export interface HistoryStore {
+  storageVersion: number
+  items: HistoryItem[]
 }

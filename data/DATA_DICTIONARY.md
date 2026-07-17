@@ -13,6 +13,8 @@ The database is selected for mechanics coverage and scenario value. It is not a 
 - `creature.schema.json` — JSON Schema for one profile.
 - `scenario.schema.json` — JSON Schema for a simulation input.
 - `test_scenarios.json` / `.csv` — calibration and acceptance fixtures.
+- `field_provenance.json` — initial field-level source and authorship records for high-use profiles.
+- `field_provenance.schema.json` — contract for those provenance records.
 
 ## Interpretation rule
 
@@ -71,6 +73,8 @@ Confidence affects trial noise and result labels. It is currently row-level; pro
 ## Sources
 
 Each prototype row has an orientation URL and warning label. This is deliberately not represented as full provenance. Before public claims are made, replace it with per-field sources, access dates, definitions, value ranges, transformations and licences.
+
+`field_provenance.json` begins that migration for seven high-use or calibration profiles. It deliberately separates externally oriented physical fields from authored model-score fields, prevents the same field appearing in both groups, and records access dates and caveats. These entries are an auditable starting point, not expert validation or evidence that one broad page supports every listed measurement.
 
 Useful starting points:
 

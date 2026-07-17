@@ -864,6 +864,80 @@ input[type="range"] {
   padding: 18px 36px 22px;
 }
 
+.result-version-note {
+  margin: 18px 18px 0;
+  color: var(--gold-light);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.methodology-panel {
+  margin: 28px 0;
+  border: 1px solid rgba(208, 166, 88, 0.34);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(208, 166, 88, 0.07), rgba(19, 31, 50, 0.78));
+}
+
+.methodology-panel > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 20px;
+  color: var(--gold-light);
+  font-weight: 800;
+}
+
+.methodology-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.methodology-panel[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.methodology-content {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+}
+
+.methodology-content h2,
+.methodology-content h3,
+.methodology-content p {
+  margin-top: 0;
+}
+
+.methodology-facts,
+.methodology-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.methodology-facts {
+  margin: 0;
+}
+
+.methodology-facts div,
+.methodology-columns section {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(4, 9, 16, 0.32);
+}
+
+.methodology-facts dt {
+  color: var(--faint);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.methodology-facts dd {
+  margin: 5px 0 0;
+  color: #e6edf5;
+  font-weight: 800;
+}
+
 .technical-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1190,7 +1264,9 @@ footer strong {
   .advanced-stat-columns,
   .strength-grid,
   .technical-grid,
-  .history-grid {
+  .history-grid,
+  .methodology-facts,
+  .methodology-columns {
     grid-template-columns: 1fr;
   }
 

@@ -8,6 +8,7 @@
 - `app/` — React/TypeScript/Vite working demo, automated tests and production `dist/` build.
 - `data/creatures.json` and `data/creatures.csv` — MVP-100 creature database.
 - `data/*.schema.json` — creature and scenario data contracts.
+- `data/field_provenance.json` — initial per-field provenance/authorship records for seven high-use profiles.
 - `data/test_scenarios.json` and `.csv` — seven calibration fixtures.
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
@@ -15,8 +16,8 @@
 ## Verified snapshot
 
 - 100 profiles: 64 living animals, 8 extinct animals, 24 fantasy/mythological profiles and 4 generic humans.
-- 33 Vitest checks passing.
-- 17 Playwright production-browser checks passing across desktop and 360 px mobile Chromium, with one intentional project-specific skip.
+- 40 Vitest checks passing, including a technical-depth simulation-duration budget.
+- 49 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
 - Seven calibration fixtures within their configured behavioural bands.
 - TypeScript project check passing.
 - Vite production build passing.
@@ -24,10 +25,15 @@
 - CSV and JSON profile IDs/order match.
 - Model/data/share versions, legacy scenario migration and incompatible-share rejection covered.
 - Named private custom profiles validated, saved locally, imported/exported and embedded in clean-browser reproducible shares.
+- Compact v2 shares retain v1 and delivered unversioned-link migration coverage.
+- Versioned, validated recent history preserves corrupt/incompatible input and unavailable custom references for recovery.
+- Automated axe and keyboard-operability coverage runs on all four browser projects.
+- CI enforces typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
+- Initial field provenance distinguishes external orientation from authored model inputs for seven high-use profiles.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
 - Product plan rendered and inspected as an 18-page DOCX and PDF; PDF preflight passed.
 
 ## Deliberate limits
 
-The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Per-field provenance, compact share encoding, versioned browser history, automated accessibility checks and a Firefox/WebKit device matrix remain roadmap work. Custom profiles are deliberately private/local unless explicitly exported or shared.
+The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. The first seven provenance records still require expert review and expansion across the remaining database. Screen-reader testing on real assistive technology remains manual. Custom profiles are deliberately private/local unless explicitly exported or shared.

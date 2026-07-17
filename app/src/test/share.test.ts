@@ -24,7 +24,9 @@ function legacyEncode(value: unknown): string {
 describe('versioned scenario sharing', () => {
   test('round trips the current envelope and exposes authoritative versions', () => {
     const scenario = defaultScenario(creatures)
-    const decoded = decodeScenarioPayload(encodeScenario(scenario))
+    const encoded = encodeScenario(scenario)
+    expect(encoded.startsWith(`${SHARE_FORMAT_VERSION}.`)).toBe(true)
+    const decoded = decodeScenarioPayload(encoded)
     expect(decoded).toEqual({
       ok: true,
       status: 'current',
@@ -38,6 +40,29 @@ describe('versioned scenario sharing', () => {
     const result = simulate(creatures, scenario)
     expect(result.technical.modelVersion).toBe(MODEL_VERSION)
     expect(result.technical.dataVersion).toBe(DATA_VERSION)
+  })
+
+  test('is compact and explicitly migrates the previous versioned envelope', () => {
+    const scenario = {
+      ...defaultScenario(creatures),
+      groupQuantity: '10^100',
+      soloOverrides: { attack: 73, stamina: 44 },
+    }
+    const previousEnvelope = {
+      formatVersion: 1,
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
+      scenario,
+    }
+    const oldEncoding = legacyEncode(previousEnvelope)
+    const currentEncoding = encodeScenario(scenario)
+    expect(currentEncoding.length).toBeLessThan(oldEncoding.length * 0.6)
+
+    const decoded = decodeScenarioPayload(oldEncoding)
+    expect(decoded).toMatchObject({ ok: true, status: 'migrated-v1' })
+    if (decoded.ok) {
+      expect(decoded.payload).toEqual(createScenarioPayload(scenario))
+    }
   })
 
   test('explicitly migrates the delivered unversioned scenario format', () => {
@@ -55,6 +80,9 @@ describe('versioned scenario sharing', () => {
     const scenario = defaultScenario(creatures)
     const incompatible: ScenarioSharePayload = { ...createScenarioPayload(scenario), modelVersion: '999.0.0' }
     expect(decodeScenarioPayload(encodeScenarioPayload(incompatible))).toMatchObject({ ok: false, reason: 'incompatible' })
+    expect(decodeScenarioPayload('999.e30')).toMatchObject({ ok: false, reason: 'incompatible' })
+    expect(decodeScenarioPayload('2e0.e30')).toMatchObject({ ok: false, reason: 'corrupt' })
+    expect(decodeScenarioPayload(`${SHARE_FORMAT_VERSION}.e30`)).toMatchObject({ ok: false, reason: 'corrupt' })
     expect(decodeScenarioPayload('not_base64!')).toMatchObject({ ok: false, reason: 'corrupt' })
     expect(decodeScenarioPayload('a'.repeat(MAX_ENCODED_SCENARIO_LENGTH + 1))).toMatchObject({ ok: false, reason: 'oversized' })
   })
@@ -65,6 +93,18 @@ describe('versioned scenario sharing', () => {
     const decoded = decodeScenarioPayload(encodeScenario(scenario, [custom]))
     expect(decoded.ok).toBe(true)
     if (decoded.ok) expect(decoded.payload.customCreatures).toEqual([custom])
+
+    const previousEncoding = legacyEncode({
+      formatVersion: 1,
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
+      scenario,
+      customCreatures: [custom],
+    })
+    const migrated = decodeScenarioPayload(previousEncoding)
+    expect(migrated).toMatchObject({ ok: true, status: 'migrated-v1' })
+    if (migrated.ok) expect(migrated.payload.customCreatures).toEqual([custom])
+
     expect(() => encodeScenario(scenario)).toThrow(/invalid scenario payload/i)
   })
 })

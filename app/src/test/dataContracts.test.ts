@@ -1,8 +1,12 @@
+import Ajv2020 from 'ajv/dist/2020.js'
+import addFormats from 'ajv-formats'
 import { describe, expect, test } from 'vitest'
 import bundledCreaturesJson from '../data/creatures.json'
 import bundledScenariosJson from '../data/test_scenarios.json'
 import canonicalCreaturesJson from '../../../data/creatures.json'
 import canonicalScenariosJson from '../../../data/test_scenarios.json'
+import fieldProvenanceJson from '../../../data/field_provenance.json'
+import fieldProvenanceSchema from '../../../data/field_provenance.schema.json'
 import { cloneAsCustom } from '../customCreatures'
 import { defaultScenario } from '../simulation/engine'
 import { validateCreature, validateScenario } from '../validation'
@@ -10,6 +14,9 @@ import type { Creature, Scenario } from '../types'
 
 const canonicalCreatures = canonicalCreaturesJson as Creature[]
 const bundledCreatures = bundledCreaturesJson as Creature[]
+const provenanceValidator = new Ajv2020({ allErrors: true, strict: true })
+addFormats(provenanceValidator)
+const validateProvenance = provenanceValidator.compile(fieldProvenanceSchema)
 
 function scenarioFromFixture(fixture: (typeof canonicalScenariosJson)[number]): Scenario {
   return {
@@ -56,5 +63,28 @@ describe('canonical data contracts', () => {
     expect(validateCreature({ ...canonicalCreatures[0], unexpected: true }).valid).toBe(false)
     expect(validateCreature({ ...custom, source_url: 'javascript:alert(document.domain)' }).valid).toBe(false)
     expect(validateCreature({ ...custom, source_url: 'file:///private/profile.json' }).valid).toBe(false)
+  })
+
+  test('high-use built-ins have schema-valid, non-overlapping field provenance', () => {
+    expect(validateProvenance(fieldProvenanceJson), provenanceValidator.errorsText(validateProvenance.errors)).toBe(true)
+    const creaturesById = new Map(canonicalCreatures.map((creature) => [creature.id, creature]))
+    const required = [
+      'mallard-duck',
+      'horse',
+      'african-bush-elephant',
+      'gray-wolf',
+      'silverback-gorilla',
+      'western-dragon',
+      'prepared-archer',
+    ]
+
+    expect(fieldProvenanceJson.records.map((record) => record.creature_id)).toEqual(required)
+    for (const record of fieldProvenanceJson.records) {
+      const creature = creaturesById.get(record.creature_id)
+      expect(creature, record.creature_id).toBeDefined()
+      const fields = record.sources.flatMap((source) => source.fields)
+      expect(new Set(fields).size, `${record.creature_id} has overlapping provenance claims`).toBe(fields.length)
+      expect(fields.every((field) => field in (creature as Creature))).toBe(true)
+    }
   })
 })

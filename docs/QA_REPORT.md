@@ -4,20 +4,22 @@
 
 ## Automated checks
 
-- Vitest: 33 tests passing across engine, custom-profile, data-contract and share-codec suites.
+- Vitest: 40 tests passing across engine, custom-profile, data-contract, history, share-codec and performance-budget suites.
 - TypeScript project build: passing.
 - Vite production build: passing.
 - Calibration scenarios: 7 within configured acceptance bands.
 - Quantity parser: positive whole integers, separators, scientific and `10^n` forms covered; fractional forces rejected.
 - Reproducibility: complete result equality for identical scenario/data/model/seed covered.
 - Draft 2020-12 validation: all 100 canonical creatures pass; invalid/extra fields, duplicate IDs and canonical/bundled drift are covered.
-- Playwright: 17 production-build checks passing across desktop Chromium and a 360 px mobile Chromium profile; 1 intentional desktop skip for the mobile-only overflow assertion.
-- Browser flows cover invalid/conceptual quantities, technical depth, custom save/reload/edit, clean-browser custom shares, same-ID share-collision protection, corrupt-storage recovery, versioned JSON export and mobile overflow.
+- Playwright: 49 production-build checks passing across desktop Chromium, a 360 px mobile Chromium profile, Firefox and WebKit; 3 intentional desktop skips for the mobile-only overflow assertion.
+- Browser flows cover invalid/conceptual quantities, technical depth, custom save/reload/edit, compact and legacy custom shares, same-ID share-collision protection, corrupt-storage and unavailable-history recovery, versioned JSON export and mobile overflow.
+- Accessibility automation scans the initial UI and expanded custom editor for serious/critical WCAG 2 A/AA, 2.1 A/AA and 2.2 AA axe violations, and exercises sequential focus, visible focus, Enter, arrow-key and disclosure behavior.
+- CI budgets cap the seven-fixture technical-depth simulation run at 2 seconds and built JavaScript/CSS/total assets at 550/25/625 kB.
 
 ## Production build snapshot
 
-- JavaScript: approximately 494.2 kB / 131.2 kB gzip.
-- CSS: approximately 17.0 kB / 4.2 kB gzip.
+- JavaScript: approximately 503.8 kB / 133.8 kB gzip.
+- CSS: approximately 18.1 kB / 4.4 kB gzip.
 - Static assets use hashed filenames.
 
 ## Visual checks
@@ -35,9 +37,8 @@ The automated browser suite runs against `app/dist/` via Vite preview. Failure t
 
 ## Known QA gaps
 
-- no axe or screen-reader audit yet;
-- no Safari/iOS or Firefox device matrix yet;
+- no manual NVDA, VoiceOver or other screen-reader audit yet;
+- no physical Safari/iOS device pass yet; WebKit desktop automation is covered;
 - PNG export is not yet browser-automated;
 - custom profiles remain local-only unless explicitly exported or embedded in a share URL;
-- browser history is corruption-tolerant JSON but does not yet have its own explicit migration/version envelope;
 - source data has not undergone expert zoological review.

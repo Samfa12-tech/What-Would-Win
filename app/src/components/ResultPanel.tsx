@@ -114,6 +114,9 @@ export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopy
       {depthAtLeast(scenario.reportDepth, 'assumptions') && (
         <details className="report-details" open={scenario.reportDepth === 'assumptions'}>
           <summary>Assumptions and limitations</summary>
+          <p className="result-version-note">
+            Reproducibility identity: model {result.technical.modelVersion} · data {result.technical.dataVersion}
+          </p>
           <ul>{result.assumptions.map((item) => <li key={item}>{item}</li>)}</ul>
         </details>
       )}

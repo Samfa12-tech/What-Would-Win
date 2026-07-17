@@ -7,7 +7,7 @@ cd app
 npm ci
 npm run test
 npm run typecheck
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 npm run test:e2e
 npm run dev
 ```
@@ -27,11 +27,12 @@ Upload the contents of `app/dist/` to the chosen static path on `samfa12.com`.
 - One-versus-X engine using deterministic log power plus seeded Monte Carlo trials.
 - Quantities such as `10^100` are handled in logarithmic space.
 - Four report-depth modes.
-- Share URL, PNG/JSON export and local browser history.
+- Compact, backward-compatible share URLs, PNG/JSON export and versioned local browser history.
 - Independent model/data versions and a versioned share envelope with explicit legacy migration and incompatibility rejection.
 - Draft 2020-12 validation for canonical data, custom imports and shared records.
 - Named private custom profiles can be cloned, edited, saved locally, imported/exported and embedded in reproducible shares.
-- Expanded Vitest calibration/interaction coverage and Playwright desktop/mobile flows run against the production build.
+- Expanded Vitest calibration/interaction/performance coverage and Playwright Chromium desktop/mobile, Firefox and WebKit flows run against the production build.
+- Automated axe and keyboard checks, a visible methodology/version panel, CI budgets and initial per-field provenance are in place.
 
 ## Read these files in order
 
@@ -45,9 +46,11 @@ Upload the contents of `app/dist/` to the chosen static path on `samfa12.com`.
 8. `app/src/customCreatures.ts`
 9. `data/DATA_DICTIONARY.md`
 10. `app/src/test/engine.test.ts`
-11. `app/src/test/dataContracts.test.ts`
-12. `app/e2e/app.spec.ts`
-13. `data/test_scenarios.json`
+11. `data/field_provenance.json`
+12. `app/src/test/dataContracts.test.ts`
+13. `app/e2e/app.spec.ts`
+14. `app/e2e/accessibility.spec.ts`
+15. `data/test_scenarios.json`
 
 ## Product invariants
 
@@ -77,24 +80,22 @@ Do not replace the engine with a single LLM prompt. An AI layer may propose stru
 
 ## Known limitations
 
-- Data uses one orientation URL per row rather than per-field provenance.
+- Per-field provenance currently covers only seven high-use profiles and still needs expert review.
 - Group effectiveness and strict scaling use global calibrated functions rather than archetype-specific fits.
 - Casualty and duration estimates are heuristic.
-- Share encoding is readable rather than compact; embedded custom records can produce long URLs even with the enforced safety limit.
 - Custom profiles are browser-local and require explicit JSON export for backup or transfer outside a share link.
-- Browser automation currently targets Chromium desktop and a 360 px Chromium mobile profile; Firefox, WebKit and screen-reader testing remain manual gaps.
+- Real NVDA/VoiceOver and physical Safari/iOS testing remain manual gaps.
 - The source uses template-based narrative only.
 
 ## Recommended next task
 
-Harden the trustworthy-beta surface without changing model coefficients:
+Prepare a user-test candidate without changing model coefficients:
 
-1. add automated axe checks plus keyboard, VoiceOver/NVDA, Firefox and WebKit passes;
-2. version and validate local history records, including unavailable deleted-custom references;
-3. add compact share encoding before expanding custom-profile payloads further;
-4. add a methodology/about panel and visible model/data version near the result assumptions;
-5. add CI for unit tests, browser tests, build size and simulation-duration budgets;
-6. begin per-field provenance work on the most-used built-ins.
+1. run a manual exploratory and screen-reader pass, prioritising custom-profile creation, history recovery and compact-share migration;
+2. expand and independently review per-field provenance for the most-used real-animal profiles;
+3. add PNG-download automation and validate static hosting from the intended `samfa12.com` subpath;
+4. choose an explicit source-code licence and complete third-party data/licence review;
+5. collect structured user feedback before any calibration or visual-polish changes.
 
 ## Verification commands
 
@@ -109,4 +110,4 @@ For every engine change, print the seven fixture probabilities locally and revie
 
 ## Handoff prompt for Codex
 
-> Continue the What Would Win React/TypeScript project. Read the product plan and engine before editing. Preserve the static-first architecture, one-versus-X scope, deterministic-plus-Monte-Carlo authority, logarithmic quantity handling, abstract violence and transparent uncertainty. The version/schema/custom-profile foundation is complete. Begin with accessibility and cross-browser hardening, versioned history recovery, compact shares or per-field provenance. Run unit tests, browser tests, typecheck and production build. Update documentation and explain every coefficient or data-contract change.
+> Continue the What Would Win React/TypeScript project. Read the product plan and engine before editing. Preserve the static-first architecture, one-versus-X scope, deterministic-plus-Monte-Carlo authority, logarithmic quantity handling, abstract violence and transparent uncertainty. The trustworthy-beta engineering foundation is complete. Begin with manual assistive-technology and exploratory QA, provenance expansion, PNG-download automation or static-subpath validation. Run unit tests, browser tests, typecheck, budgets and production build. Update documentation and explain every coefficient or data-contract change.

@@ -5,4 +5,4 @@
  */
 export const MODEL_VERSION = '0.1.0' as const
 export const DATA_VERSION = '0.1.0' as const
-export const SHARE_FORMAT_VERSION = 1 as const
+export const SHARE_FORMAT_VERSION = 2 as const

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
 const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v1'
+const HISTORY_STORAGE_KEY = 'what-would-win-history-v1'
 const CUSTOM_NAME = 'Codex Field Beast'
 
 function soloPanel(page: Page) {
@@ -24,14 +25,38 @@ async function createSavedCustom(page: Page, name = CUSTOM_NAME): Promise<string
   return customId
 }
 
-function decodeSharePayload(url: string): Record<string, unknown> {
-  const encoded = new URL(url).searchParams.get('s')
-  expect(encoded).toBeTruthy()
-  return JSON.parse(Buffer.from(encoded!, 'base64url').toString('utf8')) as Record<string, unknown>
+interface CompactSharePayload {
+  formatVersion: number
+  modelVersion: string
+  dataVersion: string
+  scenario: unknown
+  customCreatures?: unknown[][]
 }
 
-function encodeSharePayload(payload: Record<string, unknown>): string {
-  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
+function decodeSharePayload(url: string): CompactSharePayload {
+  const encoded = new URL(url).searchParams.get('s')
+  expect(encoded).toBeTruthy()
+  const separatorIndex = encoded!.indexOf('.')
+  expect(separatorIndex).toBeGreaterThan(0)
+  const formatVersion = Number(encoded!.slice(0, separatorIndex))
+  const wire = JSON.parse(Buffer.from(encoded!.slice(separatorIndex + 1), 'base64url').toString('utf8')) as unknown[]
+  return {
+    formatVersion,
+    modelVersion: wire[0] as string,
+    dataVersion: wire[1] as string,
+    scenario: wire[2],
+    ...(wire.length === 4 ? { customCreatures: wire[3] as unknown[][] } : {}),
+  }
+}
+
+function encodeSharePayload(payload: CompactSharePayload): string {
+  const wire = [
+    payload.modelVersion,
+    payload.dataVersion,
+    payload.scenario,
+    ...(payload.customCreatures ? [payload.customCreatures] : []),
+  ]
+  return `${payload.formatVersion}.${Buffer.from(JSON.stringify(wire), 'utf8').toString('base64url')}`
 }
 
 async function openSharedScenarioInCleanBrowser(browser: Browser, shareUrl: string) {
@@ -49,6 +74,9 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page).toHaveTitle(/What Would Win/)
   await expect(page.getByRole('heading', { name: 'What Would Win' })).toBeVisible()
   await expect(page.getByText(/transparent entertainment model, not a scientific prediction/i)).toBeVisible()
+  await page.getByText('How the model works', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Transparent assumptions, deterministic authority' })).toBeVisible()
+  await expect(page.getByText('one versus X', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Custom profile tools' })).toContainText('save it only in this browser')
   await expect(page.locator('footer')).toContainText(/Model .+ · Data .+ · React\/TypeScript/)
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
@@ -111,9 +139,8 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     modelVersion: expect.any(String),
     dataVersion: expect.any(String),
   }))
-  expect(payload.customCreatures).toEqual([
-    expect.objectContaining({ id: customId, name: 'Shared Field Beast' }),
-  ])
+  expect(payload.customCreatures?.[0]?.[0]).toBe(customId)
+  expect(payload.customCreatures?.[0]?.[1]).toBe('Shared Field Beast')
 
   const clean = await openSharedScenarioInCleanBrowser(browser, shareUrl)
   try {
@@ -135,8 +162,9 @@ test('a shared custom profile cannot shadow a saved local profile with the same 
   await page.getByRole('button', { name: 'Copy share link' }).click()
   await expect(page).toHaveURL(/\?s=/)
   const payload = decodeSharePayload(page.url())
-  const shared = (payload.customCreatures as Array<Record<string, unknown>>)[0]
-  shared.name = 'Shared Shadow Beast'
+  const shared = payload.customCreatures?.[0]
+  expect(shared).toBeTruthy()
+  shared![1] = 'Shared Shadow Beast'
 
   await page.goto(`/?s=${encodeSharePayload(payload)}`)
 
@@ -153,6 +181,41 @@ test('corrupt custom-profile storage recovers visibly without overwriting the st
   await expect(page.getByRole('alert')).toContainText('stored data was left untouched')
   expect(await page.evaluate((key) => localStorage.getItem(key), CUSTOM_STORAGE_KEY)).toBe('{not valid json')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
+})
+
+test('legacy history migrates to a versioned envelope and corrupt history remains untouched', async ({ page }) => {
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  const legacy = current.items.map(({ formatVersion: _formatVersion, modelVersion: _modelVersion, dataVersion: _dataVersion, ...item }: Record<string, unknown>) => item)
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: JSON.stringify(legacy) })
+  await page.reload()
+
+  await expect(page.getByTestId('history-warning')).toContainText('migrated')
+  const migrated = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  expect(migrated.storageVersion).toBe(1)
+  expect(migrated.items[0]).toEqual(expect.objectContaining({
+    formatVersion: 1,
+    modelVersion: expect.any(String),
+    dataVersion: expect.any(String),
+  }))
+
+  await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
+  await page.reload()
+  await expect(page.getByTestId('history-warning')).toContainText('invalid JSON')
+  expect(await page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).toBe('{bad history json')
+})
+
+test('history entries referencing a deleted custom profile remain visible but cannot be restored', async ({ page }) => {
+  await createSavedCustom(page, 'History Field Beast')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await soloPanel(page).getByRole('button', { name: 'Delete custom' }).click()
+  await page.reload()
+
+  await expect(page.getByTestId('history-warning')).toContainText('profile that is no longer available')
+  const unavailableCard = page.locator('.history-card').filter({ hasText: 'History Field Beast' })
+  await expect(unavailableCard).toBeDisabled()
+  await expect(unavailableCard).toContainText('Unavailable: missing custom profile')
 })
 
 test('result JSON download includes version metadata and the selected custom record', async ({ page }) => {

@@ -18,14 +18,14 @@ npm run typecheck
 npm run build
 ```
 
-Install the Chromium test browser once, then run the production-build browser suite:
+Install the supported test browsers once, then run the production-build browser suite:
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 npm run test:e2e
 ```
 
-`npm run test:all` runs Vitest and Playwright together. Playwright artifacts are kept under `output/playwright/` and are not part of the deployable build.
+`npm run test:all` runs Vitest and Playwright together. `npm run test:simulation-budget` enforces the technical-depth calibration runtime budget, and `node scripts/check-build-budgets.mjs` checks the built asset budgets. Playwright artifacts are kept under `output/playwright/` and are not part of the deployable build.
 
 The deployable static site is written to `app/dist/`.
 
@@ -44,6 +44,7 @@ The deployable static site is written to `app/dist/`.
 - `data/creatures.json` and `data/creatures.csv`
 - `data/creature.schema.json`
 - `data/scenario.schema.json`
+- `data/field_provenance.json` and `data/field_provenance.schema.json`
 - `data/test_scenarios.json` and `.csv`
 
 The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy entries are explicit design assumptions. This is an entertainment model, not a scientific prediction or animal-welfare guide.
@@ -52,7 +53,7 @@ Canonical data and the app-bundled copies are checked for drift. Every creature 
 
 ## Versioning and compatibility
 
-The app publishes independent model and bundled-data versions plus a share-format version. Share links embed referenced custom profiles, migrate the delivered unversioned scenario format, and reject corrupt, oversized or incompatible payloads rather than silently changing a result.
+The app publishes independent model and bundled-data versions plus a share-format version. Compact v2 share links embed referenced custom profiles, migrate v1 and delivered unversioned scenarios, and reject corrupt, oversized or incompatible payloads rather than silently changing a result. Recent-history storage has its own validated version envelope and preserves corrupt or incompatible source data for recovery.
 
 ## Hosting on samfa12.com
 

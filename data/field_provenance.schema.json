@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://samfa12.com/what-would-win/schemas/field_provenance.schema.json",
+  "title": "What Would Win field provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provenanceVersion", "records"],
+  "properties": {
+    "provenanceVersion": {
+      "const": 1
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["creature_id", "sources"],
+        "properties": {
+          "creature_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source_id", "source_type", "label", "fields", "note"],
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                "source_type": {
+                  "enum": ["external_orientation", "authored_model"]
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?://"
+                },
+                "fields": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "kind", "category", "representative_peak_mass_kg", "body_length_m",
+                      "shoulder_or_body_height_m", "burst_speed_kph", "effective_reach_m",
+                      "attack", "defense", "durability", "agility", "stamina", "intelligence",
+                      "aggression", "coordination", "morale", "armor", "multi_target",
+                      "habitats", "attack_modes", "traits", "can_fly", "aquatic", "venomous",
+                      "ranged", "regenerates", "undead_or_construct", "model_notes"
+                    ]
+                  }
+                },
+                "note": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "source_type": {
+                        "const": "external_orientation"
+                      }
+                    },
+                    "required": ["source_type"]
+                  },
+                  "then": {
+                    "properties": {
+                      "url": {}
+                    },
+                    "required": ["url"]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

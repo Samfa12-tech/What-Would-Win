@@ -4,6 +4,7 @@ import { CreaturePanel } from './components/CreaturePanel'
 import { ResultPanel } from './components/ResultPanel'
 import { StatControls } from './components/StatControls'
 import { CustomCreatureEditor } from './components/CustomCreatureEditor'
+import { MethodologyPanel } from './components/MethodologyPanel'
 import {
   cloneAsCustom,
   cloneSavedItem,
@@ -16,11 +17,15 @@ import {
 } from './customCreatures'
 import { defaultScenario, simulate, TRIALS_BY_DEPTH } from './simulation/engine'
 import { buildShareUrl, decodeScenarioPayload } from './simulation/share'
-import type { Creature, HistoryItem, Scenario, SimulationResult, StatOverrides } from './types'
+import type { Creature, HistoryItem, HistoryStore, Scenario, SimulationResult, StatOverrides } from './types'
+import { validateScenario } from './validation'
 import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
 
 const builtInCreatures = creatureJson as Creature[]
-const HISTORY_KEY = 'what-would-win-history-v1'
+export const HISTORY_KEY = 'what-would-win-history-v1'
+export const HISTORY_STORAGE_VERSION = 1
+export const HISTORY_ITEM_FORMAT_VERSION = 1
+const MAX_HISTORY_ITEMS = 12
 
 const scalingModes: Array<{ value: Scenario['scalingMode']; title: string; description: string }> = [
   { value: 'strict', title: 'Strict biology', description: 'Square-cube-style structural stress can cripple extreme resizing.' },
@@ -60,13 +65,145 @@ interface InitialAppState {
   savedCustoms: SavedCustomCreature[]
   sharedCustoms: Creature[]
   warning: string
+  history: HistoryItem[]
+  historyWarning: string
+}
+
+export interface HistoryLoadResult {
+  items: HistoryItem[]
+  warning: string
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
+  const allowed = new Set(keys)
+  return Object.keys(value).every((key) => allowed.has(key))
+}
+
+function validHistoryText(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= 200
+}
+
+function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
+  if (!isRecord(value)) return null
+  const legacyKeys = ['id', 'createdAt', 'scenario', 'winnerName', 'soloName', 'groupName', 'soloWinProbability']
+  const currentKeys = ['formatVersion', 'modelVersion', 'dataVersion', ...legacyKeys]
+  if (!hasOnlyKeys(value, legacy ? legacyKeys : currentKeys)) return null
+  if (!legacy && (
+    value.formatVersion !== HISTORY_ITEM_FORMAT_VERSION
+    || value.modelVersion !== MODEL_VERSION
+    || value.dataVersion !== DATA_VERSION
+  )) return null
+  if (
+    !validHistoryText(value.id)
+    || typeof value.createdAt !== 'string'
+    || !Number.isFinite(Date.parse(value.createdAt))
+    || !validHistoryText(value.winnerName)
+    || !validHistoryText(value.soloName)
+    || !validHistoryText(value.groupName)
+    || typeof value.soloWinProbability !== 'number'
+    || !Number.isFinite(value.soloWinProbability)
+    || value.soloWinProbability < 0
+    || value.soloWinProbability > 1
+    || !validateScenario(value.scenario).valid
+  ) return null
+
+  return {
+    formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+    modelVersion: MODEL_VERSION,
+    dataVersion: DATA_VERSION,
+    id: value.id,
+    createdAt: value.createdAt,
+    scenario: value.scenario as Scenario,
+    winnerName: value.winnerName,
+    soloName: value.soloName,
+    groupName: value.groupName,
+    soloWinProbability: value.soloWinProbability,
+  }
+}
+
+function historyStore(items: HistoryItem[]): HistoryStore {
+  return { storageVersion: HISTORY_STORAGE_VERSION, items }
+}
+
+export function loadHistory(storage: Storage): HistoryLoadResult {
+  let raw: string | null
+  try {
+    raw = storage.getItem(HISTORY_KEY)
+  } catch {
+    return { items: [], warning: 'Recent history could not be read from this browser.' }
+  }
+  if (!raw) return { items: [], warning: '' }
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    const legacy = Array.isArray(parsed)
+    if (!legacy && (
+      !isRecord(parsed)
+      || !hasOnlyKeys(parsed, ['storageVersion', 'items'])
+      || parsed.storageVersion !== HISTORY_STORAGE_VERSION
+      || !Array.isArray(parsed.items)
+    )) {
+      return { items: [], warning: 'Recent history uses an incompatible or damaged storage format. The stored data was left untouched.' }
+    }
+
+    const candidates = (legacy ? parsed : (parsed as { items: unknown[] }).items)
+    const items: HistoryItem[] = []
+    const ids = new Set<string>()
+    let ignored = Math.max(0, candidates.length - MAX_HISTORY_ITEMS)
+    for (const candidate of candidates.slice(0, MAX_HISTORY_ITEMS)) {
+      const item = parseHistoryItem(candidate, legacy)
+      if (!item || ids.has(item.id)) {
+        ignored += 1
+        continue
+      }
+      ids.add(item.id)
+      items.push(item)
+    }
+
+    let migrationWarning = ''
+    if (legacy && ignored === 0) {
+      try {
+        storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
+        migrationWarning = 'Legacy recent history was migrated to the current version.'
+      } catch {
+        migrationWarning = 'Legacy recent history was loaded but could not be migrated in this browser.'
+      }
+    }
+    const ignoredWarning = ignored
+      ? `${ignored} invalid, incompatible or duplicate history ${ignored === 1 ? 'entry was' : 'entries were'} ignored. The stored data was left untouched.`
+      : ''
+    return { items, warning: [migrationWarning, ignoredWarning].filter(Boolean).join(' ') }
+  } catch {
+    return { items: [], warning: 'Recent history contains invalid JSON. The stored data was left untouched.' }
+  }
+}
+
+function saveHistoryStore(storage: Storage, items: HistoryItem[]): void {
+  storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
+}
+
+function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]): string[] {
+  const availableIds = new Set(creatures.map((creature) => creature.id))
+  return [...new Set([item.scenario.soloId, item.scenario.groupId].filter((id) => !availableIds.has(id)))]
 }
 
 function initialAppState(): InitialAppState {
   if (typeof window === 'undefined') {
-    return { scenario: defaultScenario(builtInCreatures), savedCustoms: [], sharedCustoms: [], warning: '' }
+    return {
+      scenario: defaultScenario(builtInCreatures),
+      savedCustoms: [],
+      sharedCustoms: [],
+      warning: '',
+      history: [],
+      historyWarning: '',
+    }
   }
   const loaded = loadCustomCreatures(window.localStorage)
+  const loadedHistory = loadHistory(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
   const decoded = encoded ? decodeScenarioPayload(encoded) : null
   const decodedSharedCustoms = decoded?.ok ? decoded.payload.customCreatures ?? [] : []
@@ -80,26 +217,25 @@ function initialAppState(): InitialAppState {
   ]
   const shareWarning = decoded && !decoded.ok
     ? decoded.message
-    : decoded?.status === 'migrated-legacy'
-      ? 'This legacy share link was migrated to the current scenario format.'
-      : ''
+    : decoded?.status === 'migrated-v1'
+      ? 'This version 1 share link was migrated to the compact current format.'
+      : decoded?.status === 'migrated-legacy'
+        ? 'This legacy share link was migrated to the current scenario format.'
+        : ''
   const collisionWarning = ignoredSharedCount
     ? 'A shared custom profile was ignored because a saved local profile uses the same ID.'
+    : ''
+  const unavailableHistoryCount = loadedHistory.items.filter((item) => unavailableHistoryReferences(item, creatures).length > 0).length
+  const unavailableHistoryWarning = unavailableHistoryCount
+    ? `${unavailableHistoryCount} recent history ${unavailableHistoryCount === 1 ? 'entry references' : 'entries reference'} a profile that is no longer available. Import the missing custom profile to restore it.`
     : ''
   return {
     scenario: mergeScenario(decoded?.ok ? decoded.payload.scenario : null, creatures),
     savedCustoms: loaded.items,
     sharedCustoms,
     warning: [loaded.warning, shareWarning, collisionWarning].filter(Boolean).join(' '),
-  }
-}
-
-function loadHistory(): HistoryItem[] {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY)
-    return raw ? (JSON.parse(raw) as HistoryItem[]) : []
-  } catch {
-    return []
+    history: loadedHistory.items,
+    historyWarning: [loadedHistory.warning, unavailableHistoryWarning].filter(Boolean).join(' '),
   }
 }
 
@@ -197,7 +333,8 @@ function App() {
   const [result, setResult] = useState<SimulationResult>(() => simulate(creatures, startingScenario))
   const [error, setError] = useState('')
   const [shareStatus, setShareStatus] = useState('')
-  const [history, setHistory] = useState<HistoryItem[]>(loadHistory)
+  const [history, setHistory] = useState<HistoryItem[]>(starting.history)
+  const [historyWarning, setHistoryWarning] = useState(starting.historyWarning)
 
   const solo = creatures.find((item) => item.id === scenario.soloId) ?? creatures[0]
   const group = creatures.find((item) => item.id === scenario.groupId) ?? creatures[1]
@@ -314,6 +451,9 @@ function App() {
 
   function saveHistory(nextScenario: Scenario, nextResult: SimulationResult) {
     const nextItem: HistoryItem = {
+      formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       createdAt: new Date().toISOString(),
       scenario: nextScenario,
@@ -322,9 +462,14 @@ function App() {
       groupName: creatures.find((item) => item.id === nextScenario.groupId)?.name ?? nextScenario.groupId,
       soloWinProbability: nextResult.soloWinProbability,
     }
-    const nextHistory = [nextItem, ...history].slice(0, 12)
+    const nextHistory = [nextItem, ...history].slice(0, MAX_HISTORY_ITEMS)
     setHistory(nextHistory)
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory))
+    try {
+      saveHistoryStore(localStorage, nextHistory)
+      setHistoryWarning('')
+    } catch {
+      setHistoryWarning('The simulation ran, but recent history could not be saved in this browser.')
+    }
   }
 
   function run(nextScenario = scenario, recordHistory = true) {
@@ -346,7 +491,13 @@ function App() {
   }
 
   function restoreHistory(item: HistoryItem) {
+    const unavailable = unavailableHistoryReferences(item, creatures)
+    if (unavailable.length > 0) {
+      setHistoryWarning('This history entry cannot be restored because a referenced profile is no longer available. Import the missing custom profile and try again.')
+      return
+    }
     run(mergeScenario(item.scenario, creatures), false)
+    setHistoryWarning('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -437,6 +588,8 @@ function App() {
         <div className="method-banner">
           <strong>Interpretation rule:</strong> real animals use a representative high-end adult profile. Fantasy entries are explicit design assumptions. The result is a transparent entertainment model, not a scientific prediction or animal-welfare guide.
         </div>
+
+        <MethodologyPanel />
 
         <section className="custom-profile-bar" aria-label="Custom profile tools">
           <div>
@@ -661,21 +814,33 @@ function App() {
               className="text-button"
               onClick={() => {
                 setHistory([])
+                setHistoryWarning('')
                 localStorage.removeItem(HISTORY_KEY)
               }}
             >Clear history</button>
           </div>
+          {historyWarning && <div className="error-banner" role="alert" data-testid="history-warning">{historyWarning}</div>}
           {history.length === 0 ? (
             <p className="empty-state">Run a simulation and it will be stored on this device without an account.</p>
           ) : (
             <div className="history-grid">
-              {history.map((item) => (
-                <button type="button" className="history-card" key={item.id} onClick={() => restoreHistory(item)}>
-                  <span>{new Date(item.createdAt).toLocaleString('en-AU')}</span>
-                  <strong>{item.soloName} vs {item.scenario.groupQuantity} {item.groupName}</strong>
-                  <small>Winner: {item.winnerName}</small>
-                </button>
-              ))}
+              {history.map((item) => {
+                const unavailable = unavailableHistoryReferences(item, creatures)
+                return (
+                  <button
+                    type="button"
+                    className="history-card"
+                    key={item.id}
+                    onClick={() => restoreHistory(item)}
+                    disabled={unavailable.length > 0}
+                    title={unavailable.length > 0 ? 'A referenced profile is no longer available.' : undefined}
+                  >
+                    <span>{new Date(item.createdAt).toLocaleString('en-AU')}</span>
+                    <strong>{item.soloName} vs {item.scenario.groupQuantity} {item.groupName}</strong>
+                    <small>{unavailable.length > 0 ? 'Unavailable: missing custom profile' : `Winner: ${item.winnerName}`}</small>
+                  </button>
+                )
+              })}
             </div>
           )}
         </section>

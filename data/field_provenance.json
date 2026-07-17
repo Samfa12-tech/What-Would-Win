@@ -1,0 +1,145 @@
+{
+  "provenanceVersion": 1,
+  "records": [
+    {
+      "creature_id": "mallard-duck",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Mallard orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Mallard",
+          "fields": ["kind", "category", "representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "habitats"],
+          "note": "Broad orientation only. Exact prototype values still require expert review and stronger primary sourcing."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 authored assumptions",
+          "fields": ["effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        }
+      ]
+    },
+    {
+      "creature_id": "horse",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Horse orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Horse",
+          "fields": ["kind", "category", "representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "habitats"],
+          "note": "Broad orientation only. Exact prototype values still require expert review and stronger primary sourcing."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 authored assumptions",
+          "fields": ["effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        }
+      ]
+    },
+    {
+      "creature_id": "african-bush-elephant",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "African bush elephant orientation reference",
+          "url": "https://en.wikipedia.org/wiki/African_bush_elephant",
+          "fields": ["kind", "category", "representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "habitats"],
+          "note": "Broad orientation only. Exact prototype values still require expert review and stronger primary sourcing."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 authored assumptions",
+          "fields": ["effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        }
+      ]
+    },
+    {
+      "creature_id": "gray-wolf",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Gray wolf orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Wolf",
+          "fields": ["kind", "category", "representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "habitats"],
+          "note": "Broad orientation only. Exact prototype values still require expert review and stronger primary sourcing."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 authored assumptions",
+          "fields": ["effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        }
+      ]
+    },
+    {
+      "creature_id": "silverback-gorilla",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Gorilla orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Gorilla",
+          "fields": ["kind", "category", "representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "habitats"],
+          "note": "Broad orientation only. Exact prototype values still require expert review and stronger primary sourcing."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 authored assumptions",
+          "fields": ["effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        }
+      ]
+    },
+    {
+      "creature_id": "western-dragon",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Dragon concept orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Dragon",
+          "fields": ["kind", "category"],
+          "note": "Concept orientation only; this fantasy profile is not presented as a zoological claim."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 fantasy design assumptions",
+          "fields": ["representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "habitats", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "All physical, combat and capability values are explicit fantasy design assumptions."
+        }
+      ]
+    },
+    {
+      "creature_id": "prepared-archer",
+      "sources": [
+        {
+          "source_id": "orientation",
+          "source_type": "external_orientation",
+          "label": "Archery concept orientation reference",
+          "url": "https://en.wikipedia.org/wiki/Archery",
+          "fields": ["kind", "category"],
+          "note": "Concept orientation only; the profile is generic and is not tied to a named person, culture or historical unit."
+        },
+        {
+          "source_id": "model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win v0.1 generic human design assumptions",
+          "fields": ["representative_peak_mass_kg", "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "effective_reach_m", "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression", "coordination", "morale", "armor", "multi_target", "habitats", "attack_modes", "traits", "can_fly", "aquatic", "venomous", "ranged", "regenerates", "undead_or_construct", "model_notes"],
+          "note": "All physical, combat, equipment and capability values are authored generic scenario assumptions."
+        }
+      ]
+    }
+  ]
+}

@@ -82,6 +82,25 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
+test('publishes the branded icon and install metadata', async ({ page, request }) => {
+  await expect(page.locator('link[rel="icon"][sizes="any"]')).toHaveAttribute('href', './icons/favicon.ico')
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', './icons/apple-touch-icon.png')
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', './site.webmanifest')
+
+  const manifestResponse = await request.get('/site.webmanifest')
+  expect(manifestResponse.ok()).toBe(true)
+  const manifest = await manifestResponse.json() as { name: string; icons: Array<{ src: string; sizes: string }> }
+  expect(manifest.name).toBe('What Would Win')
+  expect(manifest.icons).toEqual(expect.arrayContaining([
+    expect.objectContaining({ src: 'icons/icon-192.png', sizes: '192x192' }),
+    expect.objectContaining({ src: 'icons/icon-512.png', sizes: '512x512' }),
+  ]))
+
+  const iconResponse = await request.get('/icons/icon-192.png')
+  expect(iconResponse.ok()).toBe(true)
+  expect(iconResponse.headers()['content-type']).toContain('image/png')
+})
+
 test('rejects invalid quantities and handles 10^100 as a conceptual calculation', async ({ page }) => {
   const quantity = page.getByLabel('Quantity')
   await quantity.fill('0')

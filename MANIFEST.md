@@ -6,6 +6,8 @@
 - `docs/What_Would_Win_Product_Plan.pdf` — fixed-layout version of the same plan.
 - `docs/What_Would_Win_Product_Plan.md` — source-friendly version for Codex and version control.
 - `app/` — React/TypeScript/Vite working demo, automated tests and production `dist/` build.
+- `assets/brand/what-would-win-icon-master.png` — full-resolution generated source for the one-versus-many application mark.
+- `app/public/icons/` and `app/public/site.webmanifest` — optimized deployed icon and install metadata.
 - `data/creatures.json` and `data/creatures.csv` — MVP-100 creature database.
 - `data/*.schema.json` — creature and scenario data contracts.
 - `data/field_provenance.json` — initial per-field provenance/authorship records for seven high-use profiles.
@@ -17,7 +19,7 @@
 
 - 100 profiles: 64 living animals, 8 extinct animals, 24 fantasy/mythological profiles and 4 generic humans.
 - 40 Vitest checks passing, including a technical-depth simulation-duration budget.
-- 49 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
+- 53 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
 - Seven calibration fixtures within their configured behavioural bands.
 - TypeScript project check passing.
 - Vite production build passing.
@@ -30,6 +32,7 @@
 - Automated axe and keyboard-operability coverage runs on all four browser projects.
 - CI enforces typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
 - Initial field provenance distinguishes external orientation from authored model inputs for seven high-use profiles.
+- Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
 - Product plan rendered and inspected as an 18-page DOCX and PDF; PDF preflight passed.

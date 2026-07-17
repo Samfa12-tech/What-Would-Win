@@ -29,6 +29,8 @@ npm run test:e2e
 
 The deployable static site is written to `app/dist/`.
 
+The production identity assets live under `app/public/icons/`; the full-resolution raster source is retained at `assets/brand/what-would-win-icon-master.png`. Icon and manifest paths are relative so they remain compatible with static subdirectory hosting.
+
 ## Documentation
 
 - `docs/What_Would_Win_Product_Plan.docx` and `.pdf` — styled product and simulation specification.

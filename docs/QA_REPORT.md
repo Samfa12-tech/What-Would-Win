@@ -11,8 +11,9 @@
 - Quantity parser: positive whole integers, separators, scientific and `10^n` forms covered; fractional forces rejected.
 - Reproducibility: complete result equality for identical scenario/data/model/seed covered.
 - Draft 2020-12 validation: all 100 canonical creatures pass; invalid/extra fields, duplicate IDs and canonical/bundled drift are covered.
-- Playwright: 49 production-build checks passing across desktop Chromium, a 360 px mobile Chromium profile, Firefox and WebKit; 3 intentional desktop skips for the mobile-only overflow assertion.
+- Playwright: 53 production-build checks passing across desktop Chromium, a 360 px mobile Chromium profile, Firefox and WebKit; 3 intentional desktop skips for the mobile-only overflow assertion.
 - Browser flows cover invalid/conceptual quantities, technical depth, custom save/reload/edit, compact and legacy custom shares, same-ID share-collision protection, corrupt-storage and unavailable-history recovery, versioned JSON export and mobile overflow.
+- Static identity checks cover favicon, Apple touch icon, web-manifest metadata and deployed PNG availability.
 - Accessibility automation scans the initial UI and expanded custom editor for serious/critical WCAG 2 A/AA, 2.1 A/AA and 2.2 AA axe violations, and exercises sequential focus, visible focus, Enter, arrow-key and disclosure behavior.
 - CI budgets cap the seven-fixture technical-depth simulation run at 2 seconds and built JavaScript/CSS/total assets at 550/25/625 kB.
 
@@ -20,6 +21,7 @@
 
 - JavaScript: approximately 503.8 kB / 133.8 kB gzip.
 - CSS: approximately 18.1 kB / 4.4 kB gzip.
+- Total deployable payload: approximately 613.8 kB against a 625 kB budget.
 - Static assets use hashed filenames.
 
 ## Visual checks

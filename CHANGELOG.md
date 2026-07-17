@@ -21,6 +21,7 @@
 - Added CI gates for typecheck, unit/calibration tests, technical-depth simulation duration, the full browser matrix, production build and asset-size budgets.
 - Updated checkout and Node setup to the current official GitHub Actions v7 runtimes.
 - Added schema-validated field provenance for seven high-use profiles, explicitly separating external orientation from authored model inputs.
+- Added the first production application icon, favicon sizes, Apple touch icon and static-host-compatible web manifest.
 
 ## 0.1.0 — 2026-07-17
 

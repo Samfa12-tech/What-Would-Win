@@ -567,7 +567,6 @@ function App() {
     setScenario(nextScenario)
     setError('')
     setShareStatus('')
-    document.getElementById('matchup')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   function runAndReveal() {
@@ -667,9 +666,7 @@ function App() {
           <p className="hero-copy">A mock-serious, textual simulator for one creature versus an effectively unlimited opposing force.</p>
         </div>
         <div className="header-meta">
-          <span>134-profile database</span>
-          <span>1 vs X engine</span>
-          <span>Zero graphic violence</span>
+          <span>134 profiles · deterministic + Monte Carlo · non-graphic</span>
         </div>
       </header>
 
@@ -681,36 +678,38 @@ function App() {
           <a href="#history"><span>04</span> History</a>
         </div>
         <div className="nav-case" aria-label={`Current case: ${solo.name} versus ${scenario.groupQuantity} ${group.name}`}>
-          <span aria-hidden="true">{solo.icon}</span>
           <strong>{solo.name}</strong>
           <em>vs</em>
           <strong>{scenario.groupQuantity} × {group.name}</strong>
           {isDirty && <i>Unrun changes</i>}
         </div>
-        <button type="button" className="primary-button nav-run-button" onClick={runAndReveal}>Run case</button>
       </nav>
 
       <main>
         <section className="matchup-intro" id="matchup">
           <div>
             <p className="eyebrow">CASE ASSEMBLY</p>
-            <h2>Build an argument worth testing</h2>
+            <h2>Choose the contestants</h2>
           </div>
-          <p>Search the roster, set the numbers, then decide which physical rules the argument obeys.</p>
+          <p>Search the roster, set the numbers and define the physical rules.</p>
         </section>
 
-        <div className="field-brief-grid" aria-label="Suggested matchup briefings">
-          {fieldBriefs.map((brief) => (
-            <button type="button" className="field-brief" key={brief.id} onClick={() => applyFieldBrief(brief)}>
-              <span>{brief.kicker}</span>
-              <strong>{brief.title}</strong>
-              <small>{brief.description}</small>
-            </button>
-          ))}
-        </div>
+        <details className="field-briefings">
+          <summary><span>Try a suggested matchup</span><small>4 field briefings</small></summary>
+          <div className="field-brief-grid" aria-label="Suggested matchup briefings">
+            {fieldBriefs.map((brief) => (
+              <button type="button" className="field-brief" key={brief.id} onClick={() => applyFieldBrief(brief)}>
+                <span>{brief.kicker}</span>
+                <strong>{brief.title}</strong>
+                <small>{brief.description}</small>
+              </button>
+            ))}
+          </div>
+        </details>
 
         <section className="matchup-grid" aria-label="Contestant selection">
           <CreaturePanel
+            side="solo"
             title="The one"
             subtitle="SOLO PROFILE · QUANTITY FIXED AT 1"
             creature={solo}
@@ -733,6 +732,7 @@ function App() {
           <div className="versus-mark" aria-hidden="true"><span>VS</span></div>
 
           <CreaturePanel
+            side="group"
             title="The many"
             subtitle="GROUP PROFILE · USER-DEFINED QUANTITY"
             creature={group}
@@ -862,20 +862,6 @@ function App() {
             <p className="field-help">“Bloodlusted” means efficient, optimal use of abilities—not a berserker rage.</p>
           </fieldset>
 
-          <fieldset className="choice-fieldset">
-            <legend>Report depth and simulation effort</legend>
-            <div className="choice-card-grid four-up">
-              {reportDepths.map((depth) => (
-                <label className={`choice-card ${scenario.reportDepth === depth.value ? 'selected' : ''}`} key={depth.value}>
-                  <input type="radio" name="report-depth" value={depth.value} checked={scenario.reportDepth === depth.value} onChange={() => update('reportDepth', depth.value)} />
-                  <strong>{depth.title}</strong>
-                  <span>{depth.description}</span>
-                  <small>{TRIALS_BY_DEPTH[depth.value].toLocaleString('en-AU')} trials</small>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
           <details className="advanced-dossier">
             <summary>
               <span>Advanced dossier</span>
@@ -885,7 +871,6 @@ function App() {
             <div className="advanced-battlefield-groups">
               <section className="advanced-group">
                 <div className="advanced-group-heading">
-                  <span>01</span>
                   <div><h3>Opening conditions</h3><p>What each side knows and how contact begins.</p></div>
                 </div>
                 <div className="advanced-group-grid">
@@ -928,7 +913,6 @@ function App() {
 
               <section className="advanced-group">
                 <div className="advanced-group-heading">
-                  <span>02</span>
                   <div><h3>Arena and escape</h3><p>Geometry, water access and available resources.</p></div>
                 </div>
                 <div className="advanced-group-grid">
@@ -945,7 +929,6 @@ function App() {
 
               <section className="advanced-group">
                 <div className="advanced-group-heading">
-                  <span>03</span>
                   <div><h3>Group behaviour</h3><p>How deliberately the many act and whether they break.</p></div>
                 </div>
                 <div className="advanced-group-grid two-up">
@@ -962,7 +945,6 @@ function App() {
 
               <section className="advanced-group">
                 <div className="advanced-group-heading">
-                  <span>04</span>
                   <div><h3>Specimen declarations</h3><p>Visible context only; these do not change coefficients by themselves.</p></div>
                 </div>
                 <div className="advanced-group-grid two-up">
@@ -987,12 +969,17 @@ function App() {
           </details>
 
           <div className="run-bar">
-            <div>
-              <strong>{TRIALS_BY_DEPTH[scenario.reportDepth].toLocaleString('en-AU')} uncertainty trials</strong>
-              <span>Deterministic physics first; stochastic variation second.</span>
-            </div>
+            <label className="run-detail-control">
+              <span>Report detail</span>
+              <select aria-label="Report detail" value={scenario.reportDepth} onChange={(event) => update('reportDepth', event.target.value as Scenario['reportDepth'])}>
+                {reportDepths.map((depth) => (
+                  <option value={depth.value} key={depth.value}>{depth.title} · {TRIALS_BY_DEPTH[depth.value].toLocaleString('en-AU')} trials</option>
+                ))}
+              </select>
+              <small>{reportDepths.find((depth) => depth.value === scenario.reportDepth)?.description}</small>
+            </label>
             <button type="button" className="secondary-button" onClick={reroll}>New uncertainty sample</button>
-            <button type="button" className="primary-button" onClick={() => run()}>Run simulation</button>
+            <button type="button" className="primary-button" onClick={runAndReveal}>Run simulation</button>
           </div>
           {error && <div className="error-banner" role="alert">{error}</div>}
           {isDirty && <div className="stale-banner">Inputs have changed. Run the simulation to update the verdict below.</div>}
@@ -1019,9 +1006,13 @@ function App() {
               type="button"
               className="text-button"
               onClick={() => {
-                setHistory([])
-                setHistoryWarning('')
-                localStorage.removeItem(HISTORY_KEY)
+                try {
+                  localStorage.removeItem(HISTORY_KEY)
+                  setHistory([])
+                  setHistoryWarning('')
+                } catch {
+                  setHistoryWarning('Recent history could not be cleared in this browser. The stored data was left untouched.')
+                }
               }}
             >Clear history</button>
           </div>

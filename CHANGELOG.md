@@ -7,6 +7,8 @@
 - Added four curated field briefings for quick exploration without changing the deterministic engine or canonical calibration scenarios.
 - Moved custom-profile utilities behind the core matchup task, collapsed optional tactical tuning and grouped advanced controls by opening conditions, arena, group behaviour and specimen declarations.
 - Added a direct revise-and-rerun loop around the verdict plus responsive layout refinements for a faster mobile first screen.
+- Simplified the follow-up pass by making field briefings optional, keeping one primary run action, compacting report detail, grouping file exports, removing decorative profile emoji and reducing nested advanced-control framing.
+- Announced roster-search counts to assistive technology, removed preset-selection scroll jank and made history clearing fail safely when browser storage is restricted.
 
 ## 0.2.0 — 2026-07-18
 

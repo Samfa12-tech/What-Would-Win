@@ -36,7 +36,7 @@
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
-- Searchable roster filtering, curated field briefings, sticky workspace navigation and the revise-and-rerun verdict loop are covered by browser and visual QA.
+- Searchable roster filtering, optional field briefings, sticky workspace navigation, the single run action and revise-and-rerun verdict loop are covered by browser and visual QA.
 - Product plan rendered and inspected as a matching DOCX and PDF; PDF preflight passed.
 
 ## Deliberate limits

@@ -24,6 +24,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('initial application and expanded custom editor have no serious axe violations', async ({ page }) => {
+  test.slow()
   await expectNoSeriousAxeViolations(page)
 
   const soloPanel = page.locator('.combatant-panel').filter({

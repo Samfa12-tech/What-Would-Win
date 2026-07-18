@@ -79,6 +79,7 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByText('one versus X', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Custom profile tools' })).toContainText('save it only in this browser')
   await expect(page.locator('footer')).toContainText(/Model .+ · Data .+ · React\/TypeScript/)
+  await expect(page.getByRole('button', { name: 'Run simulation' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
@@ -91,6 +92,7 @@ test('searches the roster and loads a suggested field briefing', async ({ page }
   await expect(soloSelect.locator('option[value="sperm-whale"]')).toHaveCount(1)
   await expect(soloSelect.locator('option[value="blue-whale"]')).toHaveCount(1)
 
+  await page.getByText('Try a suggested matchup', { exact: true }).click()
   await page.getByRole('button', { name: /Pressure in deep water/ }).click()
   await expect(soloSelect).toHaveValue('sperm-whale')
   await expect(page.getByTestId('group-creature-select')).toHaveValue('orca')
@@ -132,8 +134,8 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
 })
 
 test('technical depth runs 15,000 trials and exposes the calculation record', async ({ page }) => {
-  await page.getByText('Technical record', { exact: true }).click()
-  await expect(page.getByText('15,000 uncertainty trials')).toBeVisible()
+  await page.getByLabel('Report detail').selectOption('technical')
+  await expect(page.getByLabel('Report detail')).toHaveValue('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
 
   const record = page.locator('.technical-grid')
@@ -174,6 +176,7 @@ test('debate methodology controls survive simulation, history and a clean-browse
   })
 
   await page.getByRole('button', { name: 'Copy share link' }).click()
+  await expect(page).toHaveURL(/\?s=/)
   const clean = await openSharedScenarioInCleanBrowser(browser, page.url())
   try {
     await expect(clean.page.getByLabel('Win condition')).toHaveValue('death')
@@ -305,6 +308,7 @@ test('result JSON download includes version metadata and the selected custom rec
   await page.getByRole('button', { name: 'Run simulation' }).click()
 
   const downloadPromise = page.waitForEvent('download')
+  await page.getByText('Export files', { exact: true }).click()
   await page.getByRole('button', { name: 'Download result JSON' }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toBe('what-would-win-result.json')

@@ -32,7 +32,7 @@ Upload the contents of `app/dist/` to the chosen static path on `samfa12.com`.
 - Explicit win condition, side-specific mindset, knowledge, awareness, facing, arena/water geometry, group doctrine, casualty tolerance and structured specimen declarations.
 - Draft 2020-12 validation for canonical data, custom imports and shared records.
 - Named private custom profiles can be cloned, edited, saved locally, imported/exported and embedded in reproducible shares.
-- The frontend uses a compact field-report masthead, sticky Matchup/Conditions/Verdict/History navigation, searchable native contestant lists, curated field briefings and grouped progressive disclosure.
+- The frontend uses a compact field-report masthead, sticky Matchup/Conditions/Verdict/History navigation, searchable native contestant lists, optional curated field briefings, compact report-detail selection and grouped progressive disclosure.
 - Twelve calibration scenarios plus focused interaction/performance coverage; Playwright Chromium desktop/mobile, Firefox and WebKit flows run against the production build.
 - Automated axe and keyboard checks, a visible methodology/version panel, CI budgets and initial per-field provenance are in place.
 

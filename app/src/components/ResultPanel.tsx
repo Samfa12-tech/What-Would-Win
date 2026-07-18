@@ -146,8 +146,13 @@ export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopy
       <div className="result-actions">
         <a className="secondary-button button-link" href="#matchup">Revise matchup</a>
         <button type="button" className="secondary-button" onClick={onCopyShare}>Copy share link</button>
-        <button type="button" className="secondary-button" onClick={onDownloadImage}>Download result image</button>
-        <button type="button" className="secondary-button" onClick={onDownloadJson}>Download result JSON</button>
+        <details className="result-export-menu">
+          <summary className="secondary-button">Export files</summary>
+          <div>
+            <button type="button" className="secondary-button" onClick={onDownloadImage}>Download result image</button>
+            <button type="button" className="secondary-button" onClick={onDownloadJson}>Download result JSON</button>
+          </div>
+        </details>
         {shareStatus && <span className="action-status">{shareStatus}</span>}
       </div>
     </section>

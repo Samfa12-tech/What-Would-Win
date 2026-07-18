@@ -5,6 +5,7 @@ import { SizeControl } from './SizeControl'
 import { StatControls } from './StatControls'
 
 interface CreaturePanelProps {
+  side: 'solo' | 'group'
   title: string
   subtitle: string
   creature: Creature
@@ -38,15 +39,16 @@ export function CreaturePanel(props: CreaturePanelProps) {
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const matchesQuery = (item: Creature) => !normalizedQuery || [item.name, item.category, item.kind]
     .some((value) => value.toLowerCase().includes(normalizedQuery))
+  const visibleCreatures = props.creatures.filter((item) => matchesQuery(item) || item.id === props.selectedId)
   const grouped = Object.entries(kindLabels).map(([kind, label]) => ({
     kind: kind as Creature['kind'],
     label,
-    items: props.creatures.filter((item) => item.kind === kind && !isCustomCreature(item) && (matchesQuery(item) || item.id === props.selectedId)),
+    items: visibleCreatures.filter((item) => item.kind === kind && !isCustomCreature(item)),
   }))
-  const customCreatures = props.creatures.filter((item) => isCustomCreature(item) && (matchesQuery(item) || item.id === props.selectedId))
+  const customCreatures = visibleCreatures.filter(isCustomCreature)
   const selectedIsCustom = isCustomCreature(props.creature)
   const matchCount = props.creatures.filter(matchesQuery).length
-  const sideId = props.title === 'The one' ? 'solo' : 'group'
+  const sideId = props.side
 
   return (
     <section className="combatant-panel">
@@ -55,7 +57,6 @@ export function CreaturePanel(props: CreaturePanelProps) {
           <p className="eyebrow">{props.subtitle}</p>
           <h2>{props.title}</h2>
         </div>
-        <div className="creature-icon" aria-hidden="true">{props.creature.icon}</div>
       </div>
 
       <label className="field-stack creature-search">
@@ -68,7 +69,7 @@ export function CreaturePanel(props: CreaturePanelProps) {
           placeholder="Search animals, extinct, myths…"
           aria-describedby={`${sideId}-search-help`}
         />
-        <small id={`${sideId}-search-help`}>
+        <small id={`${sideId}-search-help`} aria-live="polite">
           {normalizedQuery ? `${matchCount} matching profile${matchCount === 1 ? '' : 's'}; the selected profile stays available.` : `Search or browse all ${props.creatures.length} profiles.`}
         </small>
       </label>

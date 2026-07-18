@@ -37,7 +37,7 @@ The production `dist/` build was rendered at 1440 px desktop and 430 px mobile w
 
 The regenerated v0.2 product plan was inspected page-by-page as an 18-page PDF after DOCX privacy scrubbing. The matching PDF has no clipped tables, blank spill pages or stale future-work claims for delivered custom-profile functionality.
 
-The frontend pass was inspected at 1440 × 1024 and 375 × 812. The redesigned first screen brings the matchup task, suggested briefs and contestant controls into the initial desktop viewport, removes mobile horizontal overflow, keeps advanced controls grouped behind progressive disclosure and preserves a visible setup-to-verdict return path. Before/after evidence is retained under `output/frontend-audit/` locally and is deliberately excluded from the public repository.
+The frontend pass was inspected at 1440 × 1024 and 375 × 812. The refined first screen brings the contestant controls forward, keeps suggested briefs optional, removes the duplicate sticky run action, eliminates mobile horizontal overflow, groups advanced controls behind progressive disclosure and preserves a visible setup-to-verdict return path. Current-run before/after evidence is retained under `output/frontend-simplify-audit/` locally and is deliberately excluded from the public repository.
 
 The automated browser suite runs against `app/dist/` via Vite preview. Failure traces, screenshots and video are retained under `output/playwright/`; successful runs keep the HTML report and last-run summary. The original handoff screenshots remain reference material rather than proof of the updated custom-profile editor.
 

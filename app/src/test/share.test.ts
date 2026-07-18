@@ -91,6 +91,45 @@ describe('versioned scenario sharing', () => {
     }
   })
 
+  test('migrates a deployed-style v1 envelope with 0.1 versions and omitted methodology fields', () => {
+    const scenario = defaultScenario(creatures)
+    const legacyScenario = Object.fromEntries(Object.entries(scenario).filter(([key]) => ![
+      'soloMindset', 'groupMindset', 'winCondition', 'priorKnowledge', 'awareness', 'facing',
+      'arenaBoundary', 'arenaDiameterM', 'waterDepthM', 'coordinationDoctrine', 'casualtyTolerance',
+      'soloSpecimenProfile', 'groupSpecimenProfile', 'soloSpecimenSex', 'groupSpecimenSex',
+    ].includes(key)))
+    const decoded = decodeScenarioPayload(legacyEncode({
+      formatVersion: 1,
+      modelVersion: '0.1.0',
+      dataVersion: '0.1.0',
+      scenario: legacyScenario,
+    }))
+    expect(decoded).toMatchObject({
+      ok: true,
+      status: 'migrated-v1',
+      payload: {
+        modelVersion: MODEL_VERSION,
+        dataVersion: DATA_VERSION,
+        scenario: expect.objectContaining({ winCondition: 'incapacitation', waterDepthM: 0 }),
+      },
+    })
+  })
+
+  test('migrates a compact v3 link from the previous model and data versions', () => {
+    const scenario = defaultScenario(creatures)
+    const previousPayload: ScenarioSharePayload = {
+      ...createScenarioPayload(scenario),
+      modelVersion: '0.2.0',
+      dataVersion: '0.2.0',
+    }
+    const decoded = decodeScenarioPayload(encodeScenarioPayload(previousPayload))
+    expect(decoded).toMatchObject({
+      ok: true,
+      status: 'migrated-version',
+      payload: { modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION, scenario },
+    })
+  })
+
   test('explicitly migrates the delivered unversioned scenario format', () => {
     const scenario = defaultScenario(creatures)
     const legacyScenario = Object.fromEntries(Object.entries(scenario).filter(([key]) => ![

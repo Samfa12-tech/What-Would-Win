@@ -30,6 +30,7 @@ function scenarioFromFixture(fixture: (typeof canonicalScenariosJson)[number]): 
     terrain: fixture.terrain,
     weather: fixture.weather,
     startingDistanceM: fixture.starting_distance_m,
+    arenaBoundary: fixture.arena_boundary as Scenario['arenaBoundary'],
   }
 }
 
@@ -69,6 +70,11 @@ describe('canonical data contracts', () => {
       const result = validateScenario(scenarioFromFixture(fixture))
       expect(result.errors, `${fixture.id}: ${result.errors.join('; ')}`).toEqual([])
     }
+  })
+
+  test('bounded scenarios may declare a wider separation because the engine caps it to arena diameter', () => {
+    const scenario = defaultScenario(canonicalCreatures)
+    expect(validateScenario({ ...scenario, arenaBoundary: 'bounded', arenaDiameterM: 10, startingDistanceM: 10_000 }).valid).toBe(true)
   })
 
   test('schema validation accepts the custom namespace but still rejects bad records', () => {

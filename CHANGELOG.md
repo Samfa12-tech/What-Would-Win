@@ -10,6 +10,24 @@
 - Simplified the follow-up pass by making field briefings optional, keeping one primary run action, compacting report detail, grouping file exports, removing decorative profile emoji and reducing nested advanced-control framing.
 - Announced roster-search counts to assistive technology, removed preset-selection scroll jank and made history clearing fail safely when browser storage is restricted.
 
+## 0.3.0 — 2026-07-18
+
+- Re-audited the deterministic-plus-Monte-Carlo engine for extreme resizing, role reversal, fixed-biomass fragmentation, access mismatches, aquatic/land mismatch and conceptual quantities.
+- Advanced the model and data versions to 0.3.0 while retaining compact share format v3. Model-0.2 shares and available-profile history preserve their inputs and are visibly recalculated under the current model; unavailable-profile history remains honestly marked pending.
+- Added explicit `amphibious` and `land-capable` data traits so environment penalties no longer infer dry-land mobility from the broad `aquatic` flag alone.
+- Reconciled positive water depth with nominally dry terrain by deriving medium access from depth relative to each resized body height.
+- Resolved scaled body length and height before environment evaluation, so terrain fit, water immersion, frontage and arena occupancy use the resized profile rather than baseline geometry.
+- Replaced asymmetric penetration handling with bilateral protection and body-mass stopping penalties, with bounded bypasses for relevant attack delivery.
+- Added continuous ranged-access and resource effects, explicit flight/medium access handling and a smooth effective-pressure ceiling where additional bodies cannot create new attack opportunities.
+- Added geometry-derived active frontage, logarithmic reserve weighting and bounded-arena occupancy caps with explicit feasibility warnings, while retaining logarithmic runtime independent of literal group quantity.
+- Bounded solo area control against effective group pressure and removed the conceptual-scale confidence jump; conceptual results now widen uncertainty without becoming artificially more certain.
+- Added a reconstructable applied-factor ledger plus a seven-phase deterministic explanatory sequence for ordinary scenarios and a three-phase aggregate explanation for conceptual scenarios. The sequence explains the calculation and is not a sampled event timeline or anatomy simulation.
+- Withheld physical duration and loss estimates at conceptual scale; ordinary-scale estimates now use effective starting distance and group pressure and remain explicitly heuristic.
+- Made bounded-arena loss estimates use the arena-usable force and aligned assumptions, technical diagnostics and encounter prose with the same effective separation and occupancy cap.
+- Expanded the calibration suite from 12 to 16 fixtures and added focused invariants for extreme scaling, role reversal, fixed biomass, access ceilings, resized environment geometry, confidence continuity, preparation bounds, escape losses and narrative traceability.
+- Raised the raw JavaScript guardrail narrowly from 575 kB to 580 kB for the final correctness diagnostics while retaining the 150 kB gzip target and 700 kB total runtime ceiling.
+- Made Markdown the canonical product-plan format and removed duplicate binary document derivatives from the repository contract.
+
 ## 0.2.0 — 2026-07-18
 
 - Expanded the built-in roster from 100 to 134 profiles, adding missing marine heavyweights, prehistoric animals, fixed cryptid interpretations and classical mythological creatures.

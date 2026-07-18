@@ -1,50 +1,42 @@
-# What Would Win — prototype QA report
+# What Would Win — model 0.3 QA report
 
 **QA date:** 18 July 2026
 
 ## Automated checks
 
-- Vitest: 55 tests passing across engine, custom-profile, data-contract, history, share-codec and performance-budget suites.
-- TypeScript project build: passing.
-- Vite production build: passing.
-- Calibration scenarios: 12 within configured acceptance bands.
-- Quantity parser: positive whole integers, separators, scientific and `10^n` forms covered; fractional forces rejected.
-- Reproducibility: complete result equality for identical scenario/data/model/seed covered.
-- Draft 2020-12 validation: all 134 canonical creatures pass; invalid/extra fields, duplicate IDs, cryptid classification and canonical/bundled drift are covered.
-- Playwright: 61 production-build checks passing across desktop Chromium, a 360 px mobile Chromium profile, Firefox and WebKit; 3 intentional desktop skips for the mobile-only overflow assertion.
-- Browser flows cover searchable roster filtering, curated field briefings, invalid/conceptual quantities, technical depth, methodology controls through history and a clean-browser share, custom save/reload/edit, compact and legacy custom shares, same-ID share-collision protection, corrupt-storage and unavailable-history recovery, versioned JSON export and mobile overflow.
-- Static identity checks cover favicon, Apple touch icon, web-manifest metadata and deployed PNG availability.
-- Accessibility automation scans the initial UI and expanded custom editor for serious/critical WCAG 2 A/AA, 2.1 A/AA and 2.2 AA axe violations, and exercises sequential focus, visible focus, Enter, arrow-key and disclosure behavior.
-- CI budgets cap the twelve-fixture technical-depth simulation run at 2 seconds and built JavaScript/CSS/total assets at 575/25/700 kB.
+- `npm run typecheck`: passing.
+- `npm test -- --run`: 80 tests passing across engine, calibration, custom-profile, data-contract, history, share-codec and performance suites.
+- Calibration: all 16 behavioural fixtures remain inside their documented model-0.3 acceptance bands.
+- `npm run test:simulation-budget`: 1/1 passing; the complete technical-depth calibration run remains below the 2-second CI ceiling.
+- `npm run test:e2e -- --workers=2`: production build plus 72 Playwright checks across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit; 69 passed and 3 desktop-only skips for the mobile overflow contract.
+- `npm run build`: passing with hashed static assets.
+- `node scripts/check-build-budgets.mjs`: JavaScript, CSS, runtime total and social-preview budgets all passing.
+- Draft 2020-12 validation: all 134 bundled creatures pass; invalid/extra fields, duplicate IDs, cryptid classification, provenance shape and canonical/bundled drift are covered.
+
+The model suite now covers role reversal at quantity one, several fixed-biomass fragmentation levels, bilateral stopping, continuous ranged-resource access, inaccessible-body pressure ceilings, environment-adjusted movement, resized immersion geometry, water-depth precedence on nominally land terrain, bounded starting distance, arena occupancy and arena-usable loss counts, inactive-input random-stream stability, conceptual-threshold continuity, factor-ledger power reconstruction, conceptual factor traceability, preparation caps, escape-adjusted loss estimates and sub-one loss wording. History coverage verifies that previous-version outcomes are recalculated before receiving current-version metadata, while unavailable custom references remain visibly pending.
+
+Browser flows cover searchable roster filtering, suggested briefs, invalid and conceptual quantities, seven-phase ordinary narratives, three-phase conceptual summaries, withheld conceptual duration/loss metrics, the technical factor ledger, the audited resized mouse scenario, methodology persistence, v0.2 share/history recalculation, custom profile save/edit/share, corrupt-storage recovery, JSON export, mobile overflow, install metadata and static assets. Axe scans include the initial UI, custom editor, technical ledger and conceptual results; keyboard focus and disclosure behavior are automated.
 
 ## Production build snapshot
 
-- JavaScript: approximately 547.2 kB / 140.0 kB gzip.
-- CSS: approximately 18.1 kB / 4.4 kB gzip.
-- Total deployable payload: approximately 657.3 kB against a 700 kB budget.
-- Static assets use hashed filenames.
+- JavaScript: 576,946 bytes (147.83 kB gzip) against a 580,000-byte budget.
+- CSS: 24,911 bytes (5.73 kB gzip) against a 25,000-byte budget.
+- Runtime payload excluding the crawler-only social image: 695,128 bytes against a 700,000-byte budget.
+- Social preview: 238,563 bytes against a separate 300,000-byte budget.
+- Vite reports a large single JavaScript chunk; it is within the locked budget but has very little remaining headroom.
 
-## Visual checks
+## Visual and interaction checks
 
-The production `dist/` build was rendered at 1440 px desktop and 430 px mobile widths. Checked:
+The production build is exercised at desktop and 360 px mobile widths. Automated checks verify labelled controls, no mobile horizontal overflow, result hierarchy, structured encounter phases, technical disclosures, custom-profile editing, footer/navigation links and the setup-to-verdict return path. Successful browser runs retain the HTML report under `output/playwright/`; traces, screenshots and video are retained on failure. Historical handoff screenshots remain reference material, not proof of the current result design.
 
-- combatant panels align and stack correctly;
-- controls remain labelled and do not clip;
-- result probability, metrics and text sections remain readable;
-- advanced configuration uses progressive disclosure;
-- footer and history remain within viewport width;
-- no visible overlap in the tested default scenario.
+Markdown is the canonical product-plan format. The derivative DOCX/PDF copies and their obsolete builder were removed.
 
-The regenerated v0.2 product plan was inspected page-by-page as an 18-page PDF after DOCX privacy scrubbing. The matching PDF has no clipped tables, blank spill pages or stale future-work claims for delivered custom-profile functionality.
+## Known QA gaps and risks
 
-The frontend pass was inspected at 1440 × 1024 and 375 × 812. The refined first screen brings the contestant controls forward, keeps suggested briefs optional, removes the duplicate sticky run action, eliminates mobile horizontal overflow, groups advanced controls behind progressive disclosure and preserves a visible setup-to-verdict return path. Current-run before/after evidence is retained under `output/frontend-simplify-audit/` locally and is deliberately excluded from the public repository.
-
-The automated browser suite runs against `app/dist/` via Vite preview. Failure traces, screenshots and video are retained under `output/playwright/`; successful runs keep the HTML report and last-run summary. The original handoff screenshots remain reference material rather than proof of the updated custom-profile editor.
-
-## Known QA gaps
-
-- no manual NVDA, VoiceOver or other screen-reader audit yet;
-- no physical Safari/iOS device pass yet; WebKit desktop automation is covered;
-- PNG export is not yet browser-automated;
-- custom profiles remain local-only unless explicitly exported or embedded in a share URL;
-- source data has not undergone expert zoological review.
+- No manual NVDA, VoiceOver or physical Safari/iOS pass has been completed; automated axe and WebKit coverage are present.
+- PNG result export is not browser-automated; JSON export is covered.
+- Frontage, reserve log-weight, stopping, arena occupancy, duration and losses remain transparent heuristics rather than anatomy, conservation or event-timeline simulations.
+- Conceptual quantities deliberately omit logistics and physical staging; a selected bounded arena still caps usable quantity, while open arenas permit aggregate-force calculations.
+- Creature values remain curated prototype data and require expert zoological review.
+- A tampered or very old share with an unknown non-custom creature ID is schema-valid and currently falls back to a default profile during app merge; add explicit referential-integrity rejection or a visible substitution warning.
+- JavaScript and total-payload budgets have narrow headroom; code splitting should precede another large UI or roster expansion.

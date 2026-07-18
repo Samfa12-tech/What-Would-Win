@@ -1,6 +1,6 @@
 # What Would Win — prototype handoff
 
-A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 134-profile database, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, calibration fixtures and Codex handoff notes.
+A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 134-profile database, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
 
 ## Run locally
 
@@ -33,8 +33,8 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Documentation
 
-- `docs/What_Would_Win_Product_Plan.docx` and `.pdf` — styled product and simulation specification.
-- `docs/What_Would_Win_Product_Plan.md` — source-friendly version for Codex and version control.
+- `docs/What_Would_Win_Product_Plan.md` — canonical product and simulation specification.
+- `docs/MODEL_AUDIT_0.3.md` — model 0.3 audit, corrections, test coverage and remaining limitations.
 - `docs/CODEX_HANDOFF.md` — practical continuation guide and paste-ready Codex prompt.
 - `docs/MODEL_NOTES.md` — compact engine change discipline.
 - `docs/QA_REPORT.md` — tests and visual verification status.
@@ -50,13 +50,15 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 - `data/field_provenance.json` and `data/field_provenance.schema.json`
 - `data/test_scenarios.json` and `.csv`
 
-The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. This is an entertainment model, not a scientific prediction or animal-welfare guide.
+The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. Data 0.3 distinguishes broad aquatic capability from explicit amphibious/land-capable traits for environment routing. This is an entertainment model, not a scientific prediction or animal-welfare guide.
 
 Canonical data and the app-bundled copies are checked for drift. Every creature is validated against the Draft 2020-12 schema in the automated suite. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
 
 ## Versioning and compatibility
 
-The app publishes independent model and bundled-data versions plus a share-format version. Compact v3 share links include explicit debate-method inputs and embed referenced custom profiles. Deployed v2, v1 and delivered unversioned scenarios migrate with documented defaults; unknown, corrupt and oversized payloads are rejected. Recent-history storage migrates the 0.1 contract and preserves corrupt or incompatible source data for recovery.
+The current reproducibility identity is **model 0.3.0, data 0.3.0 and share format v3**. Compact v3 share links include explicit debate-method inputs and embed referenced custom profiles. Model-0.2 shares and history preserve their structured inputs and are visibly recalculated under model 0.3 when referenced profiles are available; unavailable-profile history stays marked pending rather than relabelling an old result. Deployed v2, v1 and delivered unversioned scenarios retain documented migration paths. Unknown, corrupt and oversized payloads are rejected, and incompatible stored data is preserved for recovery.
+
+Ordinary-scale results include a seven-phase deterministic explanatory sequence backed by the applied-factor ledger. Conceptual-scale results use a three-phase aggregate explanation and deliberately withhold physical duration and loss estimates. These sequences explain model factors; they are not sampled event timelines or anatomy simulations.
 
 ## Hosting on samfa12.com
 

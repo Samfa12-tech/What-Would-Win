@@ -1937,7 +1937,8 @@
     ],
     "traits": [
       "armored",
-      "aquatic"
+      "aquatic",
+      "semi-aquatic"
     ],
     "data_confidence": "high",
     "source_label": "Orientation reference; production values require expert review",
@@ -2491,6 +2492,7 @@
     ],
     "traits": [
       "aquatic",
+      "land-capable",
       "thick-hide",
       "cold-adapted"
     ],
@@ -3644,7 +3646,8 @@
     "traits": [
       "regeneration",
       "many-heads",
-      "venom"
+      "venom",
+      "amphibious"
     ],
     "data_confidence": "modelled",
     "source_label": "Orientation reference; production values require expert review",
@@ -4867,6 +4870,7 @@
     ],
     "traits": [
       "aquatic",
+      "land-capable",
       "thick-hide",
       "cold-adapted"
     ],
@@ -5149,6 +5153,7 @@
     "traits": [
       "extinct",
       "aquatic",
+      "amphibious",
       "armored",
       "ambush"
     ],
@@ -5197,6 +5202,7 @@
     "traits": [
       "extinct",
       "aquatic",
+      "amphibious",
       "armored",
       "ambush"
     ],
@@ -5935,6 +5941,7 @@
     ],
     "traits": [
       "aquatic",
+      "amphibious",
       "ambush",
       "night-vision"
     ],

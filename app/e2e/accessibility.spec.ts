@@ -70,3 +70,16 @@ test('core simulation controls are reachable and operable with the keyboard', as
   await page.keyboard.press('Enter')
   await expect(page.locator('.advanced-dossier')).toHaveAttribute('open', '')
 })
+
+test('technical ledger and conceptual results have no serious axe violations', async ({ page }) => {
+  test.slow()
+  await page.getByLabel('Report detail').selectOption('technical')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
+  await expectNoSeriousAxeViolations(page)
+
+  await page.getByLabel('Quantity').fill('10^100')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(page.getByRole('heading', { name: 'Conceptual briefing' })).toBeVisible()
+  await expectNoSeriousAxeViolations(page)
+})

@@ -124,7 +124,7 @@ add('Green anaconda','animal','reptile',230,7.0,0.35,10,1.3,74,58,72,48,82,40,72
 add('Reticulated python','animal','reptile',160,7.0,0.3,8,1.2,70,52,66,50,76,38,70,12,82,25,38,['forest','swamp'],['bite','constrict'],['ambush'], 'Reticulated python','high',icon='🐍')
 add('King cobra','animal','reptile',9,5.5,0.2,20,0.8,58,30,38,72,58,45,74,15,78,12,24,['forest','scrub'],['venomous-bite'],['venom'], 'King cobra','high',icon='🐍')
 add('Inland taipan','animal','reptile',2.0,2.5,0.12,16,0.45,55,22,28,78,46,38,68,10,72,5,18,['desert','scrub'],['venomous-bite'],['venom'], 'Inland taipan','high',icon='🐍')
-add('Common snapping turtle','animal','reptile',35,0.8,0.35,5,0.35,48,72,65,22,64,30,72,12,82,86,18,['river','swamp'],['bite'],['armored','aquatic'], 'Common snapping turtle','high',icon='🐢')
+add('Common snapping turtle','animal','reptile',35,0.8,0.35,5,0.35,48,72,65,22,64,30,72,12,82,86,18,['river','swamp'],['bite'],['armored','aquatic','semi-aquatic'], 'Common snapping turtle','high',icon='🐢')
 add('Ostrich','animal','bird',150,2.1,2.7,70,1.25,67,45,58,76,74,38,60,48,72,12,36,['savanna','open'],['kick','peck','stomp'],['runner'], 'Common ostrich','high',icon='🦤')
 add('Southern cassowary','animal','bird',80,1.7,1.8,50,0.9,68,48,55,72,64,42,85,26,88,18,34,['forest'],['kick','claw','peck'],['runner'], 'Southern cassowary','high',icon='🐦')
 add('Golden eagle','animal','bird-of-prey',6.7,1.0,0.75,160,0.8,55,32,38,92,60,58,74,28,76,8,26,['mountain','open'],['talon','beak','dive'],['flight','ambush'], 'Golden eagle','high',icon='🦅')
@@ -138,7 +138,7 @@ add('Rooster','animal','bird',4.5,0.7,0.6,14,0.35,28,21,28,70,60,40,86,45,78,4,1
 add('Great white shark','animal','marine-predator',2200,6.4,1.2,56,1.1,92,78,86,62,75,48,80,18,88,42,44,['ocean'],['bite','ram'],['aquatic','electroreception'], 'Great white shark','high',icon='🦈')
 add('Orca','animal','marine-predator',6000,8.0,2.0,56,2.0,96,88,94,73,87,88,74,96,92,40,72,['ocean','coast'],['bite','ram','tail-strike'],['aquatic','pack-hunter','echolocation'], 'Orca','high',icon='🐋')
 add('Bottlenose dolphin','animal','marine-predator',650,4.0,1.0,35,1.1,66,55,64,82,82,86,58,94,82,18,40,['ocean','coast'],['ram','bite','tail-strike'],['aquatic','pack-hunter','echolocation'], 'Bottlenose dolphin','high',icon='🐬')
-add('Walrus','animal','marine-mammal',1700,3.6,1.5,35,1.5,80,84,90,42,82,52,70,58,88,62,52,['ocean','ice','coast'],['tusk','bite','crush'],['aquatic','thick-hide','cold-adapted'], 'Walrus','high',icon='🦭')
+add('Walrus','animal','marine-mammal',1700,3.6,1.5,35,1.5,80,84,90,42,82,52,70,58,88,62,52,['ocean','ice','coast'],['tusk','bite','crush'],['aquatic','land-capable','thick-hide','cold-adapted'], 'Walrus','high',icon='🦭')
 add('Giant Pacific octopus','animal','cephalopod',70,5.0,0.7,25,2.0,62,48,58,84,66,84,58,30,76,20,62,['ocean','reef'],['beak','grapple','suction'],['aquatic','camouflage','many-limbs'], 'Giant Pacific octopus','high',icon='🐙')
 add('Giant squid','animal','cephalopod',275,12.0,1.0,30,5.0,73,52,66,68,75,66,66,24,80,12,76,['deep-ocean'],['beak','tentacle','grapple'],['aquatic','many-limbs'], 'Giant squid','medium',icon='🦑')
 add('Electric eel','animal','fish',20,2.5,0.25,8,1.0,62,35,45,52,58,48,66,8,68,8,46,['river','swamp'],['electric-shock','bite'],['aquatic','electric'], 'Electric eel','high',icon='⚡')
@@ -169,7 +169,7 @@ add('Prepared archer','human','human',90,1.85,1.85,25,80,68,38,45,64,70,90,60,88
 add('Western dragon','fantasy','mythic-beast',18000,18,6,70,35,100,96,100,72,92,90,92,54,98,96,100,['mountain','open','sky'],['bite','claw','tail','fire-breath'],['flight','fire','armored','ranged'], 'Dragon','modelled',icon='🐉')
 add('Wyvern','fantasy','mythic-beast',4500,11,3.5,95,18,91,78,86,84,82,68,90,42,92,72,82,['mountain','open','sky'],['bite','talon','tail-sting'],['flight','venom'], 'Wyvern','modelled',icon='🐲')
 add('Griffin','fantasy','mythic-beast',650,5.0,2.2,120,2.0,82,64,72,90,78,72,82,58,90,35,58,['mountain','open','sky'],['talon','beak','claw','pounce'],['flight'], 'Griffin','modelled',icon='🦅')
-add('Hydra','fantasy','mythic-beast',9000,14,4,25,7.0,96,90,98,42,90,58,96,30,99,78,100,['swamp','river'],['many-bites','tail','crush'],['regeneration','many-heads','venom'], 'Lernaean Hydra','modelled',icon='🐍')
+add('Hydra','fantasy','mythic-beast',9000,14,4,25,7.0,96,90,98,42,90,58,96,30,99,78,100,['swamp','river'],['many-bites','tail','crush'],['regeneration','many-heads','venom','amphibious'], 'Lernaean Hydra','modelled',icon='🐍')
 add('Kraken','fantasy','mythic-beast',150000,60,8,30,25,100,94,100,58,98,76,88,28,98,50,100,['ocean','deep-ocean'],['tentacle','crush','drag','beak'],['aquatic','many-limbs','colossal'], 'Kraken','modelled',icon='🐙')
 add('Roc','fantasy','mythic-beast',12000,25,10,180,12,98,82,92,84,86,60,84,34,94,44,82,['mountain','sky','open'],['talon','beak','drop'],['flight','colossal'], 'Roc (mythology)','modelled',icon='🦅')
 add('Phoenix','fantasy','mythic-beast',180,4,2,160,2.0,85,70,88,94,95,82,80,38,100,34,72,['sky','desert','mountain'],['talon','beak','fire-burst'],['flight','fire','regeneration'], 'Phoenix (mythology)','modelled',icon='🔥')
@@ -197,7 +197,7 @@ add('Blue whale','animal','marine-mammal',150000,28,4.5,33,6.0,75,90,100,38,92,7
 add('Colossal squid','animal','cephalopod',500,10,1.2,20,5.0,78,54,70,64,70,60,72,18,82,15,80,['deep-ocean'],['beak','tentacle','grapple'],['aquatic','many-limbs','hooks'], 'Colossal squid','low',icon='🦑')
 add('Tiger shark','animal','marine-predator',900,5.5,1.0,32,1.0,87,70,80,68,78,48,78,12,87,35,38,['ocean','coast'],['bite','ram'],['aquatic','electroreception'], 'Tiger shark','medium',icon='🦈')
 add('Bull shark','animal','marine-predator',320,3.4,0.7,40,0.8,80,66,74,72,78,47,84,12,88,32,35,['ocean','coast','river'],['bite','ram'],['aquatic','electroreception'], 'Bull shark','medium',icon='🦈')
-add('Southern elephant seal','animal','marine-mammal',4000,6.0,2.0,24,1.5,83,86,92,36,84,48,82,25,92,67,52,['ocean','coast','ice'],['bite','crush','body-slam'],['aquatic','thick-hide','cold-adapted'], 'Southern elephant seal','medium',icon='🦭')
+add('Southern elephant seal','animal','marine-mammal',4000,6.0,2.0,24,1.5,83,86,92,36,84,48,82,25,92,67,52,['ocean','coast','ice'],['bite','crush','body-slam'],['aquatic','land-capable','thick-hide','cold-adapted'], 'Southern elephant seal','medium',icon='🦭')
 add('American bison','animal','large-herbivore',1000,3.5,1.9,56,1.7,84,82,86,52,80,42,78,58,88,64,58,['open','snow'],['horn','charge','trample'],['herd','cold-adapted'], 'American bison','high',icon='🦬')
 add('Cougar','animal','apex-predator',100,2.4,0.8,72,0.8,76,56,64,88,68,60,76,28,80,24,44,['mountain','forest','open'],['bite','claw','pounce'],['ambush','climber'], 'Cougar','high',icon='🐆')
 add('Nile crocodile','animal','reptile',1000,5.5,0.7,30,1.2,91,88,90,40,72,44,90,24,92,86,48,['river','swamp'],['bite','death-roll','tail-strike'],['armored','amphibious','ambush'], 'Nile crocodile','high',icon='🐊')
@@ -205,8 +205,8 @@ add('Nile crocodile','animal','reptile',1000,5.5,0.7,30,1.2,91,88,90,40,72,44,90
 # Prehistoric ladder: major theropods, crocodilians and megafauna.
 add('Spinosaurus','extinct','dinosaur',7500,14.5,4.5,24,2.7,94,82,90,43,72,48,78,16,90,48,62,['river','swamp','coast'],['bite','claw','ram'],['extinct','aquatic','semi-aquatic'], 'Spinosaurus','low','Large adult semi-aquatic reconstruction; body mass, gait and performance remain disputed.',icon='🦖')
 add('Allosaurus','extinct','dinosaur',2200,9,3,32,2.0,89,70,82,60,72,48,84,22,88,32,52,['prehistoric-open','forest'],['bite','claw','ram'],['extinct','apex-predator'], 'Allosaurus','medium',icon='🦖')
-add('Deinosuchus','extinct','prehistoric-crocodilian',8000,10,1.2,20,2.0,98,96,98,28,82,38,86,12,95,96,60,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','armored','ambush'], 'Deinosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
-add('Sarcosuchus','extinct','prehistoric-crocodilian',4000,10,1.0,20,1.8,93,91,94,30,80,38,82,10,92,90,55,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','armored','ambush'], 'Sarcosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
+add('Deinosuchus','extinct','prehistoric-crocodilian',8000,10,1.2,20,2.0,98,96,98,28,82,38,86,12,95,96,60,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','amphibious','armored','ambush'], 'Deinosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
+add('Sarcosuchus','extinct','prehistoric-crocodilian',4000,10,1.0,20,1.8,93,91,94,30,80,38,82,10,92,90,55,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','amphibious','armored','ambush'], 'Sarcosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
 add('Argentinosaurus','extinct','sauropod',70000,32,7,15,7.0,98,98,100,15,90,36,55,45,95,82,88,['prehistoric-open'],['tail-strike','stomp','trample'],['extinct','colossal'], 'Argentinosaurus','low','Colossal adult reconstruction with high uncertainty in mass and movement.',icon='🦕')
 add('Titanoboa','extinct','prehistoric-reptile',1100,13,0.6,10,2.0,88,68,85,42,80,38,74,10,90,38,52,['river','swamp','forest'],['bite','constrict'],['extinct','aquatic','ambush'], 'Titanoboa','medium',icon='🐍')
 add('Megatherium','extinct','prehistoric-mammal',4000,6,3.5,15,2.2,86,80,90,35,78,44,70,18,88,58,60,['prehistoric-open','forest'],['claw','grapple','strike'],['extinct','thick-hide'], 'Megatherium','medium',icon='🦥')
@@ -225,7 +225,7 @@ add('Mothman','fantasy','cryptid',90,2,2,100,1,60,52,58,92,74,70,60,18,78,12,50,
 add('Chupacabra','fantasy','cryptid',45,1.4,0.8,55,0.6,60,45,52,82,72,55,90,25,84,15,36,['scrub','farm','night'],['bite','claw','pounce'],['ambush','night-vision'], 'Chupacabra','modelled','Fixed app interpretation: a 45 kg nocturnal ambush predator with no supernatural abilities.',icon='🐾')
 add('Jersey Devil','fantasy','cryptid',180,2.2,2,85,1.2,72,58,68,86,78,65,88,22,90,28,54,['forest','swamp','night'],['bite','claw','hoof-strike'],['flight','night-vision'], 'Jersey Devil','modelled','Fixed app interpretation: a 180 kg flying cryptid with physical attacks only.',icon='🪽')
 add('Thunderbird (cryptid interpretation)','fantasy','cryptid',8000,20,8,180,10,96,82,92,82,86,62,84,30,94,48,82,['mountain','open','sky'],['talon','beak','drop'],['flight','colossal'], 'Thunderbird (mythology)','modelled','Fictional cryptozoological composite for this app; not an authentic representation of any Indigenous tradition and has no lightning magic.',icon='🦅')
-add('Bunyip (fixed model)','fantasy','cryptid',700,4,1.5,35,1.5,80,70,78,60,76,55,86,18,90,40,48,['river','swamp'],['bite','claw','ram'],['aquatic','ambush','night-vision'], 'Bunyip','modelled','Fictional cryptozoological composite for this app; not an authentic representation of any Aboriginal tradition.',icon='🐾')
+add('Bunyip (fixed model)','fantasy','cryptid',700,4,1.5,35,1.5,80,70,78,60,76,55,86,18,90,40,48,['river','swamp'],['bite','claw','ram'],['aquatic','amphibious','ambush','night-vision'], 'Bunyip','modelled','Fictional cryptozoological composite for this app; not an authentic representation of any Aboriginal tradition.',icon='🐾')
 
 # Public-domain classical mythology interpretations.
 add('Medusa','fantasy','mythic-humanoid',90,1.8,1.8,25,30,72,58,64,68,78,90,84,20,98,18,80,['ruin','cave','open'],['gaze','venomous-bite','grapple'],['petrification','ranged','venom'], 'Medusa','modelled','Classical mortal Gorgon interpretation with line-of-sight petrification.',icon='🐍')
@@ -320,7 +320,7 @@ tests = [
         'solo_id':'kraken','group_id':'orca','group_quantity':'20',
         'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
         'scaling_mode':'magical','terrain':'deep-ocean','weather':'storm','starting_distance_m':80,
-        'expected_solo_win_probability_min':0.45,'expected_solo_win_probability_max':0.75,
+        'expected_solo_win_probability_min':0.62,'expected_solo_win_probability_max':0.88,
         'purpose':'Checks aquatic suitability, high coordination and many-limb area control.'
     },
     {
@@ -328,7 +328,7 @@ tests = [
         'title':'One stone golem vs 10^100 house mice',
         'solo_id':'stone-golem','group_id':'house-mouse','group_quantity':'1e100',
         'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
-        'scaling_mode':'magical','terrain':'open','weather':'clear','starting_distance_m':20,
+        'scaling_mode':'magical','terrain':'open','weather':'clear','starting_distance_m':20,'arena_boundary':'open',
         'expected_solo_win_probability_min':0.0,'expected_solo_win_probability_max':0.10,
         'purpose':'Verifies arbitrary scientific notation, logarithmic force modelling and conceptual-result warnings.'
     },
@@ -356,7 +356,7 @@ tests = [
         'solo_id':'bigfoot','group_id':'unarmed-peak-adult-human','group_quantity':'10',
         'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
         'scaling_mode':'strict','terrain':'forest','weather':'clear','starting_distance_m':15,
-        'expected_solo_win_probability_min':0.35,'expected_solo_win_probability_max':0.60,
+        'expected_solo_win_probability_min':0.48,'expected_solo_win_probability_max':0.78,
         'purpose':'Checks that a declared cryptid interpretation remains speculative but reproducible.'
     },
     {
@@ -374,14 +374,52 @@ tests = [
         'solo_id':'charybdis','group_id':'orca','group_quantity':'20',
         'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
         'scaling_mode':'magical','terrain':'ocean','weather':'storm','starting_distance_m':80,
-        'expected_solo_win_probability_min':0.50,'expected_solo_win_probability_max':0.76,
+        'expected_solo_win_probability_min':0.72,'expected_solo_win_probability_max':0.93,
         'purpose':'Keeps the stationary mythic-hazard abstraction visible and regression-tested.'
     },
+    {
+        'id':'dog-mouse-mouse-kangaroos-functional',
+        'title':'One dog-sized house mouse vs 100 mouse-sized red kangaroos',
+        'solo_id':'house-mouse','group_id':'red-kangaroo','group_quantity':'100',
+        'solo_size':{'method':'named','value':'dog'},'group_size':{'method':'named','value':'mouse'},
+        'scaling_mode':'functional','terrain':'open','weather':'clear','starting_distance_m':25,
+        'expected_solo_win_probability_min':0.75,'expected_solo_win_probability_max':0.97,
+        'purpose':'Locks the audited cross-scaling case: individual stopping power, frontage and moderated reserve pressure must all remain visible.'
+    },
+    {
+        'id':'rhinoceros-mouse-swarm',
+        'title':'One white rhinoceros vs 500 house mice',
+        'solo_id':'white-rhinoceros','group_id':'house-mouse','group_quantity':'500',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'open','weather':'clear','starting_distance_m':25,
+        'expected_solo_win_probability_min':0.90,'expected_solo_win_probability_max':0.99,
+        'purpose':'Prevents thin surface protection from erasing the body-mass stopping barrier for tiny attackers.'
+    },
+    {
+        'id':'eagle-million-mice-access',
+        'title':'One golden eagle vs 1,000,000 house mice',
+        'solo_id':'golden-eagle','group_id':'house-mouse','group_quantity':'1000000',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'open','weather':'clear','starting_distance_m':25,
+        'expected_solo_win_probability_min':0.90,'expected_solo_win_probability_max':0.99,
+        'purpose':'Ensures additional ground bodies cannot remove an uncontested flight-access mismatch by themselves.'
+    },
+    {
+        'id':'orca-wolves-dry-land',
+        'title':'One orca vs ten gray wolves on dry open land',
+        'solo_id':'orca','group_id':'gray-wolf','group_quantity':'10',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'open','weather':'clear','starting_distance_m':25,
+        'expected_solo_win_probability_min':0.01,'expected_solo_win_probability_max':0.15,
+        'purpose':'Ensures an obligate aquatic profile cannot overwhelm a dry-land feasibility mismatch with raw mass and authored combat scores.'
+    },
 ]
+for test in tests:
+    test.setdefault('arena_boundary', 'bounded')
 (ROOT / 'data' / 'test_scenarios.json').write_text(json.dumps(tests, indent=2) + '\n', encoding='utf-8')
 (ROOT / 'app' / 'src' / 'data' / 'test_scenarios.json').write_text(json.dumps(tests, indent=2) + '\n', encoding='utf-8')
 with (ROOT / 'data' / 'test_scenarios.csv').open('w', newline='', encoding='utf-8-sig') as f:
-    flat_fields = ['id','title','solo_id','group_id','group_quantity','solo_size','group_size','scaling_mode','terrain','weather','starting_distance_m','expected_solo_win_probability_min','expected_solo_win_probability_max','purpose']
+    flat_fields = ['id','title','solo_id','group_id','group_quantity','solo_size','group_size','scaling_mode','terrain','weather','starting_distance_m','arena_boundary','expected_solo_win_probability_min','expected_solo_win_probability_max','purpose']
     w = csv.DictWriter(f, fieldnames=flat_fields)
     w.writeheader()
     for t in tests:

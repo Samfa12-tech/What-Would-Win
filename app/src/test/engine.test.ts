@@ -95,6 +95,7 @@ function scenarioFromFixture(fixture: (typeof scenariosJson)[number]): Scenario 
     terrain: fixture.terrain,
     weather: fixture.weather,
     startingDistanceM: fixture.starting_distance_m,
+    arenaBoundary: fixture.arena_boundary as Scenario['arenaBoundary'],
     reportDepth: 'transparent',
     seed: 12345,
   }
@@ -129,7 +130,6 @@ describe('simulation engine', () => {
     test(fixture.title, () => {
       const result = simulate(creatures, scenarioFromFixture(fixture))
       const parsedQuantity = parseQuantity(fixture.group_quantity)
-      console.log(fixture.id, result.soloWinProbability.toFixed(4), result.winnerName)
       expect(result.soloWinProbability).toBeGreaterThanOrEqual(fixture.expected_solo_win_probability_min)
       expect(result.soloWinProbability).toBeLessThanOrEqual(fixture.expected_solo_win_probability_max)
       expect(result.soloWinProbability).toBeGreaterThanOrEqual(0)
@@ -158,6 +158,32 @@ describe('simulation engine', () => {
     const second = simulate(creatures, { ...base, reportDepth: 'verdict', seed: 2 })
     expect(first.technical.deterministicSoloLogPower).toBe(second.technical.deterministicSoloLogPower)
     expect(first.technical.deterministicGroupLogPower).toBe(second.technical.deterministicGroupLogPower)
+  })
+
+  test('mechanically inactive controls do not reseed otherwise identical Monte Carlo trials', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const resultIdentity = (result: ReturnType<typeof simulate>) => ({
+      probability: result.soloWinProbability,
+      rawRate: result.technical.rawSoloTrialRate,
+      seed: result.technical.seed,
+    })
+    const resources = [0, 1, 50, 100].map((resourcesPercent) => simulate(
+      testCreatures,
+      syntheticScenario({ resourcesPercent }),
+    ))
+    for (const result of resources.slice(1)) expect(resultIdentity(result)).toEqual(resultIdentity(resources[0]))
+
+    const openSmall = simulate(testCreatures, syntheticScenario({ arenaBoundary: 'open', arenaDiameterM: 10 }))
+    const openLarge = simulate(testCreatures, syntheticScenario({ arenaBoundary: 'open', arenaDiameterM: 1_000_000 }))
+    expect(resultIdentity(openLarge)).toEqual(resultIdentity(openSmall))
+
+    const boundedEscape = simulate(testCreatures, syntheticScenario({ arenaBoundary: 'bounded', escapeAllowed: true }))
+    const boundedNoEscape = simulate(testCreatures, syntheticScenario({ arenaBoundary: 'bounded', escapeAllowed: false }))
+    expect(resultIdentity(boundedEscape)).toEqual(resultIdentity(boundedNoEscape))
+
+    const mutual = simulate(testCreatures, syntheticScenario({ facing: 'mutual' }))
+    const random = simulate(testCreatures, syntheticScenario({ facing: 'random' }))
+    expect(resultIdentity(random)).toEqual(resultIdentity(mutual))
   })
 
   test('increasing group quantity monotonically increases group power and pressure', () => {
@@ -219,6 +245,66 @@ describe('simulation engine', () => {
     expect(margin(suppliedAtRange)).toBeGreaterThan(0)
     expect(margin(depletedAtRange)).toBeLessThan(0)
     expect(suppliedAtRange.soloWinProbability).toBeGreaterThan(depletedAtRange.soloWinProbability)
+  })
+
+  test('partial ranged resources change access continuously and zero resources are narrated accurately', () => {
+    const testCreatures = [
+      syntheticCreature('solo', {
+        can_fly: true,
+        traits: ['flight'],
+        representative_peak_mass_kg: 1000,
+        defense: 80,
+        durability: 80,
+        armor: 80,
+      }),
+      syntheticCreature('group', { ranged: true, attack_modes: ['ranged'] }),
+    ]
+    const run = (resourcesPercent: number) => simulate(testCreatures, syntheticScenario({
+      groupQuantity: '1000',
+      startingDistanceM: 100,
+      resourcesPercent,
+      reportDepth: 'transparent',
+    }))
+    const depleted = run(0)
+    const onePercent = run(1)
+    const half = run(50)
+    const supplied = run(100)
+
+    expect(depleted.technical.groupAttackAccess).toBeCloseTo(0.2, 12)
+    expect(onePercent.technical.groupAttackAccess).toBeCloseTo(0.208, 12)
+    expect(half.technical.groupAttackAccess).toBeCloseTo(0.6, 12)
+    expect(supplied.technical.groupAttackAccess).toBeCloseTo(1, 12)
+    expect(onePercent.technical.groupEffectiveQuantityLog10 - depleted.technical.groupEffectiveQuantityLog10).toBeLessThan(0.05)
+    expect(half.technical.groupEffectiveQuantityLog10).toBeGreaterThan(onePercent.technical.groupEffectiveQuantityLog10)
+    expect(supplied.technical.groupEffectiveQuantityLog10).toBeGreaterThan(half.technical.groupEffectiveQuantityLog10)
+    expect(onePercent.technical.groupStoppingPenalty).toBeLessThan(depleted.technical.groupStoppingPenalty)
+    expect(supplied.technical.groupStoppingPenalty).toBeLessThan(onePercent.technical.groupStoppingPenalty)
+    expect(depleted.narrative.find((phase) => phase.id === 'approach')?.text).toContain('no usable ranged resources')
+  })
+
+  test('bounded arenas use one effective starting distance for range, frontage and duration', () => {
+    const testCreatures = [
+      syntheticCreature('solo'),
+      syntheticCreature('group', { ranged: true, attack_modes: ['bow'] }),
+    ]
+    const atBoundary = simulate(testCreatures, syntheticScenario({
+      groupQuantity: '1000', arenaBoundary: 'bounded', arenaDiameterM: 10, startingDistanceM: 10,
+    }))
+    const impossibleDeclaration = simulate(testCreatures, syntheticScenario({
+      groupQuantity: '1000', arenaBoundary: 'bounded', arenaDiameterM: 10, startingDistanceM: 10_000,
+    }))
+    expect(impossibleDeclaration.technical.deterministicGroupLogPower).toBe(atBoundary.technical.deterministicGroupLogPower)
+    expect(impossibleDeclaration.technical.groupFrontageCapacity).toBe(atBoundary.technical.groupFrontageCapacity)
+    expect(impossibleDeclaration.estimatedDuration).toBe(atBoundary.estimatedDuration)
+    expect(impossibleDeclaration.soloWinProbability).toBe(atBoundary.soloWinProbability)
+    expect(impossibleDeclaration.technical.seed).toBe(atBoundary.technical.seed)
+    expect(impossibleDeclaration.assumptions.join(' ')).toContain('capped to 10 m by the bounded arena')
+    expect(impossibleDeclaration.assumptions.join(' ')).not.toContain('begins 10,000 m apart')
+
+    const contact = simulate(testCreatures, syntheticScenario({ startingDistanceM: 0, reportDepth: 'transparent' }))
+    const approach = contact.narrative.find((phase) => phase.id === 'approach')?.text ?? ''
+    expect(approach).not.toContain('can act before full contact')
+    expect(approach).toContain('effective contact distance')
   })
 
   test('uncontested flight improves solo access and suppresses a ground-only group', () => {
@@ -324,6 +410,8 @@ describe('simulation engine', () => {
 
     expect(deep.technical.soloEnvironmentFactor).toBeLessThan(dry.technical.soloEnvironmentFactor)
     expect(deep.technical.groupEnvironmentFactor).toBeGreaterThan(dry.technical.groupEnvironmentFactor)
+    expect(deep.technical.groupAttackAccess).toBeGreaterThan(dry.technical.groupAttackAccess)
+    expect(deep.soloWinProbability).toBeLessThan(dry.soloWinProbability)
   })
 
   test('group doctrine and casualty tolerance scale numbers but not a one-member group', () => {
@@ -365,5 +453,203 @@ describe('simulation engine', () => {
     const bounded = simulate(testCreatures, syntheticScenario({ escapeAllowed: true, arenaBoundary: 'bounded' }))
     const open = simulate(testCreatures, syntheticScenario({ escapeAllowed: true, arenaBoundary: 'open' }))
     expect(open.technical.deterministicSoloLogPower).toBeGreaterThan(bounded.technical.deterministicSoloLogPower)
+  })
+
+  test('extreme functional cross-scaling keeps body-mass stopping power separate from surface armour', () => {
+    const scenario: Scenario = {
+      ...defaultScenario(creatures),
+      soloId: 'house-mouse',
+      groupId: 'red-kangaroo',
+      groupQuantity: '100',
+      soloSize: { method: 'named', value: 'dog' },
+      groupSize: { method: 'named', value: 'mouse' },
+      scalingMode: 'functional',
+      terrain: 'open',
+      groupMindset: 'committed',
+      reportDepth: 'transparent',
+      seed: 1,
+    }
+    const result = simulate(creatures, scenario)
+
+    expect(result.soloWinProbability).toBeGreaterThanOrEqual(0.65)
+    expect(result.soloWinProbability).toBeLessThanOrEqual(0.97)
+    expect(result.winner).toBe('solo')
+    expect(result.technical.groupStoppingPenalty).toBeGreaterThan(result.technical.soloStoppingPenalty)
+    expect(result.technical.groupEffectiveQuantityLog10).toBeLessThanOrEqual(2)
+    expect(result.appliedFactors.some((factor) => factor.id === 'group-stopping')).toBe(true)
+    const crossover = result.coinFlipQuantity.replace(/^about /, '')
+    expect(parseQuantity(crossover).log10).toBeGreaterThan(2)
+  })
+
+  test('quantity-one role reversal preserves a symmetric deterministic margin', () => {
+    const a = syntheticCreature('a', { representative_peak_mass_kg: 300, attack: 72, defense: 65, armor: 44 })
+    const b = syntheticCreature('b', { representative_peak_mass_kg: 30, attack: 58, defense: 48, armor: 18 })
+    const ab = simulate([a, b], syntheticScenario({ soloId: 'a', groupId: 'b' }))
+    const ba = simulate([a, b], syntheticScenario({ soloId: 'b', groupId: 'a' }))
+    const abMargin = ab.technical.deterministicSoloLogPower - ab.technical.deterministicGroupLogPower
+    const baMargin = ba.technical.deterministicSoloLogPower - ba.technical.deterministicGroupLogPower
+    expect(abMargin).toBeCloseTo(-baMargin, 12)
+  })
+
+  test('fixed biomass does not gain unbounded power by fragmenting into many bodies', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const quantities = [1, 10, 100, 1000, 10_000]
+    const powers = quantities.map((quantity) => simulate(testCreatures, syntheticScenario({
+      groupQuantity: String(quantity),
+      scalingMode: 'functional',
+      groupSize: { method: 'exact', value: 100 / quantity },
+    })).technical.deterministicGroupLogPower)
+    expect(Math.max(...powers) - powers[0]).toBeLessThan(0.3)
+    expect(Math.min(...powers) - powers[0]).toBeGreaterThan(-0.5)
+  })
+
+  test('an access mismatch remains capped at conceptual quantities', () => {
+    const testCreatures = [
+      syntheticCreature('solo', { can_fly: true, traits: ['flight'] }),
+      syntheticCreature('group', { can_fly: false, ranged: false }),
+    ]
+    const atCapacity = simulate(testCreatures, syntheticScenario({ groupQuantity: '6', reportDepth: 'technical' }))
+    const result = simulate(testCreatures, syntheticScenario({ groupQuantity: '1e100', reportDepth: 'technical' }))
+    expect(result.technical.groupAttackAccess).toBeLessThan(0.5)
+    expect(result.technical.groupEffectiveQuantityLog10).toBeLessThanOrEqual(Math.log10(6) + 1e-12)
+    expect(result.technical.groupEffectiveQuantityLog10).toBeCloseTo(atCapacity.technical.groupEffectiveQuantityLog10, 12)
+    expect(result.technical.deterministicSoloLogPower).toBeCloseTo(atCapacity.technical.deterministicSoloLogPower, 12)
+    expect(result.soloWinProbability).toBeGreaterThan(0.8)
+  })
+
+  test('real-profile stopping and access edge cases preserve directional expectations', () => {
+    const base = defaultScenario(creatures)
+    const rhino = simulate(creatures, {
+      ...base, soloId: 'white-rhinoceros', groupId: 'house-mouse', groupQuantity: '500',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'strict', terrain: 'open', reportDepth: 'transparent', seed: 12345,
+    })
+    const eagle = simulate(creatures, {
+      ...base, soloId: 'golden-eagle', groupId: 'house-mouse', groupQuantity: '1000000',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'strict', terrain: 'open', reportDepth: 'transparent', seed: 12345,
+    })
+    const strandedOrca = simulate(creatures, {
+      ...base, soloId: 'orca', groupId: 'gray-wolf', groupQuantity: '10',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'strict', terrain: 'open', reportDepth: 'transparent', seed: 12345,
+    })
+    expect(rhino.technical.groupStoppingPenalty).toBeGreaterThan(rhino.technical.soloStoppingPenalty)
+    expect(eagle.technical.groupEffectiveQuantityLog10).toBeLessThanOrEqual(Math.log10(6) + 1e-12)
+    expect(strandedOrca.technical.soloEnvironmentFactor).toBeLessThan(0.1)
+    expect(strandedOrca.technical.soloAttackAccess).toBeLessThan(0.2)
+  })
+
+  test('water immersion uses resolved height after resizing', () => {
+    const group = syntheticCreature('group', { aquatic: true, habitats: ['ocean'] })
+    const normal = simulate([syntheticCreature('solo'), group], syntheticScenario({ waterDepthM: 0.5 }))
+    const enlarged = simulate([syntheticCreature('solo'), group], syntheticScenario({
+      scalingMode: 'functional',
+      soloSize: { method: 'exact', value: 800 },
+      waterDepthM: 0.5,
+    }))
+    expect(enlarged.technical.soloEnvironmentFactor).toBeGreaterThan(normal.technical.soloEnvironmentFactor)
+  })
+
+  test('zero-depth water terrain does not claim a body-height immersion calculation', () => {
+    const result = simulate([
+      syntheticCreature('solo', { aquatic: true, habitats: ['deep-ocean'] }),
+      syntheticCreature('group', { aquatic: true, habitats: ['deep-ocean'] }),
+    ], syntheticScenario({ terrain: 'deep-ocean', waterDepthM: 0, reportDepth: 'transparent' }))
+    const approach = result.narrative.find((phase) => phase.id === 'approach')?.text ?? ''
+    expect(approach).toContain('Aquatic suitability is applied categorically')
+    expect(approach).not.toContain('resized body heights')
+  })
+
+  test('bounded arena occupancy caps non-conceptual pressure and warns when bodies do not fit', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const crowded = simulate(testCreatures, syntheticScenario({
+      groupQuantity: '1000', arenaBoundary: 'bounded', arenaDiameterM: 10, reportDepth: 'technical',
+    }))
+    expect(crowded.technical.arenaCapacityLog10).not.toBeNull()
+    expect(crowded.technical.groupUsableQuantityLog10).toBeCloseTo(crowded.technical.arenaCapacityLog10!, 12)
+    expect(crowded.technical.groupEffectiveQuantityLog10).toBeLessThanOrEqual(crowded.technical.arenaCapacityLog10! + 1e-12)
+    expect(Math.log10(crowded.technical.groupFrontageCapacity)).toBeLessThanOrEqual(crowded.technical.arenaCapacityLog10! + 1e-12)
+    expect(crowded.feasibilityWarning).toContain('capped')
+    expect(crowded.groupCasualties).toContain('% of the arena-usable group')
+    const pressure = crowded.narrative.find((phase) => phase.id === 'pressure')?.text ?? ''
+    expect(pressure).toContain('limits usable deployment')
+    expect(pressure).toContain('Remaining usable bodies')
+
+    const impossible = simulate(testCreatures, syntheticScenario({
+      arenaBoundary: 'bounded', arenaDiameterM: 1, reportDepth: 'technical',
+    }))
+    expect(impossible.technical.soloFitsArena).toBe(false)
+    expect(impossible.technical.groupFitsArena).toBe(false)
+    expect(impossible.feasibilityWarning).toContain('exceeds the bounded arena diameter')
+  })
+
+  test('conceptual threshold does not create a confidence discontinuity', () => {
+    const testCreatures = [
+      syntheticCreature('solo', { representative_peak_mass_kg: 5 }),
+      syntheticCreature('group', {
+        representative_peak_mass_kg: 0.000001,
+        body_length_m: 0.002,
+        shoulder_or_body_height_m: 0.002,
+        effective_reach_m: 0.002,
+        coordination: 100,
+      }),
+    ]
+    const boundary = simulate(testCreatures, syntheticScenario({ groupQuantity: '1000000000000' }))
+    const justBeyond = simulate(testCreatures, syntheticScenario({ groupQuantity: '1000000000001' }))
+    expect(boundary.soloWinProbability).toBeGreaterThan(0.1)
+    expect(boundary.soloWinProbability).toBeLessThan(0.9)
+    expect(justBeyond.technical.epistemicCompression).toBe(boundary.technical.epistemicCompression)
+    expect(Math.abs(justBeyond.soloWinProbability - boundary.soloWinProbability)).toBeLessThan(0.01)
+  })
+
+  test('encounter phases are trace-backed and conceptual results avoid literal staging', () => {
+    const ordinary = simulate([syntheticCreature('solo'), syntheticCreature('group')], syntheticScenario({ groupQuantity: '100' }))
+    expect(ordinary.narrative.map((phase) => phase.id)).toEqual([
+      'briefing', 'deployment', 'approach', 'contact', 'pressure', 'resolution', 'uncertainty',
+    ])
+    const factorIds = ordinary.appliedFactors.map((factor) => factor.id).sort()
+    const narratedFactorIds = ordinary.narrative.flatMap((phase) => phase.factorIds).sort()
+    expect(narratedFactorIds).toEqual(factorIds)
+    const reconstructedPower = (side: 'solo' | 'group') => ordinary.appliedFactors
+      .filter((factor) => factor.side === side)
+      .reduce((total, factor) => total + factor.logDelta, 0)
+    expect(reconstructedPower('solo')).toBeCloseTo(ordinary.technical.deterministicSoloLogPower, 12)
+    expect(reconstructedPower('group')).toBeCloseTo(ordinary.technical.deterministicGroupLogPower, 12)
+    for (const phase of ordinary.narrative) {
+      expect(phase.factorIds).toEqual(ordinary.appliedFactors.filter((factor) => factor.phase === phase.id).map((factor) => factor.id))
+    }
+
+    const conceptual = simulate([syntheticCreature('solo'), syntheticCreature('group')], syntheticScenario({ groupQuantity: '1e100' }))
+    expect(conceptual.narrative).toHaveLength(3)
+    expect(conceptual.narrative.flatMap((phase) => phase.factorIds).sort())
+      .toEqual(conceptual.appliedFactors.map((factor) => factor.id).sort())
+    expect(conceptual.narrative.map((phase) => phase.text).join(' ')).toContain('not a physical reconstruction')
+    expect(conceptual.estimatedDuration).toContain('not physically meaningful')
+    expect(conceptual.groupCasualties).toContain('not physically meaningful')
+  })
+
+  test('duration, preparation and escape heuristics respond to their declared inputs without runaway bonuses', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const close = simulate(testCreatures, syntheticScenario({ startingDistanceM: 0 }))
+    const distant = simulate(testCreatures, syntheticScenario({ startingDistanceM: 10_000, arenaBoundary: 'open' }))
+    expect(distant.estimatedDuration).not.toBe(close.estimatedDuration)
+
+    const prepared = simulate(testCreatures, syntheticScenario({ preparationMinutes: 1e200 }))
+    const prepFactor = prepared.appliedFactors.find((factor) => factor.id === 'solo-deployment')
+    expect(prepFactor?.logDelta).toBeLessThanOrEqual(0.48)
+
+    const noEscape = simulate(testCreatures, syntheticScenario({ groupQuantity: '100', escapeAllowed: false }))
+    const escape = simulate(testCreatures, syntheticScenario({ groupQuantity: '100', escapeAllowed: true, arenaBoundary: 'open' }))
+    const lossPercent = (result: ReturnType<typeof simulate>) => Number(result.groupCasualties.match(/(\d+)%/)?.[1])
+    expect(lossPercent(escape)).toBeLessThan(lossPercent(noEscape))
+  })
+
+  test('sub-one expected group losses are not rounded up to a whole combatant', () => {
+    const result = simulate([
+      syntheticCreature('solo', { representative_peak_mass_kg: 1, attack: 10, multi_target: 0 }),
+      syntheticCreature('group', { representative_peak_mass_kg: 1000, defense: 90, durability: 90 }),
+    ], syntheticScenario())
+    expect(result.groupCasualties).toMatch(/^fewer than one expected/)
   })
 })

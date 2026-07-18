@@ -19,7 +19,8 @@
     "starting_distance_m": 25,
     "expected_solo_win_probability_min": 0.9,
     "expected_solo_win_probability_max": 0.99,
-    "purpose": "Canonical viral scenario; verifies size presets, quantity scaling and textual explanation."
+    "purpose": "Canonical viral scenario; verifies size presets, quantity scaling and textual explanation.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "elephant-wolves",
@@ -41,7 +42,8 @@
     "starting_distance_m": 30,
     "expected_solo_win_probability_min": 0.9,
     "expected_solo_win_probability_max": 0.99,
-    "purpose": "Checks megafauna durability, pack coordination and open-terrain contact limits."
+    "purpose": "Checks megafauna durability, pack coordination and open-terrain contact limits.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "gorilla-ducks",
@@ -63,7 +65,8 @@
     "starting_distance_m": 10,
     "expected_solo_win_probability_min": 0.88,
     "expected_solo_win_probability_max": 0.99,
-    "purpose": "Checks multi-target limits without allowing harmless mass to dominate automatically."
+    "purpose": "Checks multi-target limits without allowing harmless mass to dominate automatically.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "dragon-archers",
@@ -85,7 +88,8 @@
     "starting_distance_m": 150,
     "expected_solo_win_probability_min": 0.75,
     "expected_solo_win_probability_max": 0.96,
-    "purpose": "Checks flight, range, ammunition, area effects and fantasy scaling."
+    "purpose": "Checks flight, range, ammunition, area effects and fantasy scaling.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "trex-chickens",
@@ -107,7 +111,8 @@
     "starting_distance_m": 40,
     "expected_solo_win_probability_min": 0.85,
     "expected_solo_win_probability_max": 0.99,
-    "purpose": "Stress-tests large quantities, contact saturation and attrition reporting."
+    "purpose": "Stress-tests large quantities, contact saturation and attrition reporting.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "kraken-orcas-water",
@@ -127,9 +132,10 @@
     "terrain": "deep-ocean",
     "weather": "storm",
     "starting_distance_m": 80,
-    "expected_solo_win_probability_min": 0.45,
-    "expected_solo_win_probability_max": 0.75,
-    "purpose": "Checks aquatic suitability, high coordination and many-limb area control."
+    "expected_solo_win_probability_min": 0.62,
+    "expected_solo_win_probability_max": 0.88,
+    "purpose": "Checks aquatic suitability, high coordination and many-limb area control.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "extreme-quantity",
@@ -149,6 +155,7 @@
     "terrain": "open",
     "weather": "clear",
     "starting_distance_m": 20,
+    "arena_boundary": "open",
     "expected_solo_win_probability_min": 0.0,
     "expected_solo_win_probability_max": 0.1,
     "purpose": "Verifies arbitrary scientific notation, logarithmic force modelling and conceptual-result warnings."
@@ -173,7 +180,8 @@
     "starting_distance_m": 100,
     "expected_solo_win_probability_min": 0.12,
     "expected_solo_win_probability_max": 0.35,
-    "purpose": "Calibrates modern marine heavyweight mass against pod coordination."
+    "purpose": "Calibrates modern marine heavyweight mass against pod coordination.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "spinosaurus-nile-crocodiles",
@@ -195,7 +203,8 @@
     "starting_distance_m": 20,
     "expected_solo_win_probability_min": 0.7,
     "expected_solo_win_probability_max": 0.9,
-    "purpose": "Calibrates a reconstructed semi-aquatic theropod against real crocodilian group pressure."
+    "purpose": "Calibrates a reconstructed semi-aquatic theropod against real crocodilian group pressure.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "bigfoot-humans-fixed",
@@ -215,9 +224,10 @@
     "terrain": "forest",
     "weather": "clear",
     "starting_distance_m": 15,
-    "expected_solo_win_probability_min": 0.35,
-    "expected_solo_win_probability_max": 0.6,
-    "purpose": "Checks that a declared cryptid interpretation remains speculative but reproducible."
+    "expected_solo_win_probability_min": 0.48,
+    "expected_solo_win_probability_max": 0.78,
+    "purpose": "Checks that a declared cryptid interpretation remains speculative but reproducible.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "medusa-spear-group",
@@ -239,7 +249,8 @@
     "starting_distance_m": 30,
     "expected_solo_win_probability_min": 0.02,
     "expected_solo_win_probability_max": 0.16,
-    "purpose": "Exercises line-of-sight petrification, range and disciplined group pressure."
+    "purpose": "Exercises line-of-sight petrification, range and disciplined group pressure.",
+    "arena_boundary": "bounded"
   },
   {
     "id": "charybdis-orcas-hazard",
@@ -259,8 +270,101 @@
     "terrain": "ocean",
     "weather": "storm",
     "starting_distance_m": 80,
-    "expected_solo_win_probability_min": 0.5,
-    "expected_solo_win_probability_max": 0.76,
-    "purpose": "Keeps the stationary mythic-hazard abstraction visible and regression-tested."
+    "expected_solo_win_probability_min": 0.72,
+    "expected_solo_win_probability_max": 0.93,
+    "purpose": "Keeps the stationary mythic-hazard abstraction visible and regression-tested.",
+    "arena_boundary": "bounded"
+  },
+  {
+    "id": "dog-mouse-mouse-kangaroos-functional",
+    "title": "One dog-sized house mouse vs 100 mouse-sized red kangaroos",
+    "solo_id": "house-mouse",
+    "group_id": "red-kangaroo",
+    "group_quantity": "100",
+    "solo_size": {
+      "method": "named",
+      "value": "dog"
+    },
+    "group_size": {
+      "method": "named",
+      "value": "mouse"
+    },
+    "scaling_mode": "functional",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 25,
+    "expected_solo_win_probability_min": 0.75,
+    "expected_solo_win_probability_max": 0.97,
+    "purpose": "Locks the audited cross-scaling case: individual stopping power, frontage and moderated reserve pressure must all remain visible.",
+    "arena_boundary": "bounded"
+  },
+  {
+    "id": "rhinoceros-mouse-swarm",
+    "title": "One white rhinoceros vs 500 house mice",
+    "solo_id": "white-rhinoceros",
+    "group_id": "house-mouse",
+    "group_quantity": "500",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 25,
+    "expected_solo_win_probability_min": 0.9,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Prevents thin surface protection from erasing the body-mass stopping barrier for tiny attackers.",
+    "arena_boundary": "bounded"
+  },
+  {
+    "id": "eagle-million-mice-access",
+    "title": "One golden eagle vs 1,000,000 house mice",
+    "solo_id": "golden-eagle",
+    "group_id": "house-mouse",
+    "group_quantity": "1000000",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 25,
+    "expected_solo_win_probability_min": 0.9,
+    "expected_solo_win_probability_max": 0.99,
+    "purpose": "Ensures additional ground bodies cannot remove an uncontested flight-access mismatch by themselves.",
+    "arena_boundary": "bounded"
+  },
+  {
+    "id": "orca-wolves-dry-land",
+    "title": "One orca vs ten gray wolves on dry open land",
+    "solo_id": "orca",
+    "group_id": "gray-wolf",
+    "group_quantity": "10",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "open",
+    "weather": "clear",
+    "starting_distance_m": 25,
+    "expected_solo_win_probability_min": 0.01,
+    "expected_solo_win_probability_max": 0.15,
+    "purpose": "Ensures an obligate aquatic profile cannot overwhelm a dry-land feasibility mismatch with raw mass and authored combat scores.",
+    "arena_boundary": "bounded"
   }
 ]

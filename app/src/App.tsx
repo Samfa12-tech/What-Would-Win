@@ -44,6 +44,59 @@ const reportDepths: Array<{ value: Scenario['reportDepth']; title: string; descr
 const terrainOptions = ['open', 'forest', 'urban', 'river', 'swamp', 'ocean', 'deep-ocean', 'mountain', 'snow', 'desert', 'cave', 'fortification']
 const weatherOptions = ['clear', 'rain', 'storm', 'fog', 'snow', 'heat']
 
+const fieldBriefs: Array<{
+  id: string
+  kicker: string
+  title: string
+  description: string
+  scenario: Partial<Scenario>
+}> = [
+  {
+    id: 'scale-paradox',
+    kicker: 'Scale paradox',
+    title: 'The classic briefing',
+    description: 'One horse-sized mallard against 100 duck-sized horses.',
+    scenario: {
+      soloId: 'mallard-duck', groupId: 'horse', groupQuantity: '100',
+      soloSize: { method: 'named', value: 'horse' }, groupSize: { method: 'named', value: 'duck' },
+      scalingMode: 'strict', terrain: 'open', startingDistanceM: 25,
+    },
+  },
+  {
+    id: 'deep-water',
+    kicker: 'Marine file',
+    title: 'Pressure in deep water',
+    description: 'A sperm whale faces an eight-member orca pod.',
+    scenario: {
+      soloId: 'sperm-whale', groupId: 'orca', groupQuantity: '8',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'strict', terrain: 'deep-ocean', waterDepthM: 50, startingDistanceM: 100,
+    },
+  },
+  {
+    id: 'river-reconstruction',
+    kicker: 'Prehistory file',
+    title: 'River reconstruction',
+    description: 'Spinosaurus meets three Nile crocodiles in a river channel.',
+    scenario: {
+      soloId: 'spinosaurus', groupId: 'nile-crocodile', groupQuantity: '3',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'strict', terrain: 'river', waterDepthM: 2, startingDistanceM: 20,
+    },
+  },
+  {
+    id: 'mythic-standoff',
+    kicker: 'Myth file',
+    title: 'The Gorgon problem',
+    description: 'Medusa against twenty armoured spear carriers in a ruin.',
+    scenario: {
+      soloId: 'medusa', groupId: 'armoured-spear-carrier', groupQuantity: '20',
+      soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'magical', terrain: 'urban', startingDistanceM: 30,
+    },
+  },
+]
+
 function mergeScenario(candidate: Scenario | null, creatures: Creature[] = builtInCreatures): Scenario {
   const base = defaultScenario(builtInCreatures)
   if (!candidate) return base
@@ -489,7 +542,7 @@ function App() {
     }
   }
 
-  function run(nextScenario = scenario, recordHistory = true) {
+  function run(nextScenario = scenario, recordHistory = true): boolean {
     try {
       const nextResult = simulate(creatures, nextScenario)
       setResult(nextResult)
@@ -498,9 +551,28 @@ function App() {
       setError('')
       setShareStatus('')
       if (recordHistory) saveHistory(nextScenario, nextResult)
+      return true
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The simulation could not be completed.')
+      return false
     }
+  }
+
+  function applyFieldBrief(brief: (typeof fieldBriefs)[number]) {
+    const nextScenario: Scenario = {
+      ...defaultScenario(creatures),
+      ...brief.scenario,
+      seed: scenario.seed,
+    }
+    setScenario(nextScenario)
+    setError('')
+    setShareStatus('')
+    document.getElementById('matchup')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function runAndReveal() {
+    if (!run()) return
+    window.requestAnimationFrame(() => document.getElementById('verdict')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   function reroll() {
@@ -588,7 +660,7 @@ function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <div className="header-mark" aria-hidden="true">WWW</div>
+        <img className="header-mark" src="./icons/icon-192.png" alt="" width="78" height="78" />
         <div>
           <p className="eyebrow">THEORETICAL CONFLICT ANALYSIS UNIT</p>
           <h1>What Would Win</h1>
@@ -601,34 +673,41 @@ function App() {
         </div>
       </header>
 
-      <main>
-        <div className="method-banner">
-          <strong>Interpretation rule:</strong> real animals use a representative high-end adult profile. Fantasy entries are explicit design assumptions. The result is a transparent entertainment model, not a scientific prediction or animal-welfare guide.
+      <nav className="workspace-nav" aria-label="Workspace sections">
+        <div className="workspace-links">
+          <a href="#matchup"><span>01</span> Matchup</a>
+          <a href="#conditions"><span>02</span> Conditions</a>
+          <a href="#verdict"><span>03</span> Verdict</a>
+          <a href="#history"><span>04</span> History</a>
         </div>
+        <div className="nav-case" aria-label={`Current case: ${solo.name} versus ${scenario.groupQuantity} ${group.name}`}>
+          <span aria-hidden="true">{solo.icon}</span>
+          <strong>{solo.name}</strong>
+          <em>vs</em>
+          <strong>{scenario.groupQuantity} × {group.name}</strong>
+          {isDirty && <i>Unrun changes</i>}
+        </div>
+        <button type="button" className="primary-button nav-run-button" onClick={runAndReveal}>Run case</button>
+      </nav>
 
-        <MethodologyPanel />
-
-        <section className="custom-profile-bar" aria-label="Custom profile tools">
+      <main>
+        <section className="matchup-intro" id="matchup">
           <div>
-            <strong>Private custom profiles</strong>
-            <span>Clone a selected dossier, edit its assumptions and save it only in this browser.</span>
+            <p className="eyebrow">CASE ASSEMBLY</p>
+            <h2>Build an argument worth testing</h2>
           </div>
-          <button type="button" className="secondary-button" data-testid="import-custom-creature" onClick={() => importInputRef.current?.click()}>Import custom JSON</button>
-          <input
-            ref={importInputRef}
-            className="visually-hidden"
-            type="file"
-            accept="application/json,.json"
-            aria-label="Choose custom profile JSON to import"
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) void importCustomFile(file)
-              event.target.value = ''
-            }}
-          />
+          <p>Search the roster, set the numbers, then decide which physical rules the argument obeys.</p>
         </section>
-        {customError && <div className="error-banner custom-message" role="alert">{customError}</div>}
-        {customStatus && <div className="custom-status custom-message" role="status">{customStatus}</div>}
+
+        <div className="field-brief-grid" aria-label="Suggested matchup briefings">
+          {fieldBriefs.map((brief) => (
+            <button type="button" className="field-brief" key={brief.id} onClick={() => applyFieldBrief(brief)}>
+              <span>{brief.kicker}</span>
+              <strong>{brief.title}</strong>
+              <small>{brief.description}</small>
+            </button>
+          ))}
+        </div>
 
         <section className="matchup-grid" aria-label="Contestant selection">
           <CreaturePanel
@@ -676,6 +755,28 @@ function App() {
           />
         </section>
 
+        <section className="custom-profile-bar" aria-label="Custom profile tools">
+          <div>
+            <strong>Profile lab</strong>
+            <span>Clone a dossier or import a private custom profile and save it only in this browser unless you explicitly export or share it.</span>
+          </div>
+          <button type="button" className="secondary-button" data-testid="import-custom-creature" onClick={() => importInputRef.current?.click()}>Import custom JSON</button>
+          <input
+            ref={importInputRef}
+            className="visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            aria-label="Choose custom profile JSON to import"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void importCustomFile(file)
+              event.target.value = ''
+            }}
+          />
+        </section>
+        {customError && <div className="error-banner custom-message" role="alert">{customError}</div>}
+        {customStatus && <div className="custom-status custom-message" role="status">{customStatus}</div>}
+
         {editingCustom && (
           <CustomCreatureEditor
             key={editingCustom.item.creature.id}
@@ -685,7 +786,11 @@ function App() {
           />
         )}
 
-        <section className="control-deck">
+        <div className="method-banner">
+          <strong>Scope note:</strong> representative high-end adults and authored fantasy assumptions. The result is a transparent entertainment model, not a scientific prediction or animal-welfare guide.
+        </div>
+
+        <section className="control-deck" id="conditions">
           <div className="section-heading">
             <div>
               <p className="eyebrow">MODEL CONFIGURATION</p>
@@ -777,130 +882,96 @@ function App() {
               <small>Knowledge, geometry, specimens, group doctrine and all editable stats</small>
             </summary>
 
-            <div className="advanced-battlefield-grid">
-              <label className="field-stack">
-                <span>Preparation time (minutes)</span>
-                <input type="number" min="0" max="1000000" value={scenario.preparationMinutes} onChange={(event) => update('preparationMinutes', Math.max(0, Number(event.target.value) || 0))} />
-              </label>
-              <label className="field-stack">
-                <span>Prior knowledge</span>
-                <select value={scenario.priorKnowledge} onChange={(event) => update('priorKnowledge', event.target.value as Scenario['priorKnowledge'])}>
-                  <option value="none">Neither side</option>
-                  <option value="solo">Solo side only</option>
-                  <option value="group">Group side only</option>
-                  <option value="both">Both sides</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Initial awareness advantage</span>
-                <select value={scenario.awareness} onChange={(event) => update('awareness', event.target.value as Scenario['awareness'])}>
-                  <option value="mutual">Mutual awareness</option>
-                  <option value="solo">Solo side</option>
-                  <option value="group">Group side</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Initial facing</span>
-                <select value={scenario.facing} onChange={(event) => update('facing', event.target.value as Scenario['facing'])}>
-                  <option value="mutual">Facing each other</option>
-                  <option value="solo-exposed">Solo side exposed</option>
-                  <option value="group-exposed">Group side exposed</option>
-                  <option value="random">Random orientation</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Arena boundary</span>
-                <select value={scenario.arenaBoundary} onChange={(event) => update('arenaBoundary', event.target.value as Scenario['arenaBoundary'])}>
-                  <option value="bounded">Bounded arena</option>
-                  <option value="open">Open / escapable</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Arena diameter (m)</span>
-                <input type="number" min="1" max="1000000" value={scenario.arenaDiameterM} onChange={(event) => update('arenaDiameterM', Math.max(1, Number(event.target.value) || 1))} />
-              </label>
-              <label className="field-stack">
-                <span>Water depth (m)</span>
-                <input type="number" min="0" max="10000" step="0.1" value={scenario.waterDepthM} onChange={(event) => update('waterDepthM', Math.max(0, Number(event.target.value) || 0))} />
-              </label>
-              <label className="field-stack">
-                <span>Group doctrine</span>
-                <select value={scenario.coordinationDoctrine} onChange={(event) => update('coordinationDoctrine', event.target.value as Scenario['coordinationDoctrine'])}>
-                  <option value="instinctive">Instinctive / baseline</option>
-                  <option value="cooperative">Cooperative plan</option>
-                  <option value="disciplined">Disciplined formation</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Group casualty tolerance</span>
-                <select value={scenario.casualtyTolerance} onChange={(event) => update('casualtyTolerance', event.target.value as Scenario['casualtyTolerance'])}>
-                  <option value="natural">Natural self-preservation</option>
-                  <option value="committed">Committed</option>
-                  <option value="unlimited">Unlimited / no rout</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Solo specimen basis</span>
-                <select value={scenario.soloSpecimenProfile} onChange={(event) => update('soloSpecimenProfile', event.target.value as Scenario['soloSpecimenProfile'])}>
-                  <option value="profile-baseline">Profile baseline</option>
-                  <option value="average-adult">Average adult (declared)</option>
-                  <option value="prime-adult">Prime adult (declared)</option>
-                  <option value="exceptional">Exceptional specimen (declared)</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Solo specimen sex</span>
-                <select value={scenario.soloSpecimenSex} onChange={(event) => update('soloSpecimenSex', event.target.value as Scenario['soloSpecimenSex'])}>
-                  <option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Group specimen basis</span>
-                <select value={scenario.groupSpecimenProfile} onChange={(event) => update('groupSpecimenProfile', event.target.value as Scenario['groupSpecimenProfile'])}>
-                  <option value="profile-baseline">Profile baseline</option>
-                  <option value="average-adult">Average adult (declared)</option>
-                  <option value="prime-adult">Prime adult (declared)</option>
-                  <option value="exceptional">Exceptional specimen (declared)</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Group specimen sex</span>
-                <select value={scenario.groupSpecimenSex} onChange={(event) => update('groupSpecimenSex', event.target.value as Scenario['groupSpecimenSex'])}>
-                  <option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Time of day</span>
-                <select value={scenario.timeOfDay} onChange={(event) => update('timeOfDay', event.target.value as Scenario['timeOfDay'])}>
-                  <option value="day">Day</option>
-                  <option value="night">Night</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Ambush</span>
-                <select value={scenario.ambush} onChange={(event) => update('ambush', event.target.value as Scenario['ambush'])}>
-                  <option value="none">None</option>
-                  <option value="solo">Solo side</option>
-                  <option value="group">Group side</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Defensive position</span>
-                <select value={scenario.defensivePosition} onChange={(event) => update('defensivePosition', event.target.value as Scenario['defensivePosition'])}>
-                  <option value="none">None</option>
-                  <option value="solo">Solo side</option>
-                  <option value="group">Group side</option>
-                </select>
-              </label>
-              <label className="field-stack">
-                <span>Resources / ammunition</span>
-                <input type="range" min="0" max="100" value={scenario.resourcesPercent} onChange={(event) => update('resourcesPercent', Number(event.target.value))} />
-                <small>{scenario.resourcesPercent}% available</small>
-              </label>
-              <label className="toggle-field">
-                <input type="checkbox" checked={scenario.escapeAllowed} onChange={(event) => update('escapeAllowed', event.target.checked)} />
-                <span><strong>Escape allowed</strong><small>Mobility can secure a retreat and expected losses fall.</small></span>
-              </label>
+            <div className="advanced-battlefield-groups">
+              <section className="advanced-group">
+                <div className="advanced-group-heading">
+                  <span>01</span>
+                  <div><h3>Opening conditions</h3><p>What each side knows and how contact begins.</p></div>
+                </div>
+                <div className="advanced-group-grid">
+                  <label className="field-stack">
+                    <span>Preparation time (minutes)</span>
+                    <input type="number" min="0" max="1000000" value={scenario.preparationMinutes} onChange={(event) => update('preparationMinutes', Math.max(0, Number(event.target.value) || 0))} />
+                  </label>
+                  <label className="field-stack">
+                    <span>Prior knowledge</span>
+                    <select value={scenario.priorKnowledge} onChange={(event) => update('priorKnowledge', event.target.value as Scenario['priorKnowledge'])}>
+                      <option value="none">Neither side</option><option value="solo">Solo side only</option><option value="group">Group side only</option><option value="both">Both sides</option>
+                    </select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Initial awareness advantage</span>
+                    <select value={scenario.awareness} onChange={(event) => update('awareness', event.target.value as Scenario['awareness'])}>
+                      <option value="mutual">Mutual awareness</option><option value="solo">Solo side</option><option value="group">Group side</option>
+                    </select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Initial facing</span>
+                    <select value={scenario.facing} onChange={(event) => update('facing', event.target.value as Scenario['facing'])}>
+                      <option value="mutual">Facing each other</option><option value="solo-exposed">Solo side exposed</option><option value="group-exposed">Group side exposed</option><option value="random">Random orientation</option>
+                    </select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Time of day</span>
+                    <select value={scenario.timeOfDay} onChange={(event) => update('timeOfDay', event.target.value as Scenario['timeOfDay'])}><option value="day">Day</option><option value="night">Night</option></select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Ambush</span>
+                    <select value={scenario.ambush} onChange={(event) => update('ambush', event.target.value as Scenario['ambush'])}><option value="none">None</option><option value="solo">Solo side</option><option value="group">Group side</option></select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Defensive position</span>
+                    <select value={scenario.defensivePosition} onChange={(event) => update('defensivePosition', event.target.value as Scenario['defensivePosition'])}><option value="none">None</option><option value="solo">Solo side</option><option value="group">Group side</option></select>
+                  </label>
+                </div>
+              </section>
+
+              <section className="advanced-group">
+                <div className="advanced-group-heading">
+                  <span>02</span>
+                  <div><h3>Arena and escape</h3><p>Geometry, water access and available resources.</p></div>
+                </div>
+                <div className="advanced-group-grid">
+                  <label className="field-stack">
+                    <span>Arena boundary</span>
+                    <select value={scenario.arenaBoundary} onChange={(event) => update('arenaBoundary', event.target.value as Scenario['arenaBoundary'])}><option value="bounded">Bounded arena</option><option value="open">Open / escapable</option></select>
+                  </label>
+                  <label className="field-stack"><span>Arena diameter (m)</span><input type="number" min="1" max="1000000" value={scenario.arenaDiameterM} onChange={(event) => update('arenaDiameterM', Math.max(1, Number(event.target.value) || 1))} /></label>
+                  <label className="field-stack"><span>Water depth (m)</span><input type="number" min="0" max="10000" step="0.1" value={scenario.waterDepthM} onChange={(event) => update('waterDepthM', Math.max(0, Number(event.target.value) || 0))} /></label>
+                  <label className="field-stack"><span>Resources / ammunition</span><input type="range" min="0" max="100" value={scenario.resourcesPercent} onChange={(event) => update('resourcesPercent', Number(event.target.value))} /><small>{scenario.resourcesPercent}% available</small></label>
+                  <label className="toggle-field"><input type="checkbox" checked={scenario.escapeAllowed} onChange={(event) => update('escapeAllowed', event.target.checked)} /><span><strong>Escape allowed</strong><small>Mobility can secure a retreat and expected losses fall.</small></span></label>
+                </div>
+              </section>
+
+              <section className="advanced-group">
+                <div className="advanced-group-heading">
+                  <span>03</span>
+                  <div><h3>Group behaviour</h3><p>How deliberately the many act and whether they break.</p></div>
+                </div>
+                <div className="advanced-group-grid two-up">
+                  <label className="field-stack">
+                    <span>Group doctrine</span>
+                    <select value={scenario.coordinationDoctrine} onChange={(event) => update('coordinationDoctrine', event.target.value as Scenario['coordinationDoctrine'])}><option value="instinctive">Instinctive / baseline</option><option value="cooperative">Cooperative plan</option><option value="disciplined">Disciplined formation</option></select>
+                  </label>
+                  <label className="field-stack">
+                    <span>Group casualty tolerance</span>
+                    <select value={scenario.casualtyTolerance} onChange={(event) => update('casualtyTolerance', event.target.value as Scenario['casualtyTolerance'])}><option value="natural">Natural self-preservation</option><option value="committed">Committed</option><option value="unlimited">Unlimited / no rout</option></select>
+                  </label>
+                </div>
+              </section>
+
+              <section className="advanced-group">
+                <div className="advanced-group-heading">
+                  <span>04</span>
+                  <div><h3>Specimen declarations</h3><p>Visible context only; these do not change coefficients by themselves.</p></div>
+                </div>
+                <div className="advanced-group-grid two-up">
+                  <label className="field-stack"><span>Solo specimen basis</span><select value={scenario.soloSpecimenProfile} onChange={(event) => update('soloSpecimenProfile', event.target.value as Scenario['soloSpecimenProfile'])}><option value="profile-baseline">Profile baseline</option><option value="average-adult">Average adult (declared)</option><option value="prime-adult">Prime adult (declared)</option><option value="exceptional">Exceptional specimen (declared)</option></select></label>
+                  <label className="field-stack"><span>Solo specimen sex</span><select value={scenario.soloSpecimenSex} onChange={(event) => update('soloSpecimenSex', event.target.value as Scenario['soloSpecimenSex'])}><option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option></select></label>
+                  <label className="field-stack"><span>Group specimen basis</span><select value={scenario.groupSpecimenProfile} onChange={(event) => update('groupSpecimenProfile', event.target.value as Scenario['groupSpecimenProfile'])}><option value="profile-baseline">Profile baseline</option><option value="average-adult">Average adult (declared)</option><option value="prime-adult">Prime adult (declared)</option><option value="exceptional">Exceptional specimen (declared)</option></select></label>
+                  <label className="field-stack"><span>Group specimen sex</span><select value={scenario.groupSpecimenSex} onChange={(event) => update('groupSpecimenSex', event.target.value as Scenario['groupSpecimenSex'])}><option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option></select></label>
+                </div>
+              </section>
             </div>
 
             <div className="advanced-stat-columns">
@@ -938,7 +1009,7 @@ function App() {
           onDownloadJson={downloadResultJson}
         />
 
-        <section className="history-section">
+        <section className="history-section" id="history">
           <div className="section-heading compact">
             <div>
               <p className="eyebrow">LOCAL BROWSER HISTORY</p>
@@ -978,6 +1049,10 @@ function App() {
               })}
             </div>
           )}
+        </section>
+
+        <section id="methodology" aria-label="Model methodology">
+          <MethodologyPanel />
         </section>
       </main>
 

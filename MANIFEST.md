@@ -20,7 +20,7 @@
 
 - 134 profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythological profiles and 4 generic humans.
 - 55 Vitest checks passing, including a technical-depth simulation-duration budget.
-- 57 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
+- 61 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
 - Twelve calibration fixtures within their configured behavioural bands.
 - TypeScript project check passing.
 - Vite production build passing.
@@ -36,6 +36,7 @@
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
+- Searchable roster filtering, curated field briefings, sticky workspace navigation and the revise-and-rerun verdict loop are covered by browser and visual QA.
 - Product plan rendered and inspected as a matching DOCX and PDF; PDF preflight passed.
 
 ## Deliberate limits

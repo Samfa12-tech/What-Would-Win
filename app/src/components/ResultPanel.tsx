@@ -31,7 +31,7 @@ function depthAtLeast(current: ReportDepth, target: ReportDepth): boolean {
 export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopyShare, onDownloadImage, onDownloadJson }: ResultPanelProps) {
   const winningProbability = result.winner === 'solo' ? result.soloWinProbability : result.groupWinProbability
   return (
-    <section className="results" aria-live="polite">
+    <section className="results" id="verdict" aria-live="polite">
       <div className="results-header">
         <div>
           <p className="eyebrow">SIMULATION VERDICT</p>
@@ -144,6 +144,7 @@ export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopy
       )}
 
       <div className="result-actions">
+        <a className="secondary-button button-link" href="#matchup">Revise matchup</a>
         <button type="button" className="secondary-button" onClick={onCopyShare}>Copy share link</button>
         <button type="button" className="secondary-button" onClick={onDownloadImage}>Download result image</button>
         <button type="button" className="secondary-button" onClick={onDownloadJson}>Download result JSON</button>

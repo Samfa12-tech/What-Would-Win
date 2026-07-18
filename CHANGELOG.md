@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Reworked the single-page frontend into a clearer case-building workspace with a compact masthead, sticky section navigation and a persistent current-matchup summary.
+- Added searchable filtering for the 134-profile roster while retaining grouped native selects and keyboard accessibility.
+- Added four curated field briefings for quick exploration without changing the deterministic engine or canonical calibration scenarios.
+- Moved custom-profile utilities behind the core matchup task, collapsed optional tactical tuning and grouped advanced controls by opening conditions, arena, group behaviour and specimen declarations.
+- Added a direct revise-and-rerun loop around the verdict plus responsive layout refinements for a faster mobile first screen.
+
 ## 0.2.0 — 2026-07-18
 
 - Expanded the built-in roster from 100 to 134 profiles, adding missing marine heavyweights, prehistoric animals, fixed cryptid interpretations and classical mythological creatures.

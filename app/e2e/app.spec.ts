@@ -82,6 +82,24 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
+test('searches the roster and loads a suggested field briefing', async ({ page }) => {
+  const soloSearch = page.getByTestId('solo-creature-search')
+  const soloSelect = page.getByTestId('solo-creature-select')
+
+  await soloSearch.fill('whale')
+  await expect(soloSelect.locator('option')).toHaveCount(3)
+  await expect(soloSelect.locator('option[value="sperm-whale"]')).toHaveCount(1)
+  await expect(soloSelect.locator('option[value="blue-whale"]')).toHaveCount(1)
+
+  await page.getByRole('button', { name: /Pressure in deep water/ }).click()
+  await expect(soloSelect).toHaveValue('sperm-whale')
+  await expect(page.getByTestId('group-creature-select')).toHaveValue('orca')
+  await expect(page.getByLabel('Quantity')).toHaveValue('8')
+  await expect(page.getByLabel('Terrain')).toHaveValue('deep-ocean')
+  await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toContainText('8 × Orca')
+  await expect(page.getByText('Unrun changes', { exact: true })).toHaveCount(1)
+})
+
 test('publishes the branded icon and install metadata', async ({ page, request }) => {
   await expect(page.locator('link[rel="icon"][sizes="any"]')).toHaveAttribute('href', './icons/favicon.ico')
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', './icons/apple-touch-icon.png')

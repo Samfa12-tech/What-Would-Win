@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Creature, Scenario, SizeConfig, StatOverrides } from '../types'
 import { isCustomCreature } from '../customCreatures'
 import { SizeControl } from './SizeControl'
@@ -33,13 +34,19 @@ const kindLabels: Record<Creature['kind'], string> = {
 }
 
 export function CreaturePanel(props: CreaturePanelProps) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const matchesQuery = (item: Creature) => !normalizedQuery || [item.name, item.category, item.kind]
+    .some((value) => value.toLowerCase().includes(normalizedQuery))
   const grouped = Object.entries(kindLabels).map(([kind, label]) => ({
     kind: kind as Creature['kind'],
     label,
-    items: props.creatures.filter((item) => item.kind === kind && !isCustomCreature(item)),
+    items: props.creatures.filter((item) => item.kind === kind && !isCustomCreature(item) && (matchesQuery(item) || item.id === props.selectedId)),
   }))
-  const customCreatures = props.creatures.filter(isCustomCreature)
+  const customCreatures = props.creatures.filter((item) => isCustomCreature(item) && (matchesQuery(item) || item.id === props.selectedId))
   const selectedIsCustom = isCustomCreature(props.creature)
+  const matchCount = props.creatures.filter(matchesQuery).length
+  const sideId = props.title === 'The one' ? 'solo' : 'group'
 
   return (
     <section className="combatant-panel">
@@ -51,9 +58,24 @@ export function CreaturePanel(props: CreaturePanelProps) {
         <div className="creature-icon" aria-hidden="true">{props.creature.icon}</div>
       </div>
 
+      <label className="field-stack creature-search">
+        <span>Find contestant</span>
+        <input
+          type="search"
+          data-testid={`${sideId}-creature-search`}
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search animals, extinct, myths…"
+          aria-describedby={`${sideId}-search-help`}
+        />
+        <small id={`${sideId}-search-help`}>
+          {normalizedQuery ? `${matchCount} matching profile${matchCount === 1 ? '' : 's'}; the selected profile stays available.` : `Search or browse all ${props.creatures.length} profiles.`}
+        </small>
+      </label>
+
       <label className="field-stack">
         <span>Contestant</span>
-        <select aria-label={`${props.title} contestant`} data-testid={`${props.title === 'The one' ? 'solo' : 'group'}-creature-select`} value={props.selectedId} onChange={(event) => props.onCreatureChange(event.target.value)}>
+        <select aria-label={`${props.title} contestant`} data-testid={`${sideId}-creature-select`} value={props.selectedId} onChange={(event) => { props.onCreatureChange(event.target.value); setSearchQuery('') }}>
           {grouped.map((group) => (
             <optgroup key={group.kind} label={group.label}>
               {group.items.map((item) => (
@@ -104,19 +126,26 @@ export function CreaturePanel(props: CreaturePanelProps) {
         <span>{selectedIsCustom ? 'private · user-authored' : `${props.creature.data_confidence} data`}</span>
       </div>
 
-      <label className="field-stack">
-        <span>Profile preset</span>
-        <select defaultValue="" onChange={(event) => { props.onPresetApply(event.target.value); event.currentTarget.value = '' }}>
-          <option value="" disabled>Apply a preset…</option>
-          <option value="baseline">Natural baseline</option>
-          <option value="enraged">Enraged</option>
-          <option value="disciplined">Disciplined</option>
-          <option value="exhausted">Exhausted</option>
-          <option value="armored">Armoured</option>
-        </select>
-      </label>
-
-      <StatControls creature={props.creature} value={props.overrides} onChange={props.onOverridesChange} />
+      <details className="profile-tuning">
+        <summary>
+          <span>Tune tactical profile</span>
+          <small>Aggression {props.overrides.aggression ?? props.creature.aggression} · Intelligence {props.overrides.intelligence ?? props.creature.intelligence} · Teamwork {props.overrides.coordination ?? props.creature.coordination}</small>
+        </summary>
+        <div className="profile-tuning-content">
+          <label className="field-stack">
+            <span>Profile preset</span>
+            <select defaultValue="" onChange={(event) => { props.onPresetApply(event.target.value); event.currentTarget.value = '' }}>
+              <option value="" disabled>Apply a preset…</option>
+              <option value="baseline">Natural baseline</option>
+              <option value="enraged">Enraged</option>
+              <option value="disciplined">Disciplined</option>
+              <option value="exhausted">Exhausted</option>
+              <option value="armored">Armoured</option>
+            </select>
+          </label>
+          <StatControls creature={props.creature} value={props.overrides} onChange={props.onOverridesChange} />
+        </div>
+      </details>
 
       <details className="creature-data">
         <summary>Baseline profile and source</summary>

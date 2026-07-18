@@ -666,6 +666,7 @@ function App() {
           <p className="hero-copy">A mock-serious, textual simulator for one creature versus an effectively unlimited opposing force.</p>
         </div>
         <div className="header-meta">
+          <a href="https://samfa12.com/apps/">← Back to Apps</a>
           <span>134 profiles · deterministic + Monte Carlo · non-graphic</span>
         </div>
       </header>
@@ -1048,8 +1049,14 @@ function App() {
       </main>
 
       <footer>
-        <strong>What Would Win</strong>
-        <span>Model {MODEL_VERSION} · Data {DATA_VERSION} · React/TypeScript · designed for static hosting on samfa12.com</span>
+        <div className="footer-identity">
+          <strong>What Would Win</strong>
+          <span>Model {MODEL_VERSION} · Data {DATA_VERSION} · React/TypeScript</span>
+        </div>
+        <nav className="footer-links" aria-label="Samfa12 links">
+          <span>A <a href="https://samfa12.com/">Samfa12</a> app</span>
+          <a href="https://samfa12.com/privacy/">Privacy</a>
+        </nav>
       </footer>
     </div>
   )

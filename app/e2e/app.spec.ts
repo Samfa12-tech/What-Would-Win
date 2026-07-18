@@ -82,6 +82,7 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('link', { name: 'Back to Apps' })).toHaveAttribute('href', 'https://samfa12.com/apps/')
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Samfa12' })).toHaveAttribute('href', 'https://samfa12.com/')
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://samfa12.com/privacy/')
+  await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Licences' })).toHaveAttribute('href', './legal-notices.txt')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })

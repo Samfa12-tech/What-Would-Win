@@ -1056,6 +1056,7 @@ function App() {
         <nav className="footer-links" aria-label="Samfa12 links">
           <span>A <a href="https://samfa12.com/">Samfa12</a> app</span>
           <a href="https://samfa12.com/privacy/">Privacy</a>
+          <a href="./legal-notices.txt">Licences</a>
         </nav>
       </footer>
     </div>

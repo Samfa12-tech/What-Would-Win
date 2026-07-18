@@ -18,6 +18,10 @@ npm run typecheck
 npm run build
 ```
 
+`npm run audit:release` verifies that the committed 134-profile provenance
+audit and the public legal-notices file match their canonical sources. It also
+runs automatically before tests and production builds.
+
 Install the supported test browsers once, then run the production-build browser suite:
 
 ```bash
@@ -52,7 +56,7 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. This is an entertainment model, not a scientific prediction or animal-welfare guide.
 
-Canonical data and the app-bundled copies are checked for drift. Every creature is validated against the Draft 2020-12 schema in the automated suite. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
+Canonical data and the app-bundled copies are checked for drift. Every creature is validated against the Draft 2020-12 schema and has a non-overlapping, complete field-provenance record. The repository-wide licensing review classifies all 134 external links as attributed Wikipedia orientation sources and separates them from original Samfa12-tech model assumptions. This clears redistribution licensing for the public beta; it does not turn approximate inputs into expert-reviewed zoological claims. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
 
 ## Versioning and compatibility
 
@@ -70,4 +74,11 @@ See [SECURITY.md](SECURITY.md) for responsible reporting guidance. Never place c
 
 ## Licence and third-party data
 
-Application source is supplied for the user's continuation. Before public redistribution, choose and add an explicit source-code licence, verify the licence of every third-party data source, and replace orientation references with per-field provenance where needed.
+Licensing is deliberately split by material:
+
+- application source code is available under the [MIT License](LICENSE);
+- the original creature database, fixtures and provenance records are available under [CC BY-SA 4.0](DATA_LICENSE.md);
+- the What Would Win name, logo, icons and social artwork remain [all rights reserved](BRAND_LICENSE.md); and
+- redistributed library notices and Wikipedia attribution are recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and shipped with the browser build as `legal-notices.txt`.
+
+The licensing audit is complete for public-beta redistribution. Scientific and cultural review remains ongoing: orientation sources must not be described as expert validation, and any new external source must be manually classified before the generated audit will accept it.

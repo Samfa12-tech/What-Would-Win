@@ -6,11 +6,15 @@
 - `docs/What_Would_Win_Product_Plan.pdf` — fixed-layout version of the same plan.
 - `docs/What_Would_Win_Product_Plan.md` — source-friendly version for Codex and version control.
 - `app/` — React/TypeScript/Vite working demo, automated tests and production `dist/` build.
+- `LICENSE` — MIT source-code licence.
+- `DATA_LICENSE.md` — CC BY-SA 4.0 data licence and scope.
+- `BRAND_LICENSE.md` — reserved name and identity assets.
+- `THIRD_PARTY_NOTICES.md` — redistributed runtime notices and source attribution.
 - `assets/brand/what-would-win-icon-master.png` — full-resolution generated source for the one-versus-many application mark.
 - `app/public/icons/` and `app/public/site.webmanifest` — optimized deployed icon and install metadata.
 - `data/creatures.json` and `data/creatures.csv` — 134-profile creature database.
 - `data/*.schema.json` — creature and scenario data contracts.
-- `data/field_provenance.json` — initial per-field provenance/authorship records for seven high-use profiles.
+- `data/field_provenance.json` — complete licensing provenance/authorship records for all 134 profiles.
 - `data/test_scenarios.json` and `.csv` — twelve calibration fixtures.
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
@@ -32,7 +36,7 @@
 - Versioned, validated recent history preserves corrupt/incompatible input and unavailable custom references for recovery.
 - Automated axe and keyboard-operability coverage runs on all four browser projects.
 - CI enforces typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
-- Initial field provenance distinguishes external orientation from authored model inputs for seven high-use profiles.
+- Complete field provenance distinguishes attributed external orientation from authored model and metadata inputs for all profiles.
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
@@ -41,4 +45,4 @@
 
 ## Deliberate limits
 
-The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. The first seven provenance records still require expert review and expansion across the remaining database. Screen-reader testing on real assistive technology remains manual. Custom profiles are deliberately private/local unless explicitly exported or shared.
+The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Licensing provenance is complete, while stronger primary sourcing and expert review remain future scientific-quality work. Screen-reader testing on real assistive technology remains manual. Custom profiles are deliberately private/local unless explicitly exported or shared.

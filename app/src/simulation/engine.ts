@@ -9,6 +9,7 @@ import type {
 import { formatLogQuantity, multiplyLogQuantity, parseQuantity } from './quantity'
 import { hashString, mulberry32, normalSample } from './random'
 import { DATA_VERSION, MODEL_VERSION } from '../version'
+import { METHODOLOGY_DEFAULTS } from '../scenarioDefaults'
 
 export const NAMED_SIZE_MASS_KG = {
   mouse: 0.04,
@@ -168,6 +169,18 @@ function environmentFactor(creature: Creature, scenario: Scenario): number {
     else factor *= 0.92
   }
 
+  if (scenario.waterDepthM > 0) {
+    const immersionRatio = scenario.waterDepthM / Math.max(0.1, creature.shoulder_or_body_height_m)
+    if (creature.aquatic || traits.has('amphibious')) {
+      // Water specialists gain usable approach geometry up to full-body immersion.
+      factor *= 1 + Math.min(0.14, immersionRatio * 0.07)
+    } else {
+      // Non-swimmers lose footing progressively; the floor avoids treating shallow-water
+      // settings as instant defeat and leaves exact anatomy inside the uncertainty band.
+      factor *= clamp(1 - Math.min(0.72, immersionRatio * 0.24), 0.28, 1)
+    }
+  }
+
   return clamp(factor, 0.025, 1.45)
 }
 
@@ -271,7 +284,53 @@ function groupExponent(group: ResolvedCombatant, solo: ResolvedCombatant, scenar
   if (scenario.terrain === 'open') exponent += 0.02
   if (group.creature.aquatic && ['ocean', 'deep-ocean', 'river', 'swamp'].includes(scenario.terrain)) exponent += 0.025
   if (['forest', 'cave', 'fortification'].includes(scenario.terrain)) exponent -= 0.04
+  // Doctrine and casualty tolerance are scenario-level assumptions, separate from the
+  // creature's authored coordination/morale scores. Their bounded increments are kept
+  // smaller than the pack/swarm archetype bonuses above.
+  if (scenario.coordinationDoctrine === 'cooperative') exponent += 0.025
+  if (scenario.coordinationDoctrine === 'disciplined') exponent += 0.05
+  if (scenario.casualtyTolerance === 'committed') exponent += 0.02
+  if (scenario.casualtyTolerance === 'unlimited') exponent += 0.04
   return clamp(exponent, 0.62, 0.94)
+}
+
+function sideHasKnowledge(side: 'solo' | 'group', scenario: Scenario): boolean {
+  return scenario.priorKnowledge === 'both' || scenario.priorKnowledge === side
+}
+
+function methodologyAdjustment(
+  combatant: ResolvedCombatant,
+  side: 'solo' | 'group',
+  scenario: Scenario,
+): number {
+  let adjustment = 0
+
+  // Mindset changes how efficiently each profile applies its existing abilities. It does
+  // not overwrite temperament scores, and the cap is intentionally below an ambush bonus.
+  const mindset = side === 'solo' ? scenario.soloMindset : scenario.groupMindset
+  if (mindset === 'committed') {
+    adjustment += (combatant.stats.morale + combatant.stats.aggression) / 5_000
+  } else if (mindset === 'bloodlusted') {
+    adjustment += (combatant.stats.intelligence + combatant.stats.attack + combatant.stats.agility) / 6_000
+  }
+
+  if (sideHasKnowledge(side, scenario)) {
+    adjustment += 0.025 + combatant.stats.intelligence / 4_000
+  }
+  if (scenario.awareness === side && scenario.ambush !== side) adjustment += 0.055
+  if (
+    (scenario.facing === 'solo-exposed' && side === 'group')
+    || (scenario.facing === 'group-exposed' && side === 'solo')
+  ) adjustment += 0.045
+
+  if (scenario.winCondition === 'death') {
+    adjustment += (combatant.stats.attack + combatant.stats.durability + combatant.stats.morale - 150) / 3_500
+  } else if (scenario.winCondition === 'retreat') {
+    const mobility = combatant.stats.agility + combatant.stats.morale + combatant.scaledSpeedKph / 2
+    adjustment += (mobility - 110) / 3_000
+  }
+
+  return clamp(adjustment, -0.22, 0.28)
 }
 
 function penetrationPenalty(group: ResolvedCombatant, solo: ResolvedCombatant): number {
@@ -302,7 +361,9 @@ function preBattleAdjustment(combatant: ResolvedCombatant, side: 'solo' | 'group
 }
 
 function rangeAdjustment(combatant: ResolvedCombatant, opponent: ResolvedCombatant, scenario: Scenario): number {
-  const distance = Math.max(0, scenario.startingDistanceM)
+  const distance = scenario.arenaBoundary === 'bounded'
+    ? Math.min(Math.max(0, scenario.startingDistanceM), scenario.arenaDiameterM)
+    : Math.max(0, scenario.startingDistanceM)
   const closeDistance = Math.max(combatant.scaledReachM, opponent.scaledReachM)
   let adjustment = 0
   if (combatant.creature.ranged && distance > closeDistance * 2) {
@@ -330,6 +391,8 @@ function deterministicState(creatures: Creature[], scenario: Scenario, quantityL
 
   soloLogPower += preBattleAdjustment(solo, 'solo', scenario) + rangeAdjustment(solo, group, scenario)
   groupLogPower += preBattleAdjustment(group, 'group', scenario) + rangeAdjustment(group, solo, scenario)
+  soloLogPower += methodologyAdjustment(solo, 'solo', scenario)
+  groupLogPower += methodologyAdjustment(group, 'group', scenario)
 
   const logCountPressure = Math.min(quantityLog10, 10)
   const sizeRatio = solo.targetMassKg / Math.max(group.targetMassKg, 0.000001)
@@ -380,12 +443,17 @@ function deterministicState(creatures: Creature[], scenario: Scenario, quantityL
     matchupNotes.push('The group’s venom is discounted against an undead or constructed target profile.')
   }
 
-  if (scenario.escapeAllowed) {
+  if (scenario.escapeAllowed && scenario.arenaBoundary === 'open') {
     const soloMobility = solo.stats.agility + solo.scaledSpeedKph / 2
     const groupMobility = group.stats.agility + group.scaledSpeedKph / 2
     if (soloMobility > groupMobility) soloLogPower += 0.035
     else groupLogPower += 0.035
     matchupNotes.push('Escape is permitted, slightly favouring the more mobile side and reducing expected losses.')
+  }
+
+  if (scenario.waterDepthM > 0) matchupNotes.push(`Water depth is fixed at ${scenario.waterDepthM.toLocaleString('en-AU')} m, so footing and aquatic access are modelled explicitly.`)
+  if (scenario.soloSpecimenProfile !== 'profile-baseline' || scenario.groupSpecimenProfile !== 'profile-baseline' || scenario.soloSpecimenSex !== 'unspecified' || scenario.groupSpecimenSex !== 'unspecified') {
+    matchupNotes.push('Specimen declarations are disclosed but do not alter coefficients unless the corresponding size or stat controls are also changed.')
   }
 
   return {
@@ -400,7 +468,19 @@ function deterministicState(creatures: Creature[], scenario: Scenario, quantityL
 }
 
 function scenarioSeed(scenario: Scenario): number {
-  return (hashString(JSON.stringify({ ...scenario, seed: 0 })) ^ scenario.seed) >>> 0
+  // Report depth and specimen declarations do not alter model mechanics, so they are
+  // excluded from the seeded input fingerprint. This prevents descriptive metadata
+  // from silently changing otherwise identical Monte Carlo samples.
+  const {
+    seed,
+    reportDepth: _reportDepth,
+    soloSpecimenProfile: _soloSpecimenProfile,
+    groupSpecimenProfile: _groupSpecimenProfile,
+    soloSpecimenSex: _soloSpecimenSex,
+    groupSpecimenSex: _groupSpecimenSex,
+    ...modelInputs
+  } = scenario
+  return (hashString(JSON.stringify(modelInputs)) ^ seed) >>> 0
 }
 
 function confidenceLabel(solo: Creature, group: Creature, probability: number, conceptual: boolean): string {
@@ -541,6 +621,7 @@ export function defaultScenario(creatures: Creature[]): Scenario {
     ambush: 'none',
     defensivePosition: 'none',
     escapeAllowed: false,
+    ...METHODOLOGY_DEFAULTS,
     resourcesPercent: 100,
     reportDepth: 'transparent',
     soloOverrides: {},
@@ -602,11 +683,20 @@ export function simulate(creatures: Creature[], scenario: Scenario): SimulationR
         : 'Magical scaling preserves function and lets offensive and defensive capability rise almost directly with mass.',
     `The group is aggregated mathematically with a ${state.groupExponent.toFixed(2)} effectiveness exponent; individuals are not rendered or simulated one by one.`,
     `The displayed probability reserves ${Math.round((1 - epistemicCompression) * 100)}% of outcome weight for unmodelled biological and tactical uncertainty; the raw trial tally was ${formatPercent(rawSoloTrialRate)} for the solo side.`,
-    'A win means battlefield incapacitation, surrender, forced retreat or inability to continue; no graphic injury model is used.',
+    scenario.winCondition === 'death'
+      ? 'The selected win condition is death; the model still represents harm abstractly and non-graphically.'
+      : scenario.winCondition === 'retreat'
+        ? 'A win means forcing the opposing side to retreat or rout from the encounter area.'
+          : 'A win means battlefield incapacitation or inability to continue; no graphic injury model is used.',
+    `Mindsets are solo: ${scenario.soloMindset} and group: ${scenario.groupMindset}; prior knowledge is ${scenario.priorKnowledge}; initial awareness is ${scenario.awareness}.`,
+    `The arena is ${scenario.arenaBoundary} (${scenario.arenaDiameterM.toLocaleString('en-AU')} m reference diameter), and facing is ${scenario.facing}.`,
+    `Group doctrine is ${scenario.coordinationDoctrine} with ${scenario.casualtyTolerance} casualty tolerance.`,
+    'Reaction time, acceleration, turning, vulnerable anatomy and injury/venom timing are not separate phases in this model; agility, speed and uncertainty remain coarse proxies.',
     `The encounter begins ${scenario.startingDistanceM.toLocaleString('en-AU')} m apart with ${scenario.preparationMinutes.toLocaleString('en-AU')} minutes of preparation.`,
     ...state.matchupNotes,
   ]
   if (state.solo.creature.kind === 'fantasy' || state.group.creature.kind === 'fantasy') assumptions.push('Fantasy values are explicit design assumptions, not scientific measurements.')
+  assumptions.push(`Specimens are solo: ${scenario.soloSpecimenProfile}/${scenario.soloSpecimenSex}; group: ${scenario.groupSpecimenProfile}/${scenario.groupSpecimenSex}. These declarations are descriptive until size or stat controls are changed.`)
   if (quantity.conceptual) assumptions.push('The quantity exceeds a plausible physical battlefield and is treated as a conceptual aggregate-force calculation.')
 
   const verdict = `${winnerName} is favoured in ${formatPercent(soloWinsOverall ? soloProbability : groupProbability)} of model trials.`

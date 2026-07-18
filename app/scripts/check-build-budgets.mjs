@@ -6,9 +6,11 @@ const appRoot = fileURLToPath(new URL('../', import.meta.url))
 const distRoot = join(appRoot, 'dist')
 
 const budgets = {
-  javascript: 550_000,
+  // 0.2 intentionally adds 34 validated profiles and share-v3 methodology data.
+  // These raw-file ceilings preserve static-host discipline while retaining headroom.
+  javascript: 575_000,
   css: 25_000,
-  total: 625_000,
+  total: 700_000,
 }
 
 async function filesUnder(directory) {

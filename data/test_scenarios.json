@@ -152,5 +152,115 @@
     "expected_solo_win_probability_min": 0.0,
     "expected_solo_win_probability_max": 0.1,
     "purpose": "Verifies arbitrary scientific notation, logarithmic force modelling and conceptual-result warnings."
+  },
+  {
+    "id": "sperm-whale-orca-pod",
+    "title": "One sperm whale vs eight orcas in deep ocean",
+    "solo_id": "sperm-whale",
+    "group_id": "orca",
+    "group_quantity": "8",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "deep-ocean",
+    "weather": "clear",
+    "starting_distance_m": 100,
+    "expected_solo_win_probability_min": 0.12,
+    "expected_solo_win_probability_max": 0.35,
+    "purpose": "Calibrates modern marine heavyweight mass against pod coordination."
+  },
+  {
+    "id": "spinosaurus-nile-crocodiles",
+    "title": "One Spinosaurus vs three Nile crocodiles in a river",
+    "solo_id": "spinosaurus",
+    "group_id": "nile-crocodile",
+    "group_quantity": "3",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "river",
+    "weather": "clear",
+    "starting_distance_m": 20,
+    "expected_solo_win_probability_min": 0.7,
+    "expected_solo_win_probability_max": 0.9,
+    "purpose": "Calibrates a reconstructed semi-aquatic theropod against real crocodilian group pressure."
+  },
+  {
+    "id": "bigfoot-humans-fixed",
+    "title": "One fixed-model Bigfoot vs ten unarmed adults",
+    "solo_id": "bigfoot",
+    "group_id": "unarmed-peak-adult-human",
+    "group_quantity": "10",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "strict",
+    "terrain": "forest",
+    "weather": "clear",
+    "starting_distance_m": 15,
+    "expected_solo_win_probability_min": 0.35,
+    "expected_solo_win_probability_max": 0.6,
+    "purpose": "Checks that a declared cryptid interpretation remains speculative but reproducible."
+  },
+  {
+    "id": "medusa-spear-group",
+    "title": "Medusa vs twenty armoured spear carriers",
+    "solo_id": "medusa",
+    "group_id": "armoured-spear-carrier",
+    "group_quantity": "20",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "magical",
+    "terrain": "ruin",
+    "weather": "clear",
+    "starting_distance_m": 30,
+    "expected_solo_win_probability_min": 0.02,
+    "expected_solo_win_probability_max": 0.16,
+    "purpose": "Exercises line-of-sight petrification, range and disciplined group pressure."
+  },
+  {
+    "id": "charybdis-orcas-hazard",
+    "title": "Charybdis environmental abstraction vs twenty orcas",
+    "solo_id": "charybdis",
+    "group_id": "orca",
+    "group_quantity": "20",
+    "solo_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "group_size": {
+      "method": "normal",
+      "value": "normal"
+    },
+    "scaling_mode": "magical",
+    "terrain": "ocean",
+    "weather": "storm",
+    "starting_distance_m": 80,
+    "expected_solo_win_probability_min": 0.5,
+    "expected_solo_win_probability_max": 0.76,
+    "purpose": "Keeps the stationary mythic-hazard abstraction visible and regression-tested."
   }
 ]

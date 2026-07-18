@@ -65,9 +65,40 @@ describe('versioned scenario sharing', () => {
     }
   })
 
+  test('migrates deployed compact v2 links with safe methodology defaults', () => {
+    const scenario = defaultScenario(creatures)
+    const oldTuple = [
+      scenario.soloId, scenario.groupId, scenario.groupQuantity,
+      [scenario.soloSize.method, scenario.soloSize.value],
+      [scenario.groupSize.method, scenario.groupSize.value],
+      scenario.scalingMode, scenario.terrain, scenario.weather, scenario.startingDistanceM,
+      scenario.preparationMinutes, scenario.timeOfDay, scenario.ambush, scenario.defensivePosition,
+      scenario.escapeAllowed ? 1 : 0, scenario.resourcesPercent, scenario.reportDepth,
+      Array(11).fill(null), Array(11).fill(null), scenario.seed,
+    ]
+    const decoded = decodeScenarioPayload(`2.${legacyEncode(['0.1.0', '0.1.0', oldTuple])}`)
+    expect(decoded).toMatchObject({ ok: true, status: 'migrated-v2' })
+    if (decoded.ok) {
+      expect(decoded.payload.scenario).toMatchObject({
+        winCondition: 'incapacitation',
+        soloMindset: 'natural',
+        groupMindset: 'natural',
+        arenaBoundary: 'bounded',
+        waterDepthM: 0,
+      })
+      expect(decoded.payload.modelVersion).toBe(MODEL_VERSION)
+      expect(decoded.payload.dataVersion).toBe(DATA_VERSION)
+    }
+  })
+
   test('explicitly migrates the delivered unversioned scenario format', () => {
     const scenario = defaultScenario(creatures)
-    const decoded = decodeScenarioPayload(legacyEncode(scenario))
+    const legacyScenario = Object.fromEntries(Object.entries(scenario).filter(([key]) => ![
+      'soloMindset', 'groupMindset', 'winCondition', 'priorKnowledge', 'awareness', 'facing',
+      'arenaBoundary', 'arenaDiameterM', 'waterDepthM', 'coordinationDoctrine', 'casualtyTolerance',
+      'soloSpecimenProfile', 'groupSpecimenProfile', 'soloSpecimenSex', 'groupSpecimenSex',
+    ].includes(key)))
+    const decoded = decodeScenarioPayload(legacyEncode(legacyScenario))
     expect(decoded.ok).toBe(true)
     if (decoded.ok) {
       expect(decoded.status).toBe('migrated-legacy')

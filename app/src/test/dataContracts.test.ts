@@ -35,10 +35,25 @@ function scenarioFromFixture(fixture: (typeof canonicalScenariosJson)[number]): 
 
 describe('canonical data contracts', () => {
   test('all canonical creatures satisfy the Draft 2020-12 schema', () => {
-    expect(canonicalCreatures).toHaveLength(100)
+    expect(canonicalCreatures).toHaveLength(134)
     for (const creature of canonicalCreatures) {
       const result = validateCreature(creature)
       expect(result.errors, `${creature.id}: ${result.errors.join('; ')}`).toEqual([])
+    }
+  })
+
+  test('expanded roster keeps declared category boundaries and fixed cryptid interpretations', () => {
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'animal')).toHaveLength(73)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'extinct')).toHaveLength(20)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'fantasy')).toHaveLength(37)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'human')).toHaveLength(4)
+
+    const cryptids = canonicalCreatures.filter((creature) => creature.category === 'cryptid')
+    expect(cryptids).toHaveLength(8)
+    for (const cryptid of cryptids) {
+      expect(cryptid.kind).toBe('fantasy')
+      expect(cryptid.data_confidence).toBe('modelled')
+      expect(cryptid.model_notes).toMatch(/fixed|composite/i)
     }
   })
 

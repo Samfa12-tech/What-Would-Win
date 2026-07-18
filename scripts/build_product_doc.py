@@ -298,9 +298,9 @@ def add_cover(doc: Document):
 
     info = doc.add_table(rows=4, cols=2)
     items = [
-        ('Version', '0.1 — working prototype handoff'),
-        ('Prepared', '17 July 2026'),
-        ('Owner / host', 'Sam · samfa12.com'),
+        ('Version', '0.2 — user-test candidate'),
+        ('Prepared', '18 July 2026'),
+        ('Owner / host', 'Samfa12-tech · samfa12.com'),
         ('Implementation', 'React · TypeScript · Vite · static hosting'),
     ]
     for idx, (label, value) in enumerate(items):
@@ -368,7 +368,7 @@ def build() -> None:
     # Header/footer
     header = section.header.paragraphs[0]
     header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    r = header.add_run('WHAT WOULD WIN · PRODUCT PLAN · v0.1')
+    r = header.add_run('WHAT WOULD WIN · PRODUCT PLAN · v0.2')
     set_run_font(r, 'Arial', 7.5, MUTED, bold=True)
     footer = section.footer.paragraphs[0]
     r = footer.add_run('samfa12.com · prototype handoff')
@@ -467,17 +467,13 @@ def build() -> None:
         add_styled_paragraph(doc, stripped)
         i += 1
 
-    # Final compact status panel
-    doc.add_paragraph('Handoff status', style='Heading 1')
-    add_callout(doc, 'The supplied prototype builds successfully, passes its automated calibration suite and has been visually checked at desktop and mobile widths. The next high-value work is model/data versioning, schema validation in CI and saveable custom profiles.', fill='EEF4EE', border='5D8260')
-
     # Core document properties
     props = doc.core_properties
     props.title = 'What Would Win — Product planning, simulation specification and Codex handoff'
     props.subject = 'Product requirements and implementation handoff'
     props.author = 'Samfa12-tech'
     props.keywords = 'What Would Win, simulation, React, TypeScript, product plan, Codex'
-    props.comments = 'Prototype planning document generated 17 July 2026.'
+    props.comments = 'Public product planning document updated 18 July 2026.'
 
     doc.save(OUT)
     print(OUT)

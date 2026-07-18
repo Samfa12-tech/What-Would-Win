@@ -1,10 +1,10 @@
-# What Would Win — MVP-100 data dictionary
+# What Would Win — 134-profile data dictionary
 
 ## Purpose
 
-This directory contains the editable model database and behavioural fixtures for the prototype. It contains **100 profiles**: 64 living animals, 8 extinct animals, 24 fantasy/mythology profiles and 4 generic human profiles.
+This directory contains the editable model database and behavioural fixtures for the prototype. It contains **134 profiles**: 73 living animals, 20 extinct animals, 37 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles.
 
-The database is selected for mechanics coverage and scenario value. It is not a complete taxonomy and is not a validated zoological dataset.
+The database is selected for mechanics coverage and scenario value. It is not a complete taxonomy and is not a validated zoological dataset. The 0.2 breadth pass is documented in `docs/SUBREDDIT_RESEARCH.md`.
 
 ## Files
 
@@ -18,7 +18,7 @@ The database is selected for mechanics coverage and scenario value. It is not a 
 
 ## Interpretation rule
 
-Real profiles use a **representative high-end adult**. This means a large, healthy, combat-capable adult, not a species mean and not the largest anecdotal specimen. The current schema does not yet store sex, age or subspecies, so production provenance must add them.
+Real profiles use a **representative high-end adult**. This means a large, healthy, combat-capable adult, not a species mean and not the largest anecdotal specimen. The creature schema does not yet store sex, age or subspecies. The scenario contract can declare a structured specimen basis and sex, but these are disclosure-only until the user also changes size or authored stats. Production provenance must still add taxon, life stage, condition and sex basis per record.
 
 ## Measurement fields
 
@@ -97,3 +97,4 @@ The canonical `data/creatures.json` file must contain built-in slug IDs only. Au
 4. Add a calibration fixture when a new capability or archetype is introduced.
 5. Do not add named modern franchise characters to built-ins without licensing.
 6. Preserve the abstract-harm and generic-human content boundaries.
+7. Cryptids must use a fixed declared interpretation, `data_confidence: modelled`, and must not imply that a broad folklore source validates authored physical or combat values.

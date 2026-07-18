@@ -79,6 +79,31 @@ describe('versioned local history', () => {
     expect(storage.getItem(HISTORY_KEY)).toBe(raw)
   })
 
+  test('migrates deployed 0.1 history and supplies explicit methodology defaults', () => {
+    const storage = new MemoryStorage()
+    const currentScenario = defaultScenario(creatures)
+    const legacyScenario = Object.fromEntries(Object.entries(currentScenario).filter(([key]) => ![
+      'soloMindset', 'groupMindset', 'winCondition', 'priorKnowledge', 'awareness', 'facing',
+      'arenaBoundary', 'arenaDiameterM', 'waterDepthM', 'coordinationDoctrine', 'casualtyTolerance',
+      'soloSpecimenProfile', 'groupSpecimenProfile', 'soloSpecimenSex', 'groupSpecimenSex',
+    ].includes(key)))
+    storage.setItem(HISTORY_KEY, JSON.stringify({
+      storageVersion: HISTORY_STORAGE_VERSION,
+      items: [{
+        formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+        modelVersion: '0.1.0',
+        dataVersion: '0.1.0',
+        ...legacyItem({ scenario: legacyScenario }),
+      }],
+    }))
+
+    const loaded = loadHistory(storage)
+    const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
+    expect(loaded.warning).toContain('migrated')
+    expect(loaded.items[0].scenario).toMatchObject({ winCondition: 'incapacitation', waterDepthM: 0 })
+    expect(migrated.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
+  })
+
   test('leaves corrupt JSON and incompatible envelopes untouched', () => {
     const corruptStorage = new MemoryStorage()
     corruptStorage.setItem(HISTORY_KEY, '{bad json')

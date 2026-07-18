@@ -4,6 +4,16 @@ export type ReportDepth = 'verdict' | 'assumptions' | 'transparent' | 'technical
 export type TimeOfDay = 'day' | 'night'
 export type AmbushSide = 'none' | 'solo' | 'group'
 export type DefensiveSide = 'none' | 'solo' | 'group'
+export type EngagementMindset = 'natural' | 'committed' | 'bloodlusted'
+export type WinCondition = 'incapacitation' | 'death' | 'retreat'
+export type PriorKnowledge = 'none' | 'solo' | 'group' | 'both'
+export type Awareness = 'mutual' | 'solo' | 'group'
+export type Facing = 'mutual' | 'solo-exposed' | 'group-exposed' | 'random'
+export type ArenaBoundary = 'bounded' | 'open'
+export type CoordinationDoctrine = 'instinctive' | 'cooperative' | 'disciplined'
+export type CasualtyTolerance = 'natural' | 'committed' | 'unlimited'
+export type SpecimenProfile = 'profile-baseline' | 'average-adult' | 'prime-adult' | 'exceptional'
+export type SpecimenSex = 'unspecified' | 'female' | 'male'
 
 export interface Creature {
   id: string
@@ -81,6 +91,21 @@ export interface Scenario {
   ambush: AmbushSide
   defensivePosition: DefensiveSide
   escapeAllowed: boolean
+  soloMindset: EngagementMindset
+  groupMindset: EngagementMindset
+  winCondition: WinCondition
+  priorKnowledge: PriorKnowledge
+  awareness: Awareness
+  facing: Facing
+  arenaBoundary: ArenaBoundary
+  arenaDiameterM: number
+  waterDepthM: number
+  coordinationDoctrine: CoordinationDoctrine
+  casualtyTolerance: CasualtyTolerance
+  soloSpecimenProfile: SpecimenProfile
+  groupSpecimenProfile: SpecimenProfile
+  soloSpecimenSex: SpecimenSex
+  groupSpecimenSex: SpecimenSex
   resourcesPercent: number
   reportDepth: ReportDepth
   soloOverrides: StatOverrides
@@ -101,7 +126,7 @@ export type ScenarioDecodeFailureReason = 'corrupt' | 'oversized' | 'incompatibl
 export type ScenarioDecodeResult =
   | {
       ok: true
-      status: 'current' | 'migrated-v1' | 'migrated-legacy'
+      status: 'current' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
       payload: ScenarioSharePayload
     }
   | {

@@ -1,6 +1,6 @@
 # What Would Win — prototype handoff
 
-A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 100-profile database, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, calibration fixtures and Codex handoff notes.
+A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 134-profile database, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, calibration fixtures and Codex handoff notes.
 
 ## Run locally
 
@@ -38,6 +38,7 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 - `docs/CODEX_HANDOFF.md` — practical continuation guide and paste-ready Codex prompt.
 - `docs/MODEL_NOTES.md` — compact engine change discipline.
 - `docs/QA_REPORT.md` — tests and visual verification status.
+- `docs/SUBREDDIT_RESEARCH.md` — non-franchise animal/creature coverage and debate-method research.
 - `data/DATA_DICTIONARY.md` — data semantics and editing rules.
 - `MANIFEST.md` — artifact inventory, verified snapshot and deliberate limits.
 
@@ -49,13 +50,13 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 - `data/field_provenance.json` and `data/field_provenance.schema.json`
 - `data/test_scenarios.json` and `.csv`
 
-The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy entries are explicit design assumptions. This is an entertainment model, not a scientific prediction or animal-welfare guide.
+The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. This is an entertainment model, not a scientific prediction or animal-welfare guide.
 
 Canonical data and the app-bundled copies are checked for drift. Every creature is validated against the Draft 2020-12 schema in the automated suite. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
 
 ## Versioning and compatibility
 
-The app publishes independent model and bundled-data versions plus a share-format version. Compact v2 share links embed referenced custom profiles, migrate v1 and delivered unversioned scenarios, and reject corrupt, oversized or incompatible payloads rather than silently changing a result. Recent-history storage has its own validated version envelope and preserves corrupt or incompatible source data for recovery.
+The app publishes independent model and bundled-data versions plus a share-format version. Compact v3 share links include explicit debate-method inputs and embed referenced custom profiles. Deployed v2, v1 and delivered unversioned scenarios migrate with documented defaults; unknown, corrupt and oversized payloads are rejected. Recent-history storage migrates the 0.1 contract and preserves corrupt or incompatible source data for recovery.
 
 ## Hosting on samfa12.com
 

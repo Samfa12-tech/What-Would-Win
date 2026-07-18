@@ -33,6 +33,18 @@ export function MethodologyPanel() {
               Physical values are representative prototypes. Normalized combat scores and fantasy profiles are
               authored model inputs. Results are entertainment analysis, not scientific predictions or welfare guidance.
             </p>
+            <p>
+              Specimen sex/basis is disclosed but does not change coefficients by itself. Reaction time, acceleration,
+              turning, vulnerable anatomy and injury or venom timing remain coarse proxies rather than separate phases.
+            </p>
+          </section>
+          <section>
+            <h3>Debate contract</h3>
+            <p>
+              Win condition, each side&apos;s mindset, prior knowledge, awareness, facing, arena boundary, water depth,
+              group doctrine and casualty tolerance are explicit scenario inputs instead of hidden assumptions.
+            </p>
+            <p><strong>Bloodlusted</strong> means optimal use of available abilities, not irrational rage.</p>
           </section>
         </div>
       </div>

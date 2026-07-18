@@ -124,6 +124,51 @@ test('technical depth runs 15,000 trials and exposes the calculation record', as
   await expect(record.getByText('15,000', { exact: true })).toBeVisible()
 })
 
+test('debate methodology controls survive simulation, history and a clean-browser share', async ({ page, browser }) => {
+  await page.getByTestId('solo-creature-select').selectOption('sperm-whale')
+  await page.getByTestId('group-creature-select').selectOption('orca')
+  await page.getByLabel('Quantity').fill('8')
+  await page.getByLabel('Win condition').selectOption('death')
+  await page.getByLabel(/Sperm whale mindset/).selectOption('bloodlusted')
+  await page.getByLabel(/Orca mindset/).selectOption('committed')
+  await page.getByText('Advanced dossier', { exact: true }).click()
+  await page.getByLabel('Prior knowledge').selectOption('both')
+  await page.getByLabel('Initial awareness advantage').selectOption('solo')
+  await page.getByLabel('Initial facing').selectOption('group-exposed')
+  await page.getByLabel('Arena boundary').selectOption('open')
+  await page.getByLabel('Arena diameter (m)').fill('1000')
+  await page.getByLabel('Water depth (m)').fill('50')
+  await page.getByLabel('Group doctrine').selectOption('disciplined')
+  await page.getByLabel('Group casualty tolerance').selectOption('unlimited')
+  await page.getByLabel('Solo specimen basis').selectOption('prime-adult')
+  await page.getByLabel('Solo specimen sex').selectOption('female')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+
+  await page.getByText('Assumptions and limitations', { exact: true }).click()
+  await expect(page.getByText(/Mindsets are solo: bloodlusted and group: committed/)).toBeVisible()
+  await expect(page.getByText(/Water depth is fixed at 50 m/)).toBeVisible()
+  const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  expect(stored.items[0].scenario).toMatchObject({
+    winCondition: 'death', soloMindset: 'bloodlusted', groupMindset: 'committed',
+    priorKnowledge: 'both', arenaBoundary: 'open', waterDepthM: 50,
+    coordinationDoctrine: 'disciplined', casualtyTolerance: 'unlimited',
+    soloSpecimenProfile: 'prime-adult', soloSpecimenSex: 'female',
+  })
+
+  await page.getByRole('button', { name: 'Copy share link' }).click()
+  const clean = await openSharedScenarioInCleanBrowser(browser, page.url())
+  try {
+    await expect(clean.page.getByLabel('Win condition')).toHaveValue('death')
+    await expect(clean.page.getByLabel(/Sperm whale mindset/)).toHaveValue('bloodlusted')
+    await clean.page.getByText('Advanced dossier', { exact: true }).click()
+    await expect(clean.page.getByLabel('Water depth (m)')).toHaveValue('50')
+    await expect(clean.page.getByLabel('Group doctrine')).toHaveValue('disciplined')
+    await expect(clean.page.getByLabel('Solo specimen sex')).toHaveValue('female')
+  } finally {
+    await clean.context.close()
+  }
+})
+
 test('clones, names, edits, saves, reloads and uses a private custom profile', async ({ page }) => {
   const customId = await createSavedCustom(page)
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), CUSTOM_STORAGE_KEY)
@@ -255,6 +300,11 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(exported.result.technical.modelVersion).toBe(exported.modelVersion)
   expect(exported.result.technical.dataVersion).toBe(exported.dataVersion)
   expect(exported.scenario.soloId).toBe(customId)
+  expect(exported.scenario).toEqual(expect.objectContaining({
+    winCondition: 'incapacitation',
+    soloMindset: 'natural',
+    arenaBoundary: 'bounded',
+  }))
   expect(exported.contestants.solo).toMatchObject({ id: customId, name: 'Exported Field Beast' })
   expect(exported.customCreatures).toEqual([
     expect.objectContaining({ id: customId, name: 'Exported Field Beast' }),

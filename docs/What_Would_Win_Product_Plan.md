@@ -4,7 +4,7 @@
 **Document version:** 0.1  
 **Status:** working prototype handoff  
 **Prepared:** 17 July 2026  
-**Owner / intended host:** Sam, `samfa12.com`  
+**Owner / intended host:** Samfa12-tech, `samfa12.com`
 **Primary implementation:** React + TypeScript + Vite  
 
 > **Product promise:** Put one creature against an effectively unlimited number of another creature, state the assumptions, and return a serious-looking, transparent, textual estimate of what would win.
@@ -20,9 +20,9 @@ The first release is deliberately constrained to **one profile versus X copies o
 The handoff includes:
 
 - a working static web demo with no server dependency;
-- a curated **MVP-100** database: 64 living animals, 8 extinct animals, 24 fantasy or mythological profiles and 4 generic human profiles;
+- a curated **134-profile** database: 73 living animals, 20 extinct animals, 37 fantasy or mythological profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles;
 - CSV and JSON data exports plus JSON Schemas;
-- seven behavioural calibration scenarios and automated tests;
+- twelve behavioural calibration scenarios and automated tests;
 - this product and model specification;
 - a Codex-oriented implementation guide and ordered backlog.
 
@@ -46,7 +46,7 @@ The prototype is an **entertainment model**, not a scientific prediction, animal
 | Baseline specimen | Representative high-end / peak healthy adult, disclosed prominently |
 | Violence | Abstract and textual; incapacitation, retreat or surrender rather than graphic injuries |
 | Persistence | Shareable URL, downloadable result image and JSON, local browser history; no account |
-| Distribution | Free viral web toy hosted by Sam on `samfa12.com` |
+| Distribution | Free viral web toy hosted by Samfa12-tech on `samfa12.com` |
 
 ## 3. Problem, opportunity and differentiation
 
@@ -106,7 +106,7 @@ A technically curious user wants to inspect formulas, raw trial rates, confidenc
 ### 6.1 Included in the working prototype
 
 - One selected solo profile versus X identical group profiles.
-- 100 built-in profiles, grouped by living, extinct, fantasy and generic human.
+- 134 built-in profiles, grouped by living, extinct, fantasy and generic human.
 - Arbitrary positive whole-number quantities expressed as integers, `1e100` or `10^100`.
 - Normal, named, exact-mass and relative-linear size controls.
 - Strict, functional and magical scaling modes.
@@ -128,7 +128,7 @@ A technically curious user wants to inspect formulas, raw trial rates, confidenc
 - Animated or real-time combat.
 - User accounts, cloud saves, public galleries or moderation systems.
 - Natural-language creature generation.
-- Persistent named custom creatures. The prototype's overrides already demonstrate base-profile modification and structured stat editing; saveable custom entries are the next feature.
+- Cloud-synced or publicly listed custom creatures. Named custom profiles are deliberately local-only unless the user explicitly exports or shares them.
 - A fully sourced per-field zoological research database.
 - Named living people, children, real protected groups or modern franchise characters in the built-in database.
 - Claims of scientific, veterinary or military validity.
@@ -400,18 +400,18 @@ Duration is a heuristic based on closing speed, quantity load, durability and at
 
 ### 11.1 Prototype database composition
 
-The MVP-100 is selected for **scenario value**, not taxonomic completeness:
+The 134-profile roster is selected for **scenario value**, not taxonomic completeness:
 
-- 64 living animals covering megafauna, apex predators, packs, domestic animals, birds, aquatic specialists, venom, flight and swarms;
-- 8 extinct animals covering iconic dinosaurs and Pleistocene megafauna;
-- 24 generic or public-domain mythological creatures covering giants, dragons, regeneration, constructs, undead, magic and colossal aquatic profiles;
+- 73 living animals covering megafauna, apex predators, packs, domestic animals, birds, aquatic specialists, venom, flight and swarms;
+- 20 extinct animals covering iconic dinosaurs, prehistoric crocodilians and Pleistocene megafauna;
+- 37 generic or public-domain fantasy/mythology profiles, including 8 fixed cryptid interpretations, covering giants, dragons, regeneration, constructs, undead, magic and colossal aquatic profiles;
 - 4 generic humans covering unarmed, trained, armoured melee and ranged archetypes.
 
 The selection intentionally maximizes mechanics coverage: body mass, armour, speed, reach, flight, aquatic movement, range, venom, regeneration, coordination, area control and unusual scale.
 
 ### 11.2 Peak-adult convention
 
-Each real profile represents a large, healthy, combat-capable adult. It is not the species mean and not the largest anecdotal specimen. Where sexual dimorphism matters, the profile generally follows the larger or more combat-relevant adult form, but the current dataset does not yet store sex explicitly. This convention must remain visible in the interface and documentation.
+Each real profile represents a large, healthy, combat-capable adult. It is not the species mean and not the largest anecdotal specimen. The scenario can declare specimen basis and sex for transparency, but these fields do not change coefficients unless the user also changes size or authored stats. Per-record provenance still needs explicit sex, life-stage, condition and taxon basis.
 
 ### 11.3 Physical fields versus model scores
 
@@ -561,7 +561,7 @@ A backend becomes justified when the product adds public galleries, moderated up
 
 ### 14.5 Performance targets
 
-- Initial compressed JS under 150 kB where practical; current build is roughly 84 kB gzip for JavaScript plus 4 kB gzip for CSS.
+- Initial compressed JS under 150 kB where practical; the 0.2 build is roughly 140 kB gzip for JavaScript plus 4.4 kB gzip for CSS, with raw CI ceilings of 575 kB JavaScript and 700 kB total deployable content.
 - First result interaction under 100 ms on a recent desktop and under 300 ms on a typical mobile device for 15,000 trials.
 - No main-thread allocation proportional to group quantity.
 - Largest Contentful Paint under 2.5 seconds on a normal 4G connection after hosting compression and cache headers.
@@ -629,7 +629,8 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 
 - quantity parsing and rejection;
 - scientific-notation formatting;
-- seven matchup acceptance bands;
+- twelve matchup acceptance bands;
+- focused directional tests for mindset, win condition, knowledge, awareness, facing, water geometry, group doctrine, casualty tolerance, arena escape and disclosure-only specimen metadata;
 - technical trial-count selection;
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
@@ -638,16 +639,12 @@ The fixtures are behavioural calibration bands, not assertions of objective biol
 
 ### 17.2 Required next tests
 
-- strict versus functional versus magical scaling changes expected integrity and result direction;
-- long-distance ranged advantage and depleted-ammunition reversal;
-- flight access against a non-ranged ground group;
-- aquatic mismatch on deep-ocean terrain;
-- low coordination scaling worse than swarm/formation profiles;
-- URL round-trip for every size method and advanced field;
-- localStorage corruption recovery;
-- PNG export smoke test;
-- keyboard and accessibility automation;
-- performance test at 15,000 trials and extreme `log10(N)`.
+- browser-automated PNG export and file-content smoke tests;
+- property-based scenario/share-codec tests across valid field combinations;
+- sensitivity and metamorphic tests for coefficient monotonicity and interaction bounds;
+- migration fixtures for every future model/data/share version change;
+- manual NVDA/VoiceOver and physical Safari/iOS checks;
+- deployment smoke tests from the intended `samfa12.com` subpath.
 
 ### 17.3 Calibration protocol
 
@@ -677,17 +674,24 @@ A public beta is ready when:
 ## 19. Roadmap
 
 ### Phase 0 — handoff prototype (delivered)
-Static React demo, MVP-100 data, deterministic-plus-Monte-Carlo model, exports, history, documentation and calibration tests.
+Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, exports, history, documentation and calibration tests.
 
-### Phase 1 — trustworthy beta
+### Phase 1A — trustworthy-beta foundation (delivered in v0.2)
 
-- add model versioning to scenarios and exports;
-- introduce per-field provenance and data validation;
-- add saveable custom profiles cloned from built-ins;
-- improve archetype-specific allometry and group exponents;
-- run accessibility and performance hardening;
-- add Open Graph result preview generation;
-- add a methodology/about view.
+- versioned scenarios, exports, history and compact share links with migration;
+- integrated schema validation and initial per-field provenance records;
+- local named custom profiles cloned from built-ins, with import/export and reproducible sharing;
+- automated accessibility, browser, performance and build-size gates;
+- visible methodology, assumptions and rules-of-engagement controls;
+- 134 built-in profiles and twelve calibration fixtures.
+
+### Phase 1B — trustworthy beta (next)
+
+- complete expert-reviewed per-field provenance, licences and cultural-sensitivity review;
+- improve archetype-specific allometry, contact saturation and group exponents;
+- run manual assistive-technology and physical-device testing;
+- add Open Graph result preview generation and public privacy/methodology pages;
+- deploy to a staging subpath and collect structured user-test feedback.
 
 ### Phase 2 — shareability
 
@@ -716,29 +720,18 @@ Static React demo, MVP-100 data, deterministic-plus-Monte-Carlo model, exports, 
 
 ## 20. Ordered Codex backlog
 
-### P0 — harden the delivered prototype
+### Delivered in v0.2
 
-1. Add `MODEL_VERSION` and `DATA_VERSION` constants to exported results and share URLs.
-2. Add JSON Schema validation during data generation and tests.
-3. Add URL codec round-trip tests and graceful handling of oversized/corrupt query strings.
-4. Add unit tests for each scaling law, environment modifier, flight/range access and ammunition.
-5. Replace manual HTML canvas line wrapping with a tested export-card component or robust text fitting.
-6. Add accessible focus styles, skip link and automated axe checks.
-7. Fix any browser-compatibility issues found in Safari iOS and Firefox.
-8. Add a build-size and simulation-duration check to CI.
-9. Add an about/methodology panel containing the critical disclaimer and model version.
-10. Establish a changelog for coefficient changes.
+Model/data/share versioning, integrated schemas, compact and migrated links, local named custom profiles, calibrated methodology controls, browser/accessibility automation, performance budgets, public-release hardening and a coefficient changelog are complete and regression-tested.
 
-### P1 — custom profile builder
+### P0 — user-test and deployment preparation
 
-1. Add a `CustomCreature` type compatible with the base schema and a `custom:` ID namespace.
-2. Implement “Clone selected profile.”
-3. Build structured physical, capability, attack-mode, trait and normalized-stat editing.
-4. Validate ranges and flag inconsistent combinations rather than silently changing them.
-5. Save custom profiles in versioned localStorage.
-6. Include referenced custom profiles inside shared scenario payloads.
-7. Add JSON import/export and delete/duplicate controls.
-8. Make custom profiles private by default and display a “user-authored” confidence label.
+1. Run manual exploratory tests, NVDA/VoiceOver checks and physical Safari/iOS tests.
+2. Validate the built app from the intended `samfa12.com` staging subpath.
+3. Test PNG and JSON downloads on representative mobile and desktop devices.
+4. Add privacy, methodology and contact/reporting pages plus Open Graph metadata.
+5. Complete data-licence review and cultural-sensitivity review for cryptid composites.
+6. Collect structured user feedback before changing calibration coefficients.
 
 ### P1 — data quality
 
@@ -801,14 +794,14 @@ These references justify the use of size-aware modelling, structured trait data 
 
 ## 24. Definition of done for the next Codex session
 
-The next session should begin by running the existing tests and reading `docs/CODEX_HANDOFF.md`. A successful first iteration should:
+The next session should begin by running the existing tests and reading `docs/CODEX_HANDOFF.md`. A successful user-test preparation iteration should:
 
 1. preserve all current passing tests;
-2. add model/data versioning;
-3. add schema validation and at least five new interaction tests;
-4. implement the first saveable custom-profile slice or clearly document why a smaller prerequisite is required;
-5. update this document and the changelog whenever the formula or data contract changes;
-6. produce a deployable `dist/` directory for `samfa12.com`.
+2. run manual exploratory, NVDA/VoiceOver and physical Safari/iOS checks;
+3. expand expert-reviewed per-field provenance and complete data/licence review;
+4. complete cultural-sensitivity review for living-tradition cryptid composites;
+5. validate the production build from the intended `samfa12.com` subpath;
+6. collect structured feedback before changing calibration coefficients.
 
 ## Appendix A. Delivered artifact inventory
 
@@ -834,24 +827,29 @@ These are deterministic seeded results from the delivered 5,000-trial transparen
 |---|---:|---|
 | Horse-sized mallard duck vs 100 duck-sized horses | 96.0% | Mallard duck |
 | African bush elephant vs 20 gray wolves | 96.0% | African bush elephant |
-| Silverback gorilla vs 50 mallard ducks | 95.1% | Silverback gorilla |
-| Western dragon vs 200 prepared archers | 88.5% | Western dragon |
+| Silverback gorilla vs 50 mallard ducks | 95.0% | Silverback gorilla |
+| Western dragon vs 200 prepared archers | 88.4% | Western dragon |
 | Tyrannosaurus rex vs 1,000 roosters | 93.0% | Tyrannosaurus rex |
-| Kraken vs 20 orcas in deep ocean | 53.6% | Kraken; close and assumption-sensitive |
+| Kraken vs 20 orcas in deep ocean | 54.6% | Kraken; close and assumption-sensitive |
 | Stone golem vs `10^100` house mice | 0.5% | Mouse aggregate; conceptual-scale warning |
+| Sperm whale vs 8 orcas in deep ocean | 22.4% | Orca pod |
+| Spinosaurus vs 3 Nile crocodiles in a river | 80.8% | Spinosaurus |
+| Fixed-model Bigfoot vs 10 unarmed adults | 47.3% | Human group; close and speculative |
+| Medusa vs 20 armoured spear carriers | 6.1% | Spear-carrier group |
+| Charybdis abstraction vs 20 orcas | 63.9% | Charybdis; hazard abstraction warning |
 
 A coefficient change should be assessed across the whole set. A change that makes one meme answer feel better but damages unrelated archetypes is a regression, not an improvement.
 
 ## Appendix C. Public-beta release checklist
 
 - Confirm code and data licences.
-- Add model and data version constants.
-- Run schema validation, tests, typecheck and production build.
+- [x] Add model and data version constants.
+- [x] Run schema validation, tests, typecheck and production build.
 - Complete keyboard, axe, VoiceOver/NVDA, Safari iOS and Firefox checks.
 - Replace or strengthen provenance for the most frequently used profiles.
 - Add privacy, methodology and contact/reporting pages.
 - Add Open Graph metadata and a default social preview.
 - Configure HTTPS, compression, cache headers and monitoring on `samfa12.com`.
-- Test copied share links from a clean browser profile.
+- [x] Test copied share links from a clean browser profile.
 - Test PNG and JSON downloads on mobile and desktop.
 - Publish a changelog and retain the previous deploy for rollback.

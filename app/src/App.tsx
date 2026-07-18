@@ -20,6 +20,7 @@ import { buildShareUrl, decodeScenarioPayload } from './simulation/share'
 import type { Creature, HistoryItem, HistoryStore, Scenario, SimulationResult, StatOverrides } from './types'
 import { validateScenario } from './validation'
 import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
+import { withMethodologyDefaults } from './scenarioDefaults'
 
 const builtInCreatures = creatureJson as Creature[]
 export const HISTORY_KEY = 'what-would-win-history-v1'
@@ -46,17 +47,18 @@ const weatherOptions = ['clear', 'rain', 'storm', 'fog', 'snow', 'heat']
 function mergeScenario(candidate: Scenario | null, creatures: Creature[] = builtInCreatures): Scenario {
   const base = defaultScenario(builtInCreatures)
   if (!candidate) return base
-  const validSolo = creatures.some((item) => item.id === candidate.soloId)
-  const validGroup = creatures.some((item) => item.id === candidate.groupId)
+  const normalized = withMethodologyDefaults(candidate) as Scenario
+  const validSolo = creatures.some((item) => item.id === normalized.soloId)
+  const validGroup = creatures.some((item) => item.id === normalized.groupId)
   return {
     ...base,
-    ...candidate,
-    soloId: validSolo ? candidate.soloId : base.soloId,
-    groupId: validGroup ? candidate.groupId : base.groupId,
-    soloSize: candidate.soloSize ?? base.soloSize,
-    groupSize: candidate.groupSize ?? base.groupSize,
-    soloOverrides: candidate.soloOverrides ?? {},
-    groupOverrides: candidate.groupOverrides ?? {},
+    ...normalized,
+    soloId: validSolo ? normalized.soloId : base.soloId,
+    groupId: validGroup ? normalized.groupId : base.groupId,
+    soloSize: normalized.soloSize ?? base.soloSize,
+    groupSize: normalized.groupSize ?? base.groupSize,
+    soloOverrides: normalized.soloOverrides ?? {},
+    groupOverrides: normalized.groupOverrides ?? {},
   }
 }
 
@@ -92,11 +94,13 @@ function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
   const legacyKeys = ['id', 'createdAt', 'scenario', 'winnerName', 'soloName', 'groupName', 'soloWinProbability']
   const currentKeys = ['formatVersion', 'modelVersion', 'dataVersion', ...legacyKeys]
   if (!hasOnlyKeys(value, legacy ? legacyKeys : currentKeys)) return null
-  if (!legacy && (
+  const previousVersion = value.modelVersion === '0.1.0' && value.dataVersion === '0.1.0'
+  if (!legacy && !previousVersion && (
     value.formatVersion !== HISTORY_ITEM_FORMAT_VERSION
     || value.modelVersion !== MODEL_VERSION
     || value.dataVersion !== DATA_VERSION
   )) return null
+  const migratedScenario = withMethodologyDefaults(value.scenario) as Scenario
   if (
     !validHistoryText(value.id)
     || typeof value.createdAt !== 'string'
@@ -108,7 +112,7 @@ function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
     || !Number.isFinite(value.soloWinProbability)
     || value.soloWinProbability < 0
     || value.soloWinProbability > 1
-    || !validateScenario(value.scenario).valid
+    || !validateScenario(migratedScenario).valid
   ) return null
 
   return {
@@ -117,7 +121,7 @@ function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
     dataVersion: DATA_VERSION,
     id: value.id,
     createdAt: value.createdAt,
-    scenario: value.scenario as Scenario,
+    scenario: migratedScenario,
     winnerName: value.winnerName,
     soloName: value.soloName,
     groupName: value.groupName,
@@ -154,6 +158,7 @@ export function loadHistory(storage: Storage): HistoryLoadResult {
     const items: HistoryItem[] = []
     const ids = new Set<string>()
     let ignored = Math.max(0, candidates.length - MAX_HISTORY_ITEMS)
+    let upgradedVersionedItems = 0
     for (const candidate of candidates.slice(0, MAX_HISTORY_ITEMS)) {
       const item = parseHistoryItem(candidate, legacy)
       if (!item || ids.has(item.id)) {
@@ -162,6 +167,9 @@ export function loadHistory(storage: Storage): HistoryLoadResult {
       }
       ids.add(item.id)
       items.push(item)
+      if (!legacy && isRecord(candidate) && candidate.modelVersion === '0.1.0' && candidate.dataVersion === '0.1.0') {
+        upgradedVersionedItems += 1
+      }
     }
 
     let migrationWarning = ''
@@ -171,6 +179,13 @@ export function loadHistory(storage: Storage): HistoryLoadResult {
         migrationWarning = 'Legacy recent history was migrated to the current version.'
       } catch {
         migrationWarning = 'Legacy recent history was loaded but could not be migrated in this browser.'
+      }
+    } else if (upgradedVersionedItems > 0 && ignored === 0) {
+      try {
+        storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
+        migrationWarning = `${upgradedVersionedItems} previous-version history ${upgradedVersionedItems === 1 ? 'entry was' : 'entries were'} migrated and will be recalculated when restored.`
+      } catch {
+        migrationWarning = 'Previous-version history was loaded but could not be migrated in this browser.'
       }
     }
     const ignoredWarning = ignored
@@ -217,6 +232,8 @@ function initialAppState(): InitialAppState {
   ]
   const shareWarning = decoded && !decoded.ok
     ? decoded.message
+    : decoded?.status === 'migrated-v2'
+      ? 'This version 2 share link was migrated to the current debate-method format and recalculated.'
     : decoded?.status === 'migrated-v1'
       ? 'This version 1 share link was migrated to the compact current format.'
       : decoded?.status === 'migrated-legacy'
@@ -578,7 +595,7 @@ function App() {
           <p className="hero-copy">A mock-serious, textual simulator for one creature versus an effectively unlimited opposing force.</p>
         </div>
         <div className="header-meta">
-          <span>MVP-100 database</span>
+          <span>134-profile database</span>
           <span>1 vs X engine</span>
           <span>Zero graphic violence</span>
         </div>
@@ -710,6 +727,37 @@ function App() {
           </div>
 
           <fieldset className="choice-fieldset">
+            <legend>Rules of engagement</legend>
+            <div className="environment-grid">
+              <label className="field-stack">
+                <span>Win condition</span>
+                <select value={scenario.winCondition} onChange={(event) => update('winCondition', event.target.value as Scenario['winCondition'])}>
+                  <option value="incapacitation">Incapacitation</option>
+                  <option value="death">Death (abstract)</option>
+                  <option value="retreat">Retreat / rout</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>{solo.name} mindset</span>
+                <select value={scenario.soloMindset} onChange={(event) => update('soloMindset', event.target.value as Scenario['soloMindset'])}>
+                  <option value="natural">Natural / in character</option>
+                  <option value="committed">Committed</option>
+                  <option value="bloodlusted">Bloodlusted / optimal</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>{group.name} mindset</span>
+                <select value={scenario.groupMindset} onChange={(event) => update('groupMindset', event.target.value as Scenario['groupMindset'])}>
+                  <option value="natural">Natural / in character</option>
+                  <option value="committed">Committed</option>
+                  <option value="bloodlusted">Bloodlusted / optimal</option>
+                </select>
+              </label>
+            </div>
+            <p className="field-help">“Bloodlusted” means efficient, optimal use of abilities—not a berserker rage.</p>
+          </fieldset>
+
+          <fieldset className="choice-fieldset">
             <legend>Report depth and simulation effort</legend>
             <div className="choice-card-grid four-up">
               {reportDepths.map((depth) => (
@@ -726,13 +774,100 @@ function App() {
           <details className="advanced-dossier">
             <summary>
               <span>Advanced dossier</span>
-              <small>Preparation, ambush, defence, resources, escape and all editable stats</small>
+              <small>Knowledge, geometry, specimens, group doctrine and all editable stats</small>
             </summary>
 
             <div className="advanced-battlefield-grid">
               <label className="field-stack">
                 <span>Preparation time (minutes)</span>
                 <input type="number" min="0" max="1000000" value={scenario.preparationMinutes} onChange={(event) => update('preparationMinutes', Math.max(0, Number(event.target.value) || 0))} />
+              </label>
+              <label className="field-stack">
+                <span>Prior knowledge</span>
+                <select value={scenario.priorKnowledge} onChange={(event) => update('priorKnowledge', event.target.value as Scenario['priorKnowledge'])}>
+                  <option value="none">Neither side</option>
+                  <option value="solo">Solo side only</option>
+                  <option value="group">Group side only</option>
+                  <option value="both">Both sides</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Initial awareness advantage</span>
+                <select value={scenario.awareness} onChange={(event) => update('awareness', event.target.value as Scenario['awareness'])}>
+                  <option value="mutual">Mutual awareness</option>
+                  <option value="solo">Solo side</option>
+                  <option value="group">Group side</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Initial facing</span>
+                <select value={scenario.facing} onChange={(event) => update('facing', event.target.value as Scenario['facing'])}>
+                  <option value="mutual">Facing each other</option>
+                  <option value="solo-exposed">Solo side exposed</option>
+                  <option value="group-exposed">Group side exposed</option>
+                  <option value="random">Random orientation</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Arena boundary</span>
+                <select value={scenario.arenaBoundary} onChange={(event) => update('arenaBoundary', event.target.value as Scenario['arenaBoundary'])}>
+                  <option value="bounded">Bounded arena</option>
+                  <option value="open">Open / escapable</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Arena diameter (m)</span>
+                <input type="number" min="1" max="1000000" value={scenario.arenaDiameterM} onChange={(event) => update('arenaDiameterM', Math.max(1, Number(event.target.value) || 1))} />
+              </label>
+              <label className="field-stack">
+                <span>Water depth (m)</span>
+                <input type="number" min="0" max="10000" step="0.1" value={scenario.waterDepthM} onChange={(event) => update('waterDepthM', Math.max(0, Number(event.target.value) || 0))} />
+              </label>
+              <label className="field-stack">
+                <span>Group doctrine</span>
+                <select value={scenario.coordinationDoctrine} onChange={(event) => update('coordinationDoctrine', event.target.value as Scenario['coordinationDoctrine'])}>
+                  <option value="instinctive">Instinctive / baseline</option>
+                  <option value="cooperative">Cooperative plan</option>
+                  <option value="disciplined">Disciplined formation</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Group casualty tolerance</span>
+                <select value={scenario.casualtyTolerance} onChange={(event) => update('casualtyTolerance', event.target.value as Scenario['casualtyTolerance'])}>
+                  <option value="natural">Natural self-preservation</option>
+                  <option value="committed">Committed</option>
+                  <option value="unlimited">Unlimited / no rout</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Solo specimen basis</span>
+                <select value={scenario.soloSpecimenProfile} onChange={(event) => update('soloSpecimenProfile', event.target.value as Scenario['soloSpecimenProfile'])}>
+                  <option value="profile-baseline">Profile baseline</option>
+                  <option value="average-adult">Average adult (declared)</option>
+                  <option value="prime-adult">Prime adult (declared)</option>
+                  <option value="exceptional">Exceptional specimen (declared)</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Solo specimen sex</span>
+                <select value={scenario.soloSpecimenSex} onChange={(event) => update('soloSpecimenSex', event.target.value as Scenario['soloSpecimenSex'])}>
+                  <option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Group specimen basis</span>
+                <select value={scenario.groupSpecimenProfile} onChange={(event) => update('groupSpecimenProfile', event.target.value as Scenario['groupSpecimenProfile'])}>
+                  <option value="profile-baseline">Profile baseline</option>
+                  <option value="average-adult">Average adult (declared)</option>
+                  <option value="prime-adult">Prime adult (declared)</option>
+                  <option value="exceptional">Exceptional specimen (declared)</option>
+                </select>
+              </label>
+              <label className="field-stack">
+                <span>Group specimen sex</span>
+                <select value={scenario.groupSpecimenSex} onChange={(event) => update('groupSpecimenSex', event.target.value as Scenario['groupSpecimenSex'])}>
+                  <option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option>
+                </select>
               </label>
               <label className="field-stack">
                 <span>Time of day</span>

@@ -4,6 +4,7 @@ import scenariosJson from '../data/test_scenarios.json'
 import { defaultScenario, simulate } from '../simulation/engine'
 import { formatLogQuantity, parseQuantity } from '../simulation/quantity'
 import type { Creature, Scenario } from '../types'
+import { METHODOLOGY_DEFAULTS } from '../scenarioDefaults'
 
 const creatures = creaturesJson as Creature[]
 
@@ -72,6 +73,7 @@ function syntheticScenario(overrides: Partial<Scenario> = {}): Scenario {
     ambush: 'none',
     defensivePosition: 'none',
     escapeAllowed: false,
+    ...METHODOLOGY_DEFAULTS,
     resourcesPercent: 100,
     reportDepth: 'verdict',
     soloOverrides: {},
@@ -276,4 +278,92 @@ describe('simulation engine', () => {
     expect(result.conceptualWarning).toBeDefined()
     expect(elapsedMs).toBeLessThan(10_000)
   }, 15_000)
+
+  test('side-specific committed and bloodlusted mindsets use existing capabilities efficiently', () => {
+    const testCreatures = [
+      syntheticCreature('solo', { attack: 85, intelligence: 90, agility: 80, morale: 80, aggression: 75 }),
+      syntheticCreature('group'),
+    ]
+    const natural = simulate(testCreatures, syntheticScenario())
+    const committed = simulate(testCreatures, syntheticScenario({ soloMindset: 'committed' }))
+    const bloodlusted = simulate(testCreatures, syntheticScenario({ soloMindset: 'bloodlusted' }))
+
+    expect(committed.technical.deterministicSoloLogPower).toBeGreaterThan(natural.technical.deterministicSoloLogPower)
+    expect(bloodlusted.technical.deterministicSoloLogPower).toBeGreaterThan(natural.technical.deterministicSoloLogPower)
+    expect(bloodlusted.assumptions.join(' ')).toContain('bloodlusted')
+  })
+
+  test('win conditions change the relevant capability emphasis without relabelling the same result', () => {
+    const testCreatures = [
+      syntheticCreature('solo', { attack: 90, durability: 90, morale: 85 }),
+      syntheticCreature('group', { attack: 40, durability: 40, morale: 35 }),
+    ]
+    const incapacitation = simulate(testCreatures, syntheticScenario({ winCondition: 'incapacitation' }))
+    const death = simulate(testCreatures, syntheticScenario({ winCondition: 'death' }))
+    const retreat = simulate(testCreatures, syntheticScenario({ winCondition: 'retreat', escapeAllowed: true, arenaBoundary: 'open' }))
+
+    expect(death.technical.deterministicSoloLogPower - death.technical.deterministicGroupLogPower)
+      .toBeGreaterThan(incapacitation.technical.deterministicSoloLogPower - incapacitation.technical.deterministicGroupLogPower)
+    expect(retreat.assumptions.join(' ')).toMatch(/retreat|rout/)
+  })
+
+  test('knowledge, awareness and facing produce bounded opening advantages', () => {
+    const testCreatures = [syntheticCreature('solo', { intelligence: 90 }), syntheticCreature('group')]
+    const baseline = simulate(testCreatures, syntheticScenario())
+    const informed = simulate(testCreatures, syntheticScenario({ priorKnowledge: 'solo' }))
+    const opening = simulate(testCreatures, syntheticScenario({ awareness: 'solo', facing: 'group-exposed' }))
+
+    expect(informed.technical.deterministicSoloLogPower).toBeGreaterThan(baseline.technical.deterministicSoloLogPower)
+    expect(opening.technical.deterministicSoloLogPower).toBeGreaterThan(baseline.technical.deterministicSoloLogPower)
+  })
+
+  test('water depth separates aquatic access from non-aquatic footing', () => {
+    const group = syntheticCreature('group', { aquatic: true })
+    const dry = simulate([syntheticCreature('solo'), group], syntheticScenario({ waterDepthM: 0 }))
+    const deep = simulate([syntheticCreature('solo'), group], syntheticScenario({ waterDepthM: 2 }))
+
+    expect(deep.technical.soloEnvironmentFactor).toBeLessThan(dry.technical.soloEnvironmentFactor)
+    expect(deep.technical.groupEnvironmentFactor).toBeGreaterThan(dry.technical.groupEnvironmentFactor)
+  })
+
+  test('group doctrine and casualty tolerance scale numbers but not a one-member group', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const baselineOne = simulate(testCreatures, syntheticScenario({ groupQuantity: '1' }))
+    const disciplinedOne = simulate(testCreatures, syntheticScenario({
+      groupQuantity: '1', coordinationDoctrine: 'disciplined', casualtyTolerance: 'unlimited',
+    }))
+    const baselineMany = simulate(testCreatures, syntheticScenario({ groupQuantity: '100' }))
+    const disciplinedMany = simulate(testCreatures, syntheticScenario({
+      groupQuantity: '100', coordinationDoctrine: 'disciplined', casualtyTolerance: 'unlimited',
+    }))
+
+    expect(disciplinedOne.technical.deterministicGroupLogPower).toBeCloseTo(baselineOne.technical.deterministicGroupLogPower, 12)
+    expect(disciplinedMany.technical.groupEffectivenessExponent).toBeGreaterThan(baselineMany.technical.groupEffectivenessExponent)
+    expect(disciplinedMany.technical.deterministicGroupLogPower).toBeGreaterThan(baselineMany.technical.deterministicGroupLogPower)
+  })
+
+  test('structured specimen declarations are disclosed without changing model samples', () => {
+    const testCreatures = [syntheticCreature('solo'), syntheticCreature('group')]
+    const baseline = simulate(testCreatures, syntheticScenario())
+    const declared = simulate(testCreatures, syntheticScenario({
+      soloSpecimenProfile: 'exceptional',
+      soloSpecimenSex: 'female',
+      groupSpecimenProfile: 'average-adult',
+      groupSpecimenSex: 'male',
+    }))
+
+    expect(declared.soloWinProbability).toBe(baseline.soloWinProbability)
+    expect(declared.technical.seed).toBe(baseline.technical.seed)
+    expect(declared.assumptions.join(' ')).toContain('exceptional/female')
+  })
+
+  test('open arenas allow escape mobility while bounded arenas suppress it', () => {
+    const testCreatures = [
+      syntheticCreature('solo', { agility: 90, burst_speed_kph: 80 }),
+      syntheticCreature('group', { agility: 30, burst_speed_kph: 20 }),
+    ]
+    const bounded = simulate(testCreatures, syntheticScenario({ escapeAllowed: true, arenaBoundary: 'bounded' }))
+    const open = simulate(testCreatures, syntheticScenario({ escapeAllowed: true, arenaBoundary: 'open' }))
+    expect(open.technical.deterministicSoloLogPower).toBeGreaterThan(bounded.technical.deterministicSoloLogPower)
+  })
 })

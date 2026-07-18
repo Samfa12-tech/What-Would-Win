@@ -191,7 +191,50 @@ add('Chimera','fantasy','mythic-beast',850,4.5,2.2,58,12.0,90,70,82,72,82,62,94,
 add('Manticore','fantasy','mythic-beast',600,4.0,1.8,65,35.0,86,66,76,78,76,74,88,32,92,32,78,['desert','open','mountain'],['bite','claw','tail-spike'],['ranged','venom'], 'Manticore','modelled',icon='🦁')
 add('Giant spider','fantasy','mythic-beast',500,4.0,1.5,45,15.0,82,68,76,84,78,60,94,24,96,58,74,['forest','cave','ruin'],['bite','web','grapple'],['venom','ranged','climber'], 'Spider in mythology','modelled',icon='🕷️')
 
-assert len(entries) == 100, len(entries)
+# Reddit-informed coverage expansion: living marine/land gaps.
+add('Sperm whale','animal','marine-mammal',50000,18,3.5,37,5.0,96,88,98,48,90,84,50,70,94,58,60,['ocean','deep-ocean'],['bite','ram','tail-strike'],['aquatic','echolocation','deep-diver'], 'Sperm whale','medium',icon='🐋')
+add('Blue whale','animal','marine-mammal',150000,28,4.5,33,6.0,75,90,100,38,92,72,18,55,88,52,55,['ocean','deep-ocean'],['tail-strike','ram'],['aquatic','colossal'], 'Blue whale','medium',icon='🐋')
+add('Colossal squid','animal','cephalopod',500,10,1.2,20,5.0,78,54,70,64,70,60,72,18,82,15,80,['deep-ocean'],['beak','tentacle','grapple'],['aquatic','many-limbs','hooks'], 'Colossal squid','low',icon='🦑')
+add('Tiger shark','animal','marine-predator',900,5.5,1.0,32,1.0,87,70,80,68,78,48,78,12,87,35,38,['ocean','coast'],['bite','ram'],['aquatic','electroreception'], 'Tiger shark','medium',icon='🦈')
+add('Bull shark','animal','marine-predator',320,3.4,0.7,40,0.8,80,66,74,72,78,47,84,12,88,32,35,['ocean','coast','river'],['bite','ram'],['aquatic','electroreception'], 'Bull shark','medium',icon='🦈')
+add('Southern elephant seal','animal','marine-mammal',4000,6.0,2.0,24,1.5,83,86,92,36,84,48,82,25,92,67,52,['ocean','coast','ice'],['bite','crush','body-slam'],['aquatic','thick-hide','cold-adapted'], 'Southern elephant seal','medium',icon='🦭')
+add('American bison','animal','large-herbivore',1000,3.5,1.9,56,1.7,84,82,86,52,80,42,78,58,88,64,58,['open','snow'],['horn','charge','trample'],['herd','cold-adapted'], 'American bison','high',icon='🦬')
+add('Cougar','animal','apex-predator',100,2.4,0.8,72,0.8,76,56,64,88,68,60,76,28,80,24,44,['mountain','forest','open'],['bite','claw','pounce'],['ambush','climber'], 'Cougar','high',icon='🐆')
+add('Nile crocodile','animal','reptile',1000,5.5,0.7,30,1.2,91,88,90,40,72,44,90,24,92,86,48,['river','swamp'],['bite','death-roll','tail-strike'],['armored','amphibious','ambush'], 'Nile crocodile','high',icon='🐊')
+
+# Prehistoric ladder: major theropods, crocodilians and megafauna.
+add('Spinosaurus','extinct','dinosaur',7500,14.5,4.5,24,2.7,94,82,90,43,72,48,78,16,90,48,62,['river','swamp','coast'],['bite','claw','ram'],['extinct','aquatic','semi-aquatic'], 'Spinosaurus','low','Large adult semi-aquatic reconstruction; body mass, gait and performance remain disputed.',icon='🦖')
+add('Allosaurus','extinct','dinosaur',2200,9,3,32,2.0,89,70,82,60,72,48,84,22,88,32,52,['prehistoric-open','forest'],['bite','claw','ram'],['extinct','apex-predator'], 'Allosaurus','medium',icon='🦖')
+add('Deinosuchus','extinct','prehistoric-crocodilian',8000,10,1.2,20,2.0,98,96,98,28,82,38,86,12,95,96,60,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','armored','ambush'], 'Deinosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
+add('Sarcosuchus','extinct','prehistoric-crocodilian',4000,10,1.0,20,1.8,93,91,94,30,80,38,82,10,92,90,55,['river','swamp'],['bite','death-roll','ram'],['extinct','aquatic','armored','ambush'], 'Sarcosuchus','low','Large adult reconstruction; mass and performance estimates vary substantially.',icon='🐊')
+add('Argentinosaurus','extinct','sauropod',70000,32,7,15,7.0,98,98,100,15,90,36,55,45,95,82,88,['prehistoric-open'],['tail-strike','stomp','trample'],['extinct','colossal'], 'Argentinosaurus','low','Colossal adult reconstruction with high uncertainty in mass and movement.',icon='🦕')
+add('Titanoboa','extinct','prehistoric-reptile',1100,13,0.6,10,2.0,88,68,85,42,80,38,74,10,90,38,52,['river','swamp','forest'],['bite','constrict'],['extinct','aquatic','ambush'], 'Titanoboa','medium',icon='🐍')
+add('Megatherium','extinct','prehistoric-mammal',4000,6,3.5,15,2.2,86,80,90,35,78,44,70,18,88,58,60,['prehistoric-open','forest'],['claw','grapple','strike'],['extinct','thick-hide'], 'Megatherium','medium',icon='🦥')
+add('Cave bear','extinct','prehistoric-mammal',1000,3.2,1.6,40,1.5,88,82,90,48,80,45,72,15,88,58,48,['forest','cave'],['bite','claw','grapple'],['extinct','thick-fur'], 'Cave bear','medium',icon='🐻')
+add('Giant short-faced bear','extinct','prehistoric-mammal',900,3,1.8,50,1.5,89,78,88,56,78,48,80,20,89,52,50,['prehistoric-open','forest'],['bite','claw','grapple'],['extinct'], 'Arctodus simus','low','Large adult reconstruction; running ability and ecology are uncertain.',icon='🐻')
+add('Therizinosaurus','extinct','dinosaur',5000,10,5,25,3.5,92,78,88,46,76,42,76,20,90,46,74,['prehistoric-open','forest'],['claw','stomp','strike'],['extinct'], 'Therizinosaurus','low','Large adult reconstruction; claw use and defensive behaviour are model assumptions.',icon='🦕')
+add('Giganotosaurus','extinct','dinosaur',8000,13,4,32,2.6,97,83,92,52,76,50,84,16,92,46,58,['prehistoric-open'],['bite','ram'],['extinct','apex-predator'], 'Giganotosaurus','medium',icon='🦖')
+add('Mapusaurus','extinct','dinosaur',5000,11.5,3.5,32,2.3,94,78,88,56,78,48,86,35,90,42,55,['prehistoric-open'],['bite','ram'],['extinct','apex-predator','pack-possible'], 'Mapusaurus','low','Pack behaviour is possible but not established; the group score is a transparent model assumption.',icon='🦖')
+
+# Fixed cryptozoological interpretations. These are app-defined composites, not claims
+# about authentic living traditions or variable popular versions.
+add('Bigfoot','fantasy','cryptid',350,2.5,2.5,40,1.4,76,65,80,62,78,72,68,25,84,35,45,['forest','mountain'],['bite','grapple','strike'],['hands','climber'], 'Bigfoot','modelled','Fixed app interpretation: a 350 kg forest-dwelling biped with no supernatural abilities.',icon='👣')
+add('Yeti','fantasy','cryptid',380,2.5,2.5,35,1.4,78,70,84,55,84,68,72,20,88,45,46,['mountain','snow'],['bite','grapple','strike'],['hands','climber','cold-adapted','thick-fur'], 'Yeti','modelled','Fixed app interpretation: a 380 kg cold-adapted biped with no supernatural abilities.',icon='👣')
+add('Loch Ness Monster','fantasy','cryptid',12000,12,2,30,3,88,80,92,46,84,54,68,22,90,50,62,['river','deep-ocean'],['bite','ram','tail-strike'],['aquatic','deep-diver'], 'Loch Ness Monster','modelled','Fixed app interpretation: a 12-tonne long-necked aquatic cryptid, not an unspecified legendary version.',icon='🐉')
+add('Mothman','fantasy','cryptid',90,2,2,100,1,60,52,58,92,74,70,60,18,78,12,50,['forest','urban','night'],['claw','grapple','dive'],['flight','night-vision'], 'Mothman','modelled','Fixed app interpretation: a flying nocturnal humanoid with no precognition or supernatural attack.',icon='🦋')
+add('Chupacabra','fantasy','cryptid',45,1.4,0.8,55,0.6,60,45,52,82,72,55,90,25,84,15,36,['scrub','farm','night'],['bite','claw','pounce'],['ambush','night-vision'], 'Chupacabra','modelled','Fixed app interpretation: a 45 kg nocturnal ambush predator with no supernatural abilities.',icon='🐾')
+add('Jersey Devil','fantasy','cryptid',180,2.2,2,85,1.2,72,58,68,86,78,65,88,22,90,28,54,['forest','swamp','night'],['bite','claw','hoof-strike'],['flight','night-vision'], 'Jersey Devil','modelled','Fixed app interpretation: a 180 kg flying cryptid with physical attacks only.',icon='🪽')
+add('Thunderbird (cryptid interpretation)','fantasy','cryptid',8000,20,8,180,10,96,82,92,82,86,62,84,30,94,48,82,['mountain','open','sky'],['talon','beak','drop'],['flight','colossal'], 'Thunderbird (mythology)','modelled','Fictional cryptozoological composite for this app; not an authentic representation of any Indigenous tradition and has no lightning magic.',icon='🦅')
+add('Bunyip (fixed model)','fantasy','cryptid',700,4,1.5,35,1.5,80,70,78,60,76,55,86,18,90,40,48,['river','swamp'],['bite','claw','ram'],['aquatic','ambush','night-vision'], 'Bunyip','modelled','Fictional cryptozoological composite for this app; not an authentic representation of any Aboriginal tradition.',icon='🐾')
+
+# Public-domain classical mythology interpretations.
+add('Medusa','fantasy','mythic-humanoid',90,1.8,1.8,25,30,72,58,64,68,78,90,84,20,98,18,80,['ruin','cave','open'],['gaze','venomous-bite','grapple'],['petrification','ranged','venom'], 'Medusa','modelled','Classical mortal Gorgon interpretation with line-of-sight petrification.',icon='🐍')
+add('Nemean lion','fantasy','mythic-beast',350,3,1.3,65,1.1,88,94,96,78,80,52,86,15,98,100,52,['forest','open'],['bite','claw','pounce'],['impenetrable-hide','armored'], 'Nemean lion','modelled','Classical interpretation with hide resistant to ordinary weapons.',icon='🦁')
+add('Scylla','fantasy','mythic-beast',20000,20,10,30,10,100,92,98,50,94,64,98,35,100,72,100,['ocean','coast'],['many-bites','tentacle','crush'],['aquatic','many-heads','many-limbs','colossal'], 'Scylla','modelled','Classical multi-headed sea-monster interpretation.',icon='🐙')
+add('Charybdis','fantasy','mythic-hazard',500000,80,20,0,40,100,95,100,5,100,30,100,0,100,85,100,['ocean','coast'],['whirlpool','drag','devour'],['aquatic','colossal','ranged'], 'Charybdis','modelled','Stationary personified whirlpool treated as a combatant-shaped environmental hazard; results are especially abstract.',icon='🌀')
+add('Siren','fantasy','mythic-humanoid',70,1.8,1.8,60,50,58,45,50,82,74,82,72,80,84,8,88,['coast','sky'],['song','claw','grapple'],['flight','ranged','hypnosis'], 'Siren (mythology)','modelled','Classical bird-bodied singer interpretation rather than the later mermaid form.',icon='🎶')
+
+assert len(entries) == 134, len(entries)
 
 # Derived boolean capability fields used by the engine and convenient for CSV users.
 for e in entries:
@@ -288,6 +331,51 @@ tests = [
         'scaling_mode':'magical','terrain':'open','weather':'clear','starting_distance_m':20,
         'expected_solo_win_probability_min':0.0,'expected_solo_win_probability_max':0.10,
         'purpose':'Verifies arbitrary scientific notation, logarithmic force modelling and conceptual-result warnings.'
+    },
+    {
+        'id':'sperm-whale-orca-pod',
+        'title':'One sperm whale vs eight orcas in deep ocean',
+        'solo_id':'sperm-whale','group_id':'orca','group_quantity':'8',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'deep-ocean','weather':'clear','starting_distance_m':100,
+        'expected_solo_win_probability_min':0.12,'expected_solo_win_probability_max':0.35,
+        'purpose':'Calibrates modern marine heavyweight mass against pod coordination.'
+    },
+    {
+        'id':'spinosaurus-nile-crocodiles',
+        'title':'One Spinosaurus vs three Nile crocodiles in a river',
+        'solo_id':'spinosaurus','group_id':'nile-crocodile','group_quantity':'3',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'river','weather':'clear','starting_distance_m':20,
+        'expected_solo_win_probability_min':0.70,'expected_solo_win_probability_max':0.90,
+        'purpose':'Calibrates a reconstructed semi-aquatic theropod against real crocodilian group pressure.'
+    },
+    {
+        'id':'bigfoot-humans-fixed',
+        'title':'One fixed-model Bigfoot vs ten unarmed adults',
+        'solo_id':'bigfoot','group_id':'unarmed-peak-adult-human','group_quantity':'10',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'strict','terrain':'forest','weather':'clear','starting_distance_m':15,
+        'expected_solo_win_probability_min':0.35,'expected_solo_win_probability_max':0.60,
+        'purpose':'Checks that a declared cryptid interpretation remains speculative but reproducible.'
+    },
+    {
+        'id':'medusa-spear-group',
+        'title':'Medusa vs twenty armoured spear carriers',
+        'solo_id':'medusa','group_id':'armoured-spear-carrier','group_quantity':'20',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'magical','terrain':'ruin','weather':'clear','starting_distance_m':30,
+        'expected_solo_win_probability_min':0.02,'expected_solo_win_probability_max':0.16,
+        'purpose':'Exercises line-of-sight petrification, range and disciplined group pressure.'
+    },
+    {
+        'id':'charybdis-orcas-hazard',
+        'title':'Charybdis environmental abstraction vs twenty orcas',
+        'solo_id':'charybdis','group_id':'orca','group_quantity':'20',
+        'solo_size':{'method':'normal','value':'normal'},'group_size':{'method':'normal','value':'normal'},
+        'scaling_mode':'magical','terrain':'ocean','weather':'storm','starting_distance_m':80,
+        'expected_solo_win_probability_min':0.50,'expected_solo_win_probability_max':0.76,
+        'purpose':'Keeps the stationary mythic-hazard abstraction visible and regression-tested.'
     },
 ]
 (ROOT / 'data' / 'test_scenarios.json').write_text(json.dumps(tests, indent=2) + '\n', encoding='utf-8')

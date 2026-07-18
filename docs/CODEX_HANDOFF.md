@@ -23,15 +23,16 @@ Upload the contents of `app/dist/` to the chosen static path on `samfa12.com`.
 ## Current state
 
 - React/TypeScript/Vite static application.
-- 100 bundled profiles.
+- 134 bundled profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic humans.
 - One-versus-X engine using deterministic log power plus seeded Monte Carlo trials.
 - Quantities such as `10^100` are handled in logarithmic space.
 - Four report-depth modes.
 - Compact, backward-compatible share URLs, PNG/JSON export and versioned local browser history.
-- Independent model/data versions and a versioned share envelope with explicit legacy migration and incompatibility rejection.
+- Independent model/data versions and compact share v3 with explicit deployed-v2/v1/raw migration and incompatibility rejection.
+- Explicit win condition, side-specific mindset, knowledge, awareness, facing, arena/water geometry, group doctrine, casualty tolerance and structured specimen declarations.
 - Draft 2020-12 validation for canonical data, custom imports and shared records.
 - Named private custom profiles can be cloned, edited, saved locally, imported/exported and embedded in reproducible shares.
-- Expanded Vitest calibration/interaction/performance coverage and Playwright Chromium desktop/mobile, Firefox and WebKit flows run against the production build.
+- Twelve calibration scenarios plus focused interaction/performance coverage; Playwright Chromium desktop/mobile, Firefox and WebKit flows run against the production build.
 - Automated axe and keyboard checks, a visible methodology/version panel, CI budgets and initial per-field provenance are in place.
 
 ## Read these files in order
@@ -83,6 +84,8 @@ Do not replace the engine with a single LLM prompt. An AI layer may propose stru
 - Per-field provenance currently covers only seven high-use profiles and still needs expert review.
 - Group effectiveness and strict scaling use global calibrated functions rather than archetype-specific fits.
 - Casualty and duration estimates are heuristic.
+- Reaction, acceleration, turning, senses, vulnerable anatomy and injury/venom timing are disclosed but not separately phased.
+- Thunderbird and Bunyip are labelled fictional cryptozoological composites and still require cultural-sensitivity review; Charybdis is a combatant-shaped environmental-hazard abstraction.
 - Custom profiles are browser-local and require explicit JSON export for backup or transfer outside a share link.
 - Real NVDA/VoiceOver and physical Safari/iOS testing remain manual gaps.
 - The source uses template-based narrative only.
@@ -106,7 +109,7 @@ npm run build
 npm run test:e2e
 ```
 
-For every engine change, print the seven fixture probabilities locally and review direction as well as test bands. The bands are calibration guardrails, not ground truth.
+For every engine change, print all twelve fixture probabilities locally and review direction as well as test bands. The bands are calibration guardrails, not ground truth.
 
 ## Handoff prompt for Codex
 

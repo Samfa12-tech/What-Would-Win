@@ -6,11 +6,14 @@ import type {
 } from '../types'
 import { validateCreature, validateScenario } from '../validation'
 import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
+import { METHODOLOGY_DEFAULTS, withMethodologyDefaults } from '../scenarioDefaults'
 
 export const MAX_ENCODED_SCENARIO_LENGTH = 64_000
 export const MAX_SHARED_CUSTOM_CREATURES = 2
 
-const LEGACY_SHARE_FORMAT_VERSION = 1
+const LEGACY_SHARE_FORMAT_VERSIONS = [1, 2] as const
+const PREVIOUS_MODEL_VERSION = '0.1.0'
+const PREVIOUS_DATA_VERSION = '0.1.0'
 const COMPACT_SEPARATOR = '.'
 const OVERRIDE_KEYS = [
   'attack',
@@ -91,17 +94,33 @@ function compactScenario(scenario: Scenario): unknown[] {
     compactOverrides(scenario.soloOverrides),
     compactOverrides(scenario.groupOverrides),
     scenario.seed,
+    scenario.soloMindset,
+    scenario.groupMindset,
+    scenario.winCondition,
+    scenario.priorKnowledge,
+    scenario.awareness,
+    scenario.facing,
+    scenario.arenaBoundary,
+    scenario.arenaDiameterM,
+    scenario.waterDepthM,
+    scenario.coordinationDoctrine,
+    scenario.casualtyTolerance,
+    scenario.soloSpecimenProfile,
+    scenario.groupSpecimenProfile,
+    scenario.soloSpecimenSex,
+    scenario.groupSpecimenSex,
   ]
 }
 
 function expandScenario(value: unknown): Record<string, unknown> | null {
-  if (!Array.isArray(value) || value.length !== 19 || (value[13] !== 0 && value[13] !== 1)) return null
+  if (!Array.isArray(value) || (value.length !== 19 && value.length !== 34) || (value[13] !== 0 && value[13] !== 1)) return null
   const soloSize = expandSize(value[3])
   const groupSize = expandSize(value[4])
   const soloOverrides = expandOverrides(value[16])
   const groupOverrides = expandOverrides(value[17])
   if (!soloSize || !groupSize || !soloOverrides || !groupOverrides) return null
   return {
+    ...METHODOLOGY_DEFAULTS,
     soloId: value[0],
     groupId: value[1],
     groupQuantity: value[2],
@@ -121,6 +140,23 @@ function expandScenario(value: unknown): Record<string, unknown> | null {
     soloOverrides,
     groupOverrides,
     seed: value[18],
+    ...(value.length === 34 ? {
+      soloMindset: value[19],
+      groupMindset: value[20],
+      winCondition: value[21],
+      priorKnowledge: value[22],
+      awareness: value[23],
+      facing: value[24],
+      arenaBoundary: value[25],
+      arenaDiameterM: value[26],
+      waterDepthM: value[27],
+      coordinationDoctrine: value[28],
+      casualtyTolerance: value[29],
+      soloSpecimenProfile: value[30],
+      groupSpecimenProfile: value[31],
+      soloSpecimenSex: value[32],
+      groupSpecimenSex: value[33],
+    } : {}),
   }
 }
 
@@ -240,9 +276,11 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
     return { ok: false, reason: 'corrupt', message: 'The shared scenario contains unsupported fields.' }
   }
   if (
-    (value.formatVersion !== SHARE_FORMAT_VERSION && value.formatVersion !== LEGACY_SHARE_FORMAT_VERSION)
-    || value.modelVersion !== MODEL_VERSION
-    || value.dataVersion !== DATA_VERSION
+    (value.formatVersion !== SHARE_FORMAT_VERSION && !LEGACY_SHARE_FORMAT_VERSIONS.includes(value.formatVersion as 1 | 2))
+    || !(
+      (value.modelVersion === MODEL_VERSION && value.dataVersion === DATA_VERSION)
+      || (value.modelVersion === PREVIOUS_MODEL_VERSION && value.dataVersion === PREVIOUS_DATA_VERSION)
+    )
   ) {
     return {
       ok: false,
@@ -251,11 +289,14 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
     }
   }
 
-  const scenarioValidation = validateScenario(value.scenario)
+  const scenarioCandidate = value.formatVersion === SHARE_FORMAT_VERSION
+    ? value.scenario
+    : withMethodologyDefaults(value.scenario)
+  const scenarioValidation = validateScenario(scenarioCandidate)
   if (!scenarioValidation.valid) {
     return { ok: false, reason: 'corrupt', message: `The shared scenario is invalid: ${scenarioValidation.errors.join('; ')}` }
   }
-  const scenario = value.scenario as Scenario
+  const scenario = scenarioCandidate as Scenario
   const customCreatures = validateCustomCreatures(scenario, value.customCreatures)
   if (customCreatures === null) {
     return { ok: false, reason: 'corrupt', message: 'The shared custom-creature records are invalid or incomplete.' }
@@ -263,16 +304,18 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
 
   return {
     ok: true,
-    status: value.formatVersion === LEGACY_SHARE_FORMAT_VERSION ? 'migrated-v1' : 'current',
+    status: value.formatVersion === 1 ? 'migrated-v1' : value.formatVersion === 2 ? 'migrated-v2' : 'current',
     payload: currentPayload(scenario, customCreatures),
   }
 }
 
-function decodeCompactPayload(value: unknown): ScenarioDecodeResult {
+function decodeCompactPayload(value: unknown, formatVersion: number): ScenarioDecodeResult {
   if (!Array.isArray(value) || (value.length !== 3 && value.length !== 4)) {
     return { ok: false, reason: 'corrupt', message: 'The compact shared scenario has an invalid envelope.' }
   }
-  if (value[0] !== MODEL_VERSION || value[1] !== DATA_VERSION) {
+  const supportedVersions = (value[0] === MODEL_VERSION && value[1] === DATA_VERSION)
+    || (formatVersion === 2 && value[0] === PREVIOUS_MODEL_VERSION && value[1] === PREVIOUS_DATA_VERSION)
+  if (!supportedVersions) {
     return {
       ok: false,
       reason: 'incompatible',
@@ -290,7 +333,7 @@ function decodeCompactPayload(value: unknown): ScenarioDecodeResult {
     return { ok: false, reason: 'corrupt', message: 'The compact shared scenario contains invalid records.' }
   }
   return decodeVersionedPayload({
-    formatVersion: SHARE_FORMAT_VERSION,
+    formatVersion,
     modelVersion: value[0],
     dataVersion: value[1],
     scenario,
@@ -342,11 +385,11 @@ export function decodeScenarioPayload(value: string): ScenarioDecodeResult {
       if (!Number.isSafeInteger(formatVersion)) {
         return { ok: false, reason: 'corrupt', message: 'The shared scenario has an invalid format prefix.' }
       }
-      if (formatVersion !== SHARE_FORMAT_VERSION) {
+      if (formatVersion !== SHARE_FORMAT_VERSION && formatVersion !== 2) {
         return { ok: false, reason: 'incompatible', message: 'This shared scenario uses an unsupported share format version.' }
       }
       const decoded = new TextDecoder('utf-8', { fatal: true }).decode(base64UrlToBytes(value.slice(separatorIndex + 1)))
-      return decodeCompactPayload(JSON.parse(decoded) as unknown)
+      return decodeCompactPayload(JSON.parse(decoded) as unknown, formatVersion)
     }
 
     const decoded = new TextDecoder('utf-8', { fatal: true }).decode(base64UrlToBytes(value))
@@ -358,11 +401,12 @@ export function decodeScenarioPayload(value: string): ScenarioDecodeResult {
     }
 
     // v0.1 shared raw Scenario objects are the only supported legacy shape.
-    const legacyValidation = validateScenario(parsed)
+    const migratedLegacy = withMethodologyDefaults(parsed)
+    const legacyValidation = validateScenario(migratedLegacy)
     if (!legacyValidation.valid) {
       return { ok: false, reason: 'corrupt', message: `The legacy shared scenario is invalid: ${legacyValidation.errors.join('; ')}` }
     }
-    return { ok: true, status: 'migrated-legacy', payload: currentPayload(parsed as unknown as Scenario) }
+    return { ok: true, status: 'migrated-legacy', payload: currentPayload(migratedLegacy as Scenario) }
   } catch {
     return { ok: false, reason: 'corrupt', message: 'The shared scenario could not be decoded.' }
   }

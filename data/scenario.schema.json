@@ -19,6 +19,21 @@
     "ambush",
     "defensivePosition",
     "escapeAllowed",
+    "soloMindset",
+    "groupMindset",
+    "winCondition",
+    "priorKnowledge",
+    "awareness",
+    "facing",
+    "arenaBoundary",
+    "arenaDiameterM",
+    "waterDepthM",
+    "coordinationDoctrine",
+    "casualtyTolerance",
+    "soloSpecimenProfile",
+    "groupSpecimenProfile",
+    "soloSpecimenSex",
+    "groupSpecimenSex",
     "resourcesPercent",
     "reportDepth",
     "soloOverrides",
@@ -239,6 +254,55 @@
     },
     "escapeAllowed": {
       "type": "boolean"
+    },
+    "soloMindset": {
+      "enum": ["natural", "committed", "bloodlusted"]
+    },
+    "groupMindset": {
+      "enum": ["natural", "committed", "bloodlusted"]
+    },
+    "winCondition": {
+      "enum": ["incapacitation", "death", "retreat"]
+    },
+    "priorKnowledge": {
+      "enum": ["none", "solo", "group", "both"]
+    },
+    "awareness": {
+      "enum": ["mutual", "solo", "group"]
+    },
+    "facing": {
+      "enum": ["mutual", "solo-exposed", "group-exposed", "random"]
+    },
+    "arenaBoundary": {
+      "enum": ["bounded", "open"]
+    },
+    "arenaDiameterM": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1000000
+    },
+    "waterDepthM": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "coordinationDoctrine": {
+      "enum": ["instinctive", "cooperative", "disciplined"]
+    },
+    "casualtyTolerance": {
+      "enum": ["natural", "committed", "unlimited"]
+    },
+    "soloSpecimenProfile": {
+      "enum": ["profile-baseline", "average-adult", "prime-adult", "exceptional"]
+    },
+    "groupSpecimenProfile": {
+      "enum": ["profile-baseline", "average-adult", "prime-adult", "exceptional"]
+    },
+    "soloSpecimenSex": {
+      "enum": ["unspecified", "female", "male"]
+    },
+    "groupSpecimenSex": {
+      "enum": ["unspecified", "female", "male"]
     },
     "resourcesPercent": {
       "type": "number",

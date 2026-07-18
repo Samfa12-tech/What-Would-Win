@@ -8,26 +8,27 @@
 - `app/` — React/TypeScript/Vite working demo, automated tests and production `dist/` build.
 - `assets/brand/what-would-win-icon-master.png` — full-resolution generated source for the one-versus-many application mark.
 - `app/public/icons/` and `app/public/site.webmanifest` — optimized deployed icon and install metadata.
-- `data/creatures.json` and `data/creatures.csv` — MVP-100 creature database.
+- `data/creatures.json` and `data/creatures.csv` — 134-profile creature database.
 - `data/*.schema.json` — creature and scenario data contracts.
 - `data/field_provenance.json` — initial per-field provenance/authorship records for seven high-use profiles.
-- `data/test_scenarios.json` and `.csv` — seven calibration fixtures.
+- `data/test_scenarios.json` and `.csv` — twelve calibration fixtures.
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
+- `SHA256SUMS.txt` and `scripts/generate_sha256s.py` — deterministic checksums of the exact Git-index file bytes.
 
 ## Verified snapshot
 
-- 100 profiles: 64 living animals, 8 extinct animals, 24 fantasy/mythological profiles and 4 generic humans.
-- 40 Vitest checks passing, including a technical-depth simulation-duration budget.
-- 53 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
-- Seven calibration fixtures within their configured behavioural bands.
+- 134 profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythological profiles and 4 generic humans.
+- 55 Vitest checks passing, including a technical-depth simulation-duration budget.
+- 57 Playwright production-browser checks passing across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit, with 3 intentional desktop skips for the mobile-only overflow check.
+- Twelve calibration fixtures within their configured behavioural bands.
 - TypeScript project check passing.
 - Vite production build passing.
 - Creature JSON validated against the supplied Draft 2020-12 schema.
 - CSV and JSON profile IDs/order match.
 - Model/data/share versions, legacy scenario migration and incompatible-share rejection covered.
 - Named private custom profiles validated, saved locally, imported/exported and embedded in clean-browser reproducible shares.
-- Compact v2 shares retain v1 and delivered unversioned-link migration coverage.
+- Compact v3 shares retain deployed v2, v1 and delivered unversioned-link migration coverage.
 - Versioned, validated recent history preserves corrupt/incompatible input and unavailable custom references for recovery.
 - Automated axe and keyboard-operability coverage runs on all four browser projects.
 - CI enforces typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
@@ -35,7 +36,7 @@
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
-- Product plan rendered and inspected as an 18-page DOCX and PDF; PDF preflight passed.
+- Product plan rendered and inspected as a matching DOCX and PDF; PDF preflight passed.
 
 ## Deliberate limits
 

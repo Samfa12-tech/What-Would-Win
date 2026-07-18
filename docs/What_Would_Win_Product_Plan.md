@@ -1,11 +1,11 @@
 # What Would Win
 ## Product planning, simulation specification and Codex handoff
 
-**Document version:** 0.1  
-**Status:** working prototype handoff  
-**Prepared:** 17 July 2026  
-**Owner / intended host:** Samfa12-tech, `samfa12.com`
-**Primary implementation:** React + TypeScript + Vite  
+**Document version:** 0.3<br>
+**Status:** audited user-test candidate<br>
+**Updated:** 18 July 2026<br>
+**Owner / intended host:** Samfa12-tech, `samfa12.com`<br>
+**Primary implementation:** React + TypeScript + Vite
 
 > **Product promise:** Put one creature against an effectively unlimited number of another creature, state the assumptions, and return a serious-looking, transparent, textual estimate of what would win.
 
@@ -13,17 +13,17 @@
 
 ## 1. Executive summary
 
-**What Would Win** is a free, mobile-friendly web application for resolving absurd hypothetical conflicts such as “100 duck-sized horses versus one horse-sized duck.” Its tone is deliberately mock-serious, but its method is not a random joke generator. The app separates physical measurements, authored combat attributes, scaling assumptions, battlefield conditions and uncertainty. A deterministic model creates the underlying matchup, then seeded Monte Carlo trials introduce biological and tactical variation. The final report explains the winner, probability, expected duration, losses, decisive factors, model limitations and the opposing quantity required for an approximately even contest.
+**What Would Win** is a free, mobile-friendly web application for resolving absurd hypothetical conflicts such as “100 duck-sized horses versus one horse-sized duck.” Its tone is deliberately mock-serious, but its method is not a random joke generator. The app separates physical measurements, authored combat attributes, scaling assumptions, battlefield conditions and uncertainty. A deterministic model creates the underlying matchup, then seeded Monte Carlo trials introduce biological and tactical variation. The final report explains the winner, probability, decisive factors, model limitations and the opposing quantity required for an approximately even contest. At ordinary scale it also supplies explicitly heuristic duration/loss estimates and a seven-phase factor-backed explanation; at conceptual scale those physical metrics are withheld and the explanation remains aggregate-only.
 
-The first release is deliberately constrained to **one profile versus X copies of one opposing profile**. That shape is easy to understand, strongly shareable and technically compatible with extreme quantities. The working prototype accepts ordinary integers, scientific notation and expressions such as `10^100`. Large forces are represented in logarithmic space and through an effectiveness exponent; the browser never attempts to instantiate every combatant.
+The first release is deliberately constrained to **one profile versus X copies of one opposing profile**. That shape is easy to understand, strongly shareable and technically compatible with extreme quantities. The working prototype accepts ordinary integers, scientific notation and expressions such as `10^100`. Large forces are represented in logarithmic space through active-front, logarithmic reserve-weight and effectiveness rules; the browser never attempts to instantiate every combatant.
 
 The handoff includes:
 
 - a working static web demo with no server dependency;
 - a curated **134-profile** database: 73 living animals, 20 extinct animals, 37 fantasy or mythological profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles;
 - CSV and JSON data exports plus JSON Schemas;
-- twelve behavioural calibration scenarios and automated tests;
-- this product and model specification;
+- 16 behavioural calibration scenarios and automated invariant tests;
+- this canonical Markdown product and model specification;
 - a Codex-oriented implementation guide and ordered backlog.
 
 The prototype is an **entertainment model**, not a scientific prediction, animal-welfare guide, military tool or authoritative zoological database. Its most important product behaviour is transparency: users can see which assumptions make the result change.
@@ -68,7 +68,7 @@ This makes the app useful as entertainment, debate resolution, casual systems th
 Every result must identify the scaling mode, specimen convention, quantity aggregation, battlefield setup and major data limitations. Advanced users should be able to inspect a technical calculation record.
 
 ### 4.2 Calculate first, narrate second
-The numerical engine chooses the outcome. Text generation explains the output; it must not invent a winner independently. The initial demo uses deterministic templates so it works offline and remains reproducible.
+The numerical engine chooses the outcome. Text generation explains the output; it must not invent a winner independently. The app uses factor-backed deterministic templates so it works offline and remains reproducible.
 
 ### 4.3 Make absurd scale safe and fast
 The app must accept quantities far beyond JavaScript's safe integer range. It should calculate with `log10(N)` and aggregate-force rules instead of allocating one object per combatant.
@@ -115,8 +115,8 @@ A technically curious user wants to inspect formulas, raw trial rates, confidenc
 - Advanced control of attack, defence, durability, agility, stamina, intelligence, aggression, coordination, morale, armour and multi-target capability.
 - Terrain, weather, starting distance, preparation time, day/night, ambush, defensive position, escape and resources/ammunition.
 - Four report-depth choices with 400, 1,500, 5,000 or 15,000 trials.
-- Winner probability, uncertainty band, duration, group losses, solo risk and 50/50 quantity.
-- Textual reconstruction, decisive factors, strengths, vulnerabilities, assumptions and technical ledger.
+- Winner probability, uncertainty band, solo risk and 50/50 quantity; ordinary-scale results also show heuristic duration and group losses, while conceptual-scale results explicitly withhold them.
+- Factor-backed encounter explanation, decisive factors, strengths, vulnerabilities, assumptions and technical ledger.
 - Re-rollable seeded uncertainty.
 - Share URL, downloadable PNG, downloadable JSON and local history.
 - Responsive desktop and mobile layout.
@@ -239,14 +239,14 @@ The user chooses:
 | Level | Trials | Content |
 |---|---:|---|
 | Verdict | 400 | Winner and core metrics |
-| Assumptions | 1,500 | Adds reconstruction and limits |
+| Assumptions | 1,500 | Adds the deterministic encounter sequence and limits |
 | Transparent | 5,000 | Adds factors, strengths, vulnerabilities and source context |
 | Technical | 15,000 | Adds full calculation ledger |
 
 The trial count is a product-control proxy for simulation effort. Because the engine is lightweight, all four levels currently complete in-browser without blocking for a meaningful period.
 
 ### FR-8: result report
-Every result includes a winner, model win rate, probability band, expected duration, expected group losses, solo incapacitation/retreat risk and 50/50 group size. Deeper modes add explanation and technical values.
+Every result includes a winner, model win rate, probability band, solo incapacitation/retreat risk and 50/50 group size. Ordinary-scale results add heuristic duration and expected group losses; conceptual-scale reports state that those physical metrics are not meaningful. Deeper modes add the factor-backed encounter sequence, assumptions and technical values.
 
 ### FR-9: share and export
 A share link encodes the scenario. PNG export creates a 1200 × 630 result card. JSON export includes scenario, contestant records and result. Local history stores the latest 12 runs without an account.
@@ -260,21 +260,24 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
+The current reproducibility identity is **model 0.3.0, data 0.3.0 and share format v3**. Supported model-0.2 shares and history preserve their structured inputs and are visibly recalculated under model 0.3 when referenced profiles are available. An unavailable custom reference stays marked pending rather than receiving current-version metadata beside an old numerical result.
+
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
 ### 10.2 Pipeline
 
-1. Parse quantity and convert it to `log10(N)`.
-2. Resolve each selected creature and user overrides.
-3. Resolve target mass and linear scale.
-4. Apply the selected scaling law to structural integrity, speed and reach.
+1. Parse quantity, convert it to `log10(N)` and classify ordinary versus conceptual scale.
+2. Resolve each selected creature, user overrides and size declaration.
+3. Resolve target mass, linear scale, body length, height, reach, movement and structural integrity.
+4. Evaluate environment and water access using the resolved geometry and explicit amphibious/land-capable traits.
 5. Convert physical and normalized inputs into single-combatant log power.
-6. Apply environment, distance and pre-battle adjustments.
-7. Aggregate the group with a sublinear effectiveness exponent.
-8. Apply matchup interactions: armour penetration, area control, flight/range access, venom immunity, contact limits and escape.
-9. Run seeded Monte Carlo trials around the deterministic values.
-10. Reserve explicit probability weight for unmodelled uncertainty.
-11. Generate metrics and a templated textual explanation.
+6. Apply bilateral stopping, attack access, distance and bounded pre-battle/methodology adjustments.
+7. Apply bounded-arena occupancy, then estimate active frontage, logarithmic reserve weight, effective group quantity, access pressure and bounded area control.
+8. Calculate deterministic solo/group log power and record each material adjustment in the applied-factor ledger.
+9. Run seeded Monte Carlo trials around those deterministic values.
+10. Reserve explicit probability weight for unmodelled uncertainty without a conceptual-threshold certainty jump.
+11. Calculate crossover quantity and ordinary-scale heuristic metrics; withhold physical duration/losses at conceptual scale.
+12. Generate the verdict and a factor-linked deterministic explanation.
 
 ### 10.3 Quantity representation
 
@@ -282,7 +285,7 @@ For a quantity `N`, the engine primarily stores:
 
 `q = log10(N)`
 
-This permits conceptual quantities such as `10^100` without overflow. When `N` exceeds the range in which physical battlefield geometry, logistics and planetary constraints are meaningful, the report displays a conceptual-scale warning. The result then means “aggregate combat pressure under this abstract model,” not a literal staged event.
+This permits conceptual quantities such as `10^100` without overflow. Group aggregation uses an **effective** log quantity after frontage, reserve and access limits rather than assuming all `N` members act simultaneously. When `N` exceeds the range in which physical battlefield geometry, logistics and planetary constraints are meaningful, the report displays a conceptual-scale warning, uses an aggregate-only explanation and withholds physical duration/loss estimates. The result then means “aggregate combat pressure under this abstract model,” not a literal staged event.
 
 ### 10.4 Size resolution
 
@@ -297,7 +300,7 @@ The resolved linear scale is:
 
 `L = cube_root(M / M0)`
 
-Reach scales approximately with `L`. Speed and structural integrity depend on the selected law.
+Body length, body height and reach scale approximately with `L`. Speed and structural integrity depend on the selected law. Model 0.3 resolves this geometry before terrain fit, water immersion, frontage and arena-occupancy checks, preventing a resized profile from retaining its baseline spatial treatment.
 
 ### 10.5 Structural integrity
 
@@ -327,41 +330,43 @@ Normalized attack quality combines attack, aggression, agility, speed, reach, in
 
 The current core terms are:
 
-`mass_term = 0.61 × log10(M + 0.02)`
+`mass_term = 0.61 × log10(max(M, 10^-6))`
 
 `quality_term = log10(0.42 + 2.2 × attack_quality) + 0.7 × log10(0.5 + 1.75 × defence_quality)`
 
 `single_log_power = mass_term + quality_term + log10(environment) + log10(integrity) + log10(special)`
 
-The `special` factor covers flight, venom, range, regeneration, area effects, armour, construct/undead resistance and available ammunition. It is deliberately bounded.
+The `special` factor covers venom, regeneration, area effects, armour, construct/undead resistance and other declared capabilities. Range, resources and access also receive explicit matchup handling. All such contributions are deliberately bounded. The former `+0.02 kg` mass offset was removed in model 0.3 because it disproportionately strengthened micro-scale profiles.
 
 ### 10.8 Group aggregation
 
-Perfectly linear scaling would assume every member attacks effectively at once. That is implausible for most large groups. Group force is therefore:
+Perfectly linear scaling would assume every member attacks effectively at once. That is implausible for most large groups. Model 0.3 first limits usable quantity to approximate single-layer occupancy in bounded arenas, then estimates an active front from resized defender span, attacker width, terrain and engagement mode. Members beyond that front contribute through a bounded logarithmic reserve weight; severe access mismatch applies a smooth effective-pressure ceiling. Group force is therefore:
 
-`group_log_power = member_log_power + E × log10(N) + adjustments`
+`group_log_power = member_log_power + E × effective_quantity_log10 + adjustments`
 
 The effectiveness exponent `E` begins at:
 
 `E = 0.58 + 0.0018 × coordination`
 
-Bonuses apply for swarm/eusocial behaviour, pack hunting, formation discipline, open terrain and suitable aquatic conditions. Penalties apply in confined terrain. The exponent is clamped to `0.62–0.94`.
+Bonuses apply for swarm/eusocial behaviour, pack hunting, formation discipline, open terrain and suitable aquatic conditions. Penalties apply in confined terrain. The exponent is clamped to `0.52–0.94`, preserving the disadvantage of a poorly coordinated crowd.
 
-This exponent is one of the most sensitive product parameters. It should eventually be estimated by archetype and validated against synthetic benchmark scenarios rather than shared globally.
+Active frontage and reserve weighting make contact saturation inspectable while retaining logarithmic runtime. Approximate bounded-arena occupancy caps usable opposing quantity before frontage, reserve and access limits; the declared quantity remains visible and produces a feasibility warning. Open arenas permit explicitly aggregate quantities without that spatial cap. The exponent, frontage geometry, reserve weight and occupancy approximation remain sensitive global heuristics that should eventually be estimated by archetype.
 
 ### 10.9 Matchup interactions
 
 The deterministic layer also applies:
 
-- **Penetration penalty:** compares group attack with solo defence, durability, armour and mass barrier; range, venom and penetrating attack modes can reduce the penalty.
-- **Solo area control:** multi-target score, mass ratio and area-effect traits reduce the group's ability to accumulate pressure.
-- **Coordination pressure:** coordinated groups replace front-line attackers and exploit angles more effectively.
-- **Range and closing:** ranged profiles gain at long initial distances; slow melee profiles pay a small closing cost.
-- **Flight access:** a side with uncontested flight receives a major advantage.
-- **Environment:** habitat match, terrain, weather and time of day affect each side separately.
-- **Preparation, ambush and defence:** intelligent profiles convert preparation into a bounded advantage.
-- **Resources:** ranged capability is discounted as ammunition/resources fall.
-- **Escape:** a small advantage goes to the more mobile side and expected losses decline.
+- **Bilateral stopping:** both sides must overcome protection and a separately bounded body-mass stopping barrier; relevant delivery mechanisms can bypass part, but not all, of that resistance.
+- **Attack access:** flight, medium mismatch, starting distance, range and resources change each side's opportunity to deliver an effective attack.
+- **Access ceiling:** where a group lacks credible access, additional reserves do not create new attack opportunities by themselves.
+- **Solo area control:** multi-target score, mass ratio and area-effect traits add bounded resistance to effective group pressure.
+- **Frontage and reserves:** contact geometry limits the active front, while coordination, doctrine and casualty tolerance affect the rate at which reserves sustain pressure.
+- **Range and closing:** ranged contribution and remaining-resource effects are continuous; slow melee profiles pay a bounded closing cost.
+- **Environment:** habitat match, explicit land/amphibious capability, resized geometry, terrain, weather and time of day affect each side separately.
+- **Preparation, ambush and defence:** intelligent profiles convert preparation into a capped advantage.
+- **Escape:** a small advantage goes to the more mobile side and expected losses decline in open arenas.
+
+Stopping and access are combat-model abstractions, not anatomy, wound-channel or exact incapacitation calculations.
 
 ### 10.10 Monte Carlo layer
 
@@ -379,10 +384,9 @@ where `C` is:
 
 - `0.92` when both profiles have high-confidence real-world data;
 - `0.86` for other non-fantasy pairings;
-- `0.88` when fantasy is present;
-- `0.99` for conceptual-scale quantities, where the aggregate mathematical imbalance itself may dominate even though the scenario is physically impossible.
+- `0.88` when fantasy is present.
 
-This “epistemic compression” is visible in the assumptions and technical record. Future versions should replace these fixed values with uncertainty distributions tied to each field and archetype.
+Crossing the conceptual-quantity threshold does not change `C`; model 0.3 removes the former discontinuous jump toward certainty. Conceptual results instead use a wider model-sensitivity floor and an applicability warning. This “epistemic compression” is visible in the assumptions and technical record. Future versions should replace fixed values with uncertainty distributions tied to each field and archetype.
 
 ### 10.11 Probability band
 
@@ -394,7 +398,13 @@ The engine finds the opposing quantity at which deterministic group log power fi
 
 ### 10.13 Duration and losses
 
-Duration is a heuristic based on closing speed, quantity load, durability and attack rate. Group losses blend expected loss fractions in solo-win and group-win branches, then apply the probability weighting. At conceptual scales, these values are mathematical labels rather than physically staged counts.
+At ordinary scale, duration is a heuristic based on effective starting distance—capped to arena diameter when bounded—resolved closing speed, effective group pressure, durability and attack rate. Group losses blend expected loss fractions in solo-win and group-win branches, apply probability weighting and decline when open-arena escape is allowed. Bounded-arena counts use only the arena-usable group. Loss wording follows the selected win condition. At conceptual scale both duration and loss counts are deliberately withheld rather than presented as physically staged values.
+
+### 10.14 Applied-factor ledger and encounter sequence
+
+Every material deterministic adjustment is recorded with a stable factor ID, phase, affected side, log delta, explanation and optional caveat. Ordinary reports turn that ledger into seven phases: briefing, deployment, access/approach, first effective contact, sustained pressure, likely resolution and alternate path. Conceptual reports use three aggregate phases and avoid literal staging.
+
+This sequence is a deterministic explanation of the calculated state. It is not a sampled Monte Carlo event timeline, a frame-by-frame battle simulation or an anatomy model, and it cannot change the winner independently.
 
 ## 11. Data strategy
 
@@ -407,7 +417,7 @@ The 134-profile roster is selected for **scenario value**, not taxonomic complet
 - 37 generic or public-domain fantasy/mythology profiles, including 8 fixed cryptid interpretations, covering giants, dragons, regeneration, constructs, undead, magic and colossal aquatic profiles;
 - 4 generic humans covering unarmed, trained, armoured melee and ranged archetypes.
 
-The selection intentionally maximizes mechanics coverage: body mass, armour, speed, reach, flight, aquatic movement, range, venom, regeneration, coordination, area control and unusual scale.
+The selection intentionally maximizes mechanics coverage: body mass, armour, speed, reach, flight, aquatic movement, range, venom, regeneration, coordination, area control and unusual scale. Data 0.3 adds explicit `amphibious` and `land-capable` traits for profiles whose dry-land access cannot be inferred safely from the broad aquatic capability flag. Positive water depth can flood nominally land terrain; access is derived from depth relative to each resized body rather than the terrain label alone.
 
 ### 11.2 Peak-adult convention
 
@@ -561,7 +571,7 @@ A backend becomes justified when the product adds public galleries, moderated up
 
 ### 14.5 Performance targets
 
-- Initial compressed JS under 150 kB where practical; the 0.2 build is roughly 140 kB gzip for JavaScript plus 4.4 kB gzip for CSS, with raw CI ceilings of 575 kB JavaScript and 700 kB total deployable content.
+- Initial compressed JavaScript under 150 kB where practical, with raw CI ceilings of 580 kB JavaScript and 700 kB total deployable content. Record observed model-0.3 build sizes in `docs/QA_REPORT.md` after the final production build.
 - First result interaction under 100 ms on a recent desktop and under 300 ms on a typical mobile device for 15,000 trials.
 - No main-thread allocation proportional to group quantity.
 - Largest Contentful Paint under 2.5 seconds on a normal 4G connection after hosting compression and cache headers.
@@ -629,8 +639,9 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 
 - quantity parsing and rejection;
 - scientific-notation formatting;
-- twelve matchup acceptance bands;
-- focused directional tests for mindset, win condition, knowledge, awareness, facing, water geometry, group doctrine, casualty tolerance, arena escape and disclosure-only specimen metadata;
+- 16 matchup acceptance bands spanning living, extinct, fantasy, cryptid, marine, extreme-resizing and conceptual cases;
+- focused directional tests for mindset, win condition, knowledge, awareness, facing, resized water geometry, group doctrine, casualty tolerance, arena escape and disclosure-only specimen metadata;
+- model-0.3 invariants for quantity-one role reversal, fixed-biomass fragmentation, bilateral stopping, access ceilings, conceptual confidence continuity, preparation caps and factor-ledger traceability;
 - technical trial-count selection;
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
@@ -641,7 +652,7 @@ The fixtures are behavioural calibration bands, not assertions of objective biol
 
 - browser-automated PNG export and file-content smoke tests;
 - property-based scenario/share-codec tests across valid field combinations;
-- sensitivity and metamorphic tests for coefficient monotonicity and interaction bounds;
+- broader property-based sensitivity and metamorphic tests across valid field combinations and archetypes;
 - migration fixtures for every future model/data/share version change;
 - manual NVDA/VoiceOver and physical Safari/iOS checks;
 - deployment smoke tests from the intended `samfa12.com` subpath.
@@ -663,7 +674,7 @@ A public beta is ready when:
 - all P0 tests pass on the deployment build;
 - invalid quantities fail safely;
 - report depth visibly changes content and trial count;
-- the same share URL reproduces the same result;
+- the same share URL reproduces the same result under the same model/data versions, while older supported versions migrate inputs and visibly recalculate;
 - no built-in profile violates the content/IP policy;
 - every creature has a source label, notes and confidence value;
 - the peak-adult and entertainment-model disclosures are visible before and after a run;
@@ -679,13 +690,24 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 ### Phase 1A — trustworthy-beta foundation (delivered in v0.2)
 
 - versioned scenarios, exports, history and compact share links with migration;
-- integrated schema validation and initial per-field provenance records;
+- integrated schema validation and complete licensing provenance records for all bundled profiles;
 - local named custom profiles cloned from built-ins, with import/export and reproducible sharing;
 - automated accessibility, browser, performance and build-size gates;
 - visible methodology, assumptions and rules-of-engagement controls;
-- 134 built-in profiles and twelve calibration fixtures.
+- 134 built-in profiles and the 12-fixture calibration baseline.
 
-### Phase 1B — trustworthy beta (next)
+### Phase 1B — model 0.3 audit (delivered)
+
+- scaled geometry before environment, water, frontage and occupancy calculations;
+- explicit amphibious/land-capable data traits;
+- bilateral stopping and attack access with continuous range/resource effects;
+- bounded-arena occupancy, active frontage, logarithmic reserve weighting, access ceilings and bounded area control;
+- continuous confidence handling at conceptual scale with physical duration/loss withholding;
+- reconstructable factor ledger and seven ordinary/three conceptual explanation phases;
+- 16 calibration fixtures plus extreme-scale and metamorphic invariants;
+- model-0.2 share/history input migration with visible recalculation under model 0.3 and honest pending states for unavailable custom references.
+
+### Phase 1C — trustworthy beta (next)
 
 - complete expert-reviewed per-field provenance, licences and cultural-sensitivity review;
 - improve archetype-specific allometry, contact saturation and group exponents;
@@ -705,7 +727,7 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 ### Phase 3 — deeper modelling
 
 - mixed-team advanced army builder;
-- explicit spatial/contact-front model;
+- archetype-specific and multi-front spatial/contact refinement beyond the current single-front heuristic;
 - per-field uncertainty distributions;
 - sensitivity charts;
 - separate flying, terrestrial and aquatic scaling models;
@@ -723,6 +745,10 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 ### Delivered in v0.2
 
 Model/data/share versioning, integrated schemas, compact and migrated links, local named custom profiles, calibrated methodology controls, browser/accessibility automation, performance budgets, public-release hardening and a coefficient changelog are complete and regression-tested.
+
+### Delivered in v0.3
+
+The engine/data audit, resized environment geometry, explicit land/amphibious traits, bilateral stopping/access, continuous ranged-resource handling, frontage/reserve weighting, access ceilings, bounded area control, conceptual safeguards, factor-backed encounter phases and 16-fixture calibration suite are implemented. The detailed rationale and remaining risks are recorded in `docs/MODEL_AUDIT_0.3.md`.
 
 ### P0 — user-test and deployment preparation
 
@@ -746,7 +772,7 @@ Model/data/share versioning, integrated schemas, compact and migrated links, loc
 
 1. Split group exponent parameters by swarm, pack, formation, herd and uncoordinated crowd.
 2. Replace global strict-scaling logic with locomotor archetype functions.
-3. Create a contact-front model based on body footprint, reach and terrain capacity.
+3. Replace the current single-front heuristic with archetype-specific, multi-front and three-dimensional contact models.
 4. Model incapacitation thresholds and rate limits separately from aggregate power.
 5. Add global sensitivity analysis and display the top uncertain inputs.
 6. Evaluate whether probability compression should emerge from field-level distributions rather than fixed coefficients.
@@ -759,7 +785,7 @@ Model/data/share versioning, integrated schemas, compact and migrated links, loc
 | Overfitting to memes | Engine behaves badly outside famous cases | Diverse calibration suite and coefficient changelog |
 | Poor data provenance | Trust and licensing problems | Per-field sources, licences and reviewer workflow |
 | Fantasy IP complaints | Removal requests or brand risk | Generic/public-domain built-ins; private user customs; moderation before gallery |
-| Extreme quantity nonsense | Misleading casualties or duration | Conceptual-scale warning and separate logistics mode in future |
+| Extreme quantity nonsense | Misleading physical staging | Conceptual warning, aggregate-only explanation, duration/loss withholding and a separate logistics mode in future |
 | URL payload growth | Links become too long, especially with customs | Compression, short-link service or share JSON upload later |
 | Local data loss | Users lose saved customs/history | Clear local-only copy and JSON export |
 | Mobile complexity | Advanced UI becomes overwhelming | Progressive disclosure and fast path kept above advanced dossier |
@@ -769,12 +795,12 @@ Model/data/share versioning, integrated schemas, compact and migrated links, loc
 ## 22. Open research questions
 
 - What group-effectiveness function best represents contact saturation across different body-size ratios?
-- Can reach, footprint and terrain produce a better contact-front estimate than the current exponent alone?
+- How should the current reach/footprint/terrain frontage heuristic be validated and split by swarm, pack, formation, flight and aquatic archetype?
 - Which physical measures most reliably predict combat-relevant durability without inventing false precision?
 - How should flight endurance and ranged ammunition interact with very large ground groups?
 - What uncertainty distributions are appropriate for extinct reconstructions and fantasy profiles?
 - How should surrender, fear and escape be modelled separately from physical incapacitation?
-- At what scale should the app switch from “combat” to “logistics/ecology” and refuse a literal duration estimate?
+- Should the current conceptual threshold vary by arena/creature scale, or should a future logistics mode replace aggregate combat beyond it?
 
 These are product-research questions, not blockers. The delivered model provides a clear baseline against which more sophisticated approaches can be tested.
 
@@ -813,32 +839,20 @@ The next session should begin by running the existing tests and reading `docs/CO
 | Creature database | `data/creatures.json` / `.csv` | Application and editable data formats |
 | Data contracts | `data/*.schema.json` | Machine-readable record validation |
 | Calibration fixtures | `data/test_scenarios.json` / `.csv` | Behavioural acceptance bands |
-| Full product plan | `docs/What_Would_Win_Product_Plan.*` | Product, model, data and roadmap specification |
+| Full product plan | `docs/What_Would_Win_Product_Plan.md` | Canonical product, model, data and roadmap specification |
+| Model 0.3 audit | `docs/MODEL_AUDIT_0.3.md` | Audit findings, corrections, calibration coverage and remaining risks |
 | Codex handoff | `docs/CODEX_HANDOFF.md` | Continuation instructions and paste-ready prompt |
 | Data dictionary | `data/DATA_DICTIONARY.md` | Field semantics and editing rules |
 | QA report | `docs/QA_REPORT.md` | Build, test and visual-check status |
-| Maintenance scripts | `scripts/` | Data and document generation utilities |
+| Maintenance scripts | `scripts/` | Data generation and Git-index checksum utilities |
 
-## Appendix B. Prototype calibration snapshot
+## Appendix B. Model 0.3 calibration guardrails
 
-These are deterministic seeded results from the delivered 5,000-trial transparent mode. They are regression observations, not declarations of objective truth.
+The canonical suite contains 16 deterministic seeded scenarios. Acceptance bands and purposes live in `data/test_scenarios.json` and are summarized in `docs/MODEL_AUDIT_0.3.md`; final command counts and aggregate calibration status belong in `docs/QA_REPORT.md`.
 
-| Scenario | Solo model probability | Delivered verdict |
-|---|---:|---|
-| Horse-sized mallard duck vs 100 duck-sized horses | 96.0% | Mallard duck |
-| African bush elephant vs 20 gray wolves | 96.0% | African bush elephant |
-| Silverback gorilla vs 50 mallard ducks | 95.0% | Silverback gorilla |
-| Western dragon vs 200 prepared archers | 88.4% | Western dragon |
-| Tyrannosaurus rex vs 1,000 roosters | 93.0% | Tyrannosaurus rex |
-| Kraken vs 20 orcas in deep ocean | 54.6% | Kraken; close and assumption-sensitive |
-| Stone golem vs `10^100` house mice | 0.5% | Mouse aggregate; conceptual-scale warning |
-| Sperm whale vs 8 orcas in deep ocean | 22.4% | Orca pod |
-| Spinosaurus vs 3 Nile crocodiles in a river | 80.8% | Spinosaurus |
-| Fixed-model Bigfoot vs 10 unarmed adults | 47.3% | Human group; close and speculative |
-| Medusa vs 20 armoured spear carriers | 6.1% | Spear-carrier group |
-| Charybdis abstraction vs 20 orcas | 63.9% | Charybdis; hazard abstraction warning |
+The suite covers the classic cross-scaling matchup, megafauna versus packs/swarms, multi-target pressure, ranged/flight/resource interaction, marine environments, extinct reconstructions, fixed cryptid and mythological assumptions, conceptual quantity, bilateral stopping, flight-access ceilings and severe dry-land aquatic mismatch.
 
-A coefficient change should be assessed across the whole set. A change that makes one meme answer feel better but damages unrelated archetypes is a regression, not an improvement.
+These are regression observations and behavioural guardrails, not declarations of objective truth. A coefficient change should be assessed across the whole set plus focused invariants. A change that makes one meme answer feel better but damages unrelated archetypes is a regression, not an improvement.
 
 ## Appendix C. Public-beta release checklist
 

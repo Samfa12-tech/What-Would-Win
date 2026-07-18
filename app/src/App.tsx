@@ -142,16 +142,23 @@ function validHistoryText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= 200
 }
 
+function isPreviousHistoryVersionPair(value: Record<string, unknown>): boolean {
+  return (
+    value.modelVersion === '0.2.0' && value.dataVersion === '0.2.0'
+  ) || (
+    value.modelVersion === '0.1.0' && value.dataVersion === '0.1.0'
+  )
+}
+
 function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
   if (!isRecord(value)) return null
   const legacyKeys = ['id', 'createdAt', 'scenario', 'winnerName', 'soloName', 'groupName', 'soloWinProbability']
   const currentKeys = ['formatVersion', 'modelVersion', 'dataVersion', ...legacyKeys]
   if (!hasOnlyKeys(value, legacy ? legacyKeys : currentKeys)) return null
-  const previousVersion = value.modelVersion === '0.1.0' && value.dataVersion === '0.1.0'
-  if (!legacy && !previousVersion && (
+  const previousVersion = isPreviousHistoryVersionPair(value)
+  if (!legacy && (
     value.formatVersion !== HISTORY_ITEM_FORMAT_VERSION
-    || value.modelVersion !== MODEL_VERSION
-    || value.dataVersion !== DATA_VERSION
+    || (!previousVersion && (value.modelVersion !== MODEL_VERSION || value.dataVersion !== DATA_VERSION))
   )) return null
   const migratedScenario = withMethodologyDefaults(value.scenario) as Scenario
   if (
@@ -170,8 +177,8 @@ function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
 
   return {
     formatVersion: HISTORY_ITEM_FORMAT_VERSION,
-    modelVersion: MODEL_VERSION,
-    dataVersion: DATA_VERSION,
+    modelVersion: legacy ? '0.1.0' : value.modelVersion as string,
+    dataVersion: legacy ? '0.1.0' : value.dataVersion as string,
     id: value.id,
     createdAt: value.createdAt,
     scenario: migratedScenario,
@@ -186,7 +193,31 @@ function historyStore(items: HistoryItem[]): HistoryStore {
   return { storageVersion: HISTORY_STORAGE_VERSION, items }
 }
 
-export function loadHistory(storage: Storage): HistoryLoadResult {
+function recalculateHistoryItem(item: HistoryItem, creatures: Creature[]): HistoryItem | null {
+  const solo = creatures.find((creature) => creature.id === item.scenario.soloId)
+  const group = creatures.find((creature) => creature.id === item.scenario.groupId)
+  if (!solo || !group) return null
+  try {
+    const result = simulate(creatures, item.scenario)
+    return {
+      ...item,
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
+      winnerName: result.winnerName,
+      soloName: solo.name,
+      groupName: group.name,
+      soloWinProbability: result.soloWinProbability,
+    }
+  } catch {
+    return null
+  }
+}
+
+function historyItemNeedsRecalculation(item: HistoryItem): boolean {
+  return item.modelVersion !== MODEL_VERSION || item.dataVersion !== DATA_VERSION
+}
+
+export function loadHistory(storage: Storage, creatures: Creature[] = builtInCreatures): HistoryLoadResult {
   let raw: string | null
   try {
     raw = storage.getItem(HISTORY_KEY)
@@ -211,7 +242,8 @@ export function loadHistory(storage: Storage): HistoryLoadResult {
     const items: HistoryItem[] = []
     const ids = new Set<string>()
     let ignored = Math.max(0, candidates.length - MAX_HISTORY_ITEMS)
-    let upgradedVersionedItems = 0
+    let recalculatedItems = 0
+    let pendingItems = 0
     for (const candidate of candidates.slice(0, MAX_HISTORY_ITEMS)) {
       const item = parseHistoryItem(candidate, legacy)
       if (!item || ids.has(item.id)) {
@@ -219,27 +251,37 @@ export function loadHistory(storage: Storage): HistoryLoadResult {
         continue
       }
       ids.add(item.id)
-      items.push(item)
-      if (!legacy && isRecord(candidate) && candidate.modelVersion === '0.1.0' && candidate.dataVersion === '0.1.0') {
-        upgradedVersionedItems += 1
+      if (historyItemNeedsRecalculation(item)) {
+        const recalculated = recalculateHistoryItem(item, creatures)
+        if (recalculated) {
+          items.push(recalculated)
+          recalculatedItems += 1
+        } else {
+          items.push(item)
+          pendingItems += 1
+        }
+      } else {
+        items.push(item)
       }
     }
 
     let migrationWarning = ''
-    if (legacy && ignored === 0) {
+    const migrationMessages = []
+    if (recalculatedItems > 0) {
+      migrationMessages.push(`${recalculatedItems} previous-version history ${recalculatedItems === 1 ? 'entry was' : 'entries were'} recalculated under the current model and data versions.`)
+    }
+    if (pendingItems > 0) {
+      migrationMessages.push(`${pendingItems} previous-version history ${pendingItems === 1 ? 'entry still needs' : 'entries still need'} recalculation because a referenced profile is unavailable.`)
+    }
+    if ((legacy || migrationMessages.length > 0) && ignored === 0) {
       try {
         storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
-        migrationWarning = 'Legacy recent history was migrated to the current version.'
+        migrationWarning = [...migrationMessages, 'The history was migrated and saved.'].join(' ')
       } catch {
-        migrationWarning = 'Legacy recent history was loaded but could not be migrated in this browser.'
+        migrationWarning = 'Previous-version history was loaded but its recalculated migration could not be saved in this browser.'
       }
-    } else if (upgradedVersionedItems > 0 && ignored === 0) {
-      try {
-        storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
-        migrationWarning = `${upgradedVersionedItems} previous-version history ${upgradedVersionedItems === 1 ? 'entry was' : 'entries were'} migrated and will be recalculated when restored.`
-      } catch {
-        migrationWarning = 'Previous-version history was loaded but could not be migrated in this browser.'
-      }
+    } else if (migrationMessages.length > 0) {
+      migrationWarning = `${migrationMessages.join(' ')} The migration was not saved because other stored entries were invalid, incompatible or duplicated; those records were left untouched, so recalculation will repeat next time.`
     }
     const ignoredWarning = ignored
       ? `${ignored} invalid, incompatible or duplicate history ${ignored === 1 ? 'entry was' : 'entries were'} ignored. The stored data was left untouched.`
@@ -271,7 +313,6 @@ function initialAppState(): InitialAppState {
     }
   }
   const loaded = loadCustomCreatures(window.localStorage)
-  const loadedHistory = loadHistory(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
   const decoded = encoded ? decodeScenarioPayload(encoded) : null
   const decodedSharedCustoms = decoded?.ok ? decoded.payload.customCreatures ?? [] : []
@@ -283,17 +324,27 @@ function initialAppState(): InitialAppState {
     ...loaded.items.map((item) => item.creature),
     ...sharedCustoms,
   ]
+  const availableIds = new Set(creatures.map((creature) => creature.id))
+  const unavailableSharedIds = decoded?.ok
+    ? [...new Set([decoded.payload.scenario.soloId, decoded.payload.scenario.groupId].filter((id) => !availableIds.has(id)))]
+    : []
+  const loadedHistory = loadHistory(window.localStorage, creatures)
   const shareWarning = decoded && !decoded.ok
     ? decoded.message
-    : decoded?.status === 'migrated-v2'
-      ? 'This version 2 share link was migrated to the current debate-method format and recalculated.'
-    : decoded?.status === 'migrated-v1'
-      ? 'This version 1 share link was migrated to the compact current format.'
-      : decoded?.status === 'migrated-legacy'
-        ? 'This legacy share link was migrated to the current scenario format.'
-        : ''
+    : decoded?.status === 'migrated-version'
+      ? 'This share uses earlier simulation or bundled-data versions. Its inputs were preserved and recalculated with the current versions.'
+      : decoded?.status === 'migrated-v2'
+        ? 'This version 2 share link was migrated to the current debate-method format and recalculated.'
+        : decoded?.status === 'migrated-v1'
+          ? 'This version 1 share link was migrated to the compact current format.'
+          : decoded?.status === 'migrated-legacy'
+            ? 'This legacy share link was migrated to the current scenario format.'
+            : ''
   const collisionWarning = ignoredSharedCount
     ? 'A shared custom profile was ignored because a saved local profile uses the same ID.'
+    : ''
+  const unavailableShareWarning = unavailableSharedIds.length
+    ? `This share references ${unavailableSharedIds.length === 1 ? 'a creature profile' : 'creature profiles'} that ${unavailableSharedIds.length === 1 ? 'is' : 'are'} not available in this data version. The missing ${unavailableSharedIds.length === 1 ? 'side was' : 'sides were'} reset to the default scenario.`
     : ''
   const unavailableHistoryCount = loadedHistory.items.filter((item) => unavailableHistoryReferences(item, creatures).length > 0).length
   const unavailableHistoryWarning = unavailableHistoryCount
@@ -303,7 +354,7 @@ function initialAppState(): InitialAppState {
     scenario: mergeScenario(decoded?.ok ? decoded.payload.scenario : null, creatures),
     savedCustoms: loaded.items,
     sharedCustoms,
-    warning: [loaded.warning, shareWarning, collisionWarning].filter(Boolean).join(' '),
+    warning: [loaded.warning, shareWarning, collisionWarning, unavailableShareWarning].filter(Boolean).join(' '),
     history: loadedHistory.items,
     historyWarning: [loadedHistory.warning, unavailableHistoryWarning].filter(Boolean).join(' '),
   }
@@ -584,8 +635,25 @@ function App() {
       setHistoryWarning('This history entry cannot be restored because a referenced profile is no longer available. Import the missing custom profile and try again.')
       return
     }
-    run(mergeScenario(item.scenario, creatures), false)
-    setHistoryWarning('')
+    const restoredScenario = mergeScenario(item.scenario, creatures)
+    if (!run(restoredScenario, false)) return
+    if (historyItemNeedsRecalculation(item)) {
+      const recalculated = recalculateHistoryItem({ ...item, scenario: restoredScenario }, creatures)
+      if (!recalculated) {
+        setHistoryWarning('The scenario was restored, but this history entry could not be refreshed under the current model.')
+        return
+      }
+      const nextHistory = history.map((candidate) => candidate.id === item.id ? recalculated : candidate)
+      setHistory(nextHistory)
+      try {
+        saveHistoryStore(localStorage, nextHistory)
+        setHistoryWarning('This history entry was recalculated and saved under the current model and data versions.')
+      } catch {
+        setHistoryWarning('The scenario was recalculated, but the refreshed history entry could not be saved in this browser.')
+      }
+    } else {
+      setHistoryWarning('')
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -1035,7 +1103,11 @@ function App() {
                   >
                     <span>{new Date(item.createdAt).toLocaleString('en-AU')}</span>
                     <strong>{item.soloName} vs {item.scenario.groupQuantity} {item.groupName}</strong>
-                    <small>{unavailable.length > 0 ? 'Unavailable: missing custom profile' : `Winner: ${item.winnerName}`}</small>
+                    <small>{unavailable.length > 0
+                      ? 'Unavailable: missing custom profile'
+                      : historyItemNeedsRecalculation(item)
+                        ? `Recalculate under model ${MODEL_VERSION} when opened`
+                        : `Winner: ${item.winnerName}`}</small>
                   </button>
                 )
               })}

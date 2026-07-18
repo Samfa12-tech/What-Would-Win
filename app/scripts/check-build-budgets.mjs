@@ -6,11 +6,12 @@ const appRoot = fileURLToPath(new URL('../', import.meta.url))
 const distRoot = join(appRoot, 'dist')
 
 const budgets = {
-  // 0.2 intentionally adds 34 validated profiles and share-v3 methodology data.
-  // These raw-file ceilings preserve static-host discipline while retaining headroom.
-  javascript: 575_000,
+  // Model 0.3 adds trace-backed narratives, honest history recalculation and arena/
+  // medium diagnostics. Complete public licence notices add about 10 kB without
+  // affecting the main browser bundles, so keep their combined allowance explicit.
+  javascript: 580_000,
   css: 25_000,
-  total: 700_000,
+  total: 715_000,
   socialImage: 300_000,
 }
 

@@ -6,7 +6,7 @@ import {
   HISTORY_STORAGE_VERSION,
   loadHistory,
 } from '../App'
-import { defaultScenario } from '../simulation/engine'
+import { defaultScenario, simulate } from '../simulation/engine'
 import type { Creature } from '../types'
 import { DATA_VERSION, MODEL_VERSION } from '../version'
 
@@ -51,6 +51,8 @@ describe('versioned local history', () => {
       formatVersion: HISTORY_ITEM_FORMAT_VERSION,
       modelVersion: MODEL_VERSION,
       dataVersion: DATA_VERSION,
+      winnerName: simulate(creatures, defaultScenario(creatures)).winnerName,
+      soloWinProbability: simulate(creatures, defaultScenario(creatures)).soloWinProbability,
     })
     expect(stored).toMatchObject({
       storageVersion: HISTORY_STORAGE_VERSION,
@@ -104,6 +106,52 @@ describe('versioned local history', () => {
     expect(migrated.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
   })
 
+  test('persists 0.2 history under the current model and data versions', () => {
+    const storage = new MemoryStorage()
+    storage.setItem(HISTORY_KEY, JSON.stringify({
+      storageVersion: HISTORY_STORAGE_VERSION,
+      items: [{
+        formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+        modelVersion: '0.2.0',
+        dataVersion: '0.2.0',
+        ...legacyItem({ id: 'model-0.2-history-item' }),
+      }],
+    }))
+
+    const loaded = loadHistory(storage)
+    const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
+    expect(loaded.warning).toContain('migrated')
+    expect(loaded.warning).toContain('recalculated')
+    const recalculated = simulate(creatures, defaultScenario(creatures))
+    expect(migrated.items[0]).toMatchObject({
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
+      winnerName: recalculated.winnerName,
+      soloWinProbability: recalculated.soloWinProbability,
+    })
+    expect(migrated.items[0].soloWinProbability).not.toBe(0.75)
+  })
+
+  test('keeps unavailable previous-version history visibly pending instead of relabelling a stale outcome', () => {
+    const storage = new MemoryStorage()
+    const missingScenario = { ...defaultScenario(creatures), soloId: 'custom:missing-profile' }
+    storage.setItem(HISTORY_KEY, JSON.stringify({
+      storageVersion: HISTORY_STORAGE_VERSION,
+      items: [{
+        formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+        modelVersion: '0.2.0',
+        dataVersion: '0.2.0',
+        ...legacyItem({ id: 'missing-history-profile', scenario: missingScenario, winnerName: 'Old result' }),
+      }],
+    }))
+
+    const loaded = loadHistory(storage)
+    const stored = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
+    expect(loaded.warning).toContain('still needs recalculation')
+    expect(loaded.items[0]).toMatchObject({ modelVersion: '0.2.0', dataVersion: '0.2.0', winnerName: 'Old result' })
+    expect(stored.items[0]).toMatchObject({ modelVersion: '0.2.0', dataVersion: '0.2.0' })
+  })
+
   test('leaves corrupt JSON and incompatible envelopes untouched', () => {
     const corruptStorage = new MemoryStorage()
     corruptStorage.setItem(HISTORY_KEY, '{bad json')
@@ -115,6 +163,29 @@ describe('versioned local history', () => {
     incompatibleStorage.setItem(HISTORY_KEY, incompatible)
     expect(loadHistory(incompatibleStorage)).toMatchObject({ items: [], warning: expect.stringContaining('incompatible') })
     expect(incompatibleStorage.getItem(HISTORY_KEY)).toBe(incompatible)
+  })
+
+  test('recalculates valid old entries in memory but preserves a mixed invalid store with an explicit repeat warning', () => {
+    const storage = new MemoryStorage()
+    const raw = JSON.stringify({
+      storageVersion: HISTORY_STORAGE_VERSION,
+      items: [
+        {
+          formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+          modelVersion: '0.2.0',
+          dataVersion: '0.2.0',
+          ...legacyItem({ id: 'valid-old-entry' }),
+        },
+        { id: 'invalid-entry' },
+      ],
+    })
+    storage.setItem(HISTORY_KEY, raw)
+
+    const loaded = loadHistory(storage)
+    expect(loaded.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
+    expect(loaded.warning).toContain('recalculation will repeat next time')
+    expect(loaded.warning).toContain('1 invalid, incompatible or duplicate history entry was ignored')
+    expect(storage.getItem(HISTORY_KEY)).toBe(raw)
   })
 
   test('ignores invalid, duplicate and incompatible records without rewriting stored data', () => {
@@ -132,6 +203,7 @@ describe('versioned local history', () => {
         { ...valid },
         { ...valid, id: 'bad-scenario', scenario: { ...valid.scenario, groupQuantity: '0' } },
         { ...valid, id: 'old-model', modelVersion: '0.0.0' },
+        { ...valid, id: 'old-bad-format', formatVersion: 999, modelVersion: '0.2.0', dataVersion: '0.2.0' },
       ],
     })
     storage.setItem(HISTORY_KEY, raw)
@@ -139,7 +211,7 @@ describe('versioned local history', () => {
     const loaded = loadHistory(storage)
 
     expect(loaded.items).toEqual([valid])
-    expect(loaded.warning).toContain('3 invalid, incompatible or duplicate history entries were ignored')
+    expect(loaded.warning).toContain('4 invalid, incompatible or duplicate history entries were ignored')
     expect(storage.getItem(HISTORY_KEY)).toBe(raw)
   })
 })

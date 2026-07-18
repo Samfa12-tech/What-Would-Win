@@ -36,9 +36,6 @@ export function validateScenario(value: unknown): ValidationResult {
     const scenario = value as Scenario
     const quantity = parseQuantity(scenario.groupQuantity)
     if (!quantity.valid) return { valid: false, errors: ['/groupQuantity must be a positive whole number in integer, scientific or 10^n notation'] }
-    if (scenario.arenaBoundary === 'bounded' && scenario.startingDistanceM > scenario.arenaDiameterM) {
-      return { valid: false, errors: ['/startingDistanceM must not exceed /arenaDiameterM in a bounded arena'] }
-    }
   }
   return result
 }

@@ -11,6 +11,12 @@ function soloPanel(page: Page) {
   })
 }
 
+function groupPanel(page: Page) {
+  return page.locator('.combatant-panel').filter({
+    has: page.getByRole('heading', { name: 'The many', exact: true }),
+  })
+}
+
 async function createSavedCustom(page: Page, name = CUSTOM_NAME): Promise<string> {
   await soloPanel(page).getByRole('button', { name: 'Clone as custom' }).click()
   const editor = page.getByTestId('custom-creature-editor')
@@ -144,6 +150,10 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await quantity.fill('10^100')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await expect(page.getByText(/Conceptual-scale result:/)).toBeVisible()
+  await expect(page.locator('.battle-phase h4')).toHaveText(['Conceptual briefing', 'Aggregate pressure', 'Interpretation'])
+  await expect(page.getByText('Heuristic duration', { exact: true }).locator('..')).toContainText('not physically meaningful')
+  await expect(page.getByText('Heuristic group losses', { exact: true }).locator('..')).toContainText('not physically meaningful')
+  await expect(page.getByRole('heading', { name: 'Deployment', exact: true })).toHaveCount(0)
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 
@@ -156,6 +166,35 @@ test('technical depth runs 15,000 trials and exposes the calculation record', as
   await expect(page.getByText('Technical calculation record')).toBeVisible()
   await expect(record.getByText('Trials', { exact: true })).toBeVisible()
   await expect(record.getByText('15,000', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Modelled encounter sequence' })).toBeVisible()
+  await expect(page.locator('.battle-phase h4')).toHaveText([
+    'Briefing', 'Deployment', 'Access and approach', 'First effective contact',
+    'Sustained pressure', 'Likely resolution', 'Alternate path',
+  ])
+  await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
+  await expect(page.locator('.technical-factors li').first()).toBeVisible()
+})
+
+test('audited cross-scaling scenario exposes stopping and frontage diagnostics', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('house-mouse')
+  await page.getByTestId('group-creature-select').selectOption('red-kangaroo')
+  await page.getByLabel('Quantity').fill('100')
+  await soloPanel(page).getByLabel('Size method').selectOption('named')
+  await soloPanel(page).getByLabel('Target size').selectOption('dog')
+  await groupPanel(page).getByLabel('Size method').selectOption('named')
+  await groupPanel(page).getByLabel('Target size').selectOption('mouse')
+  await page.getByRole('radio', { name: /Functional scaling/ }).check()
+  await page.getByLabel('Report detail').selectOption('technical')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+
+  await expect(page.locator('.results').getByRole('heading', { name: 'House mouse', level: 2 })).toBeVisible()
+  await expect(page.getByText(/Each group member pays a body-mass stopping penalty/)).toBeVisible()
+  const record = page.locator('.technical-grid')
+  const soloStopping = Number(await record.locator('div', { hasText: 'Solo stopping penalty' }).locator('dd').textContent())
+  const groupStopping = Number(await record.locator('div', { hasText: 'Group stopping penalty' }).locator('dd').textContent())
+  const effectiveQuantity = Number(await record.locator('div', { hasText: 'Pre-exponent effective count log10' }).locator('dd').textContent())
+  expect(groupStopping).toBeGreaterThan(soloStopping)
+  expect(effectiveQuantity).toBeLessThanOrEqual(2)
 })
 
 test('debate methodology controls survive simulation, history and a clean-browser share', async ({ page, browser }) => {
@@ -253,6 +292,35 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   } finally {
     await clean.context.close()
   }
+
+  const previousUrl = new URL(shareUrl)
+  previousUrl.searchParams.set('s', encodeSharePayload({
+    ...payload,
+    modelVersion: '0.2.0',
+    dataVersion: '0.2.0',
+  }))
+  const migrated = await openSharedScenarioInCleanBrowser(browser, previousUrl.toString())
+  try {
+    await expect(migrated.page.getByRole('alert')).toContainText('earlier simulation or bundled-data versions')
+    await expect(migrated.page.getByTestId('solo-creature-select')).toHaveValue(customId)
+    await expect(migrated.page.getByTestId('group-creature-select')).toHaveValue(groupId)
+    await expect(migrated.page.getByLabel('Quantity')).toHaveValue('37')
+  } finally {
+    await migrated.context.close()
+  }
+})
+
+test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
+  await page.getByRole('button', { name: 'Copy share link' }).click()
+  const payload = decodeSharePayload(page.url())
+  const compactScenario = payload.scenario as unknown[]
+  compactScenario[0] = 'missing-built-in-profile'
+
+  await page.goto(`/?s=${encodeSharePayload(payload)}`)
+
+  await expect(page.getByRole('alert')).toContainText('not available in this data version')
+  await expect(page.getByRole('alert')).toContainText('reset to the default scenario')
+  await expect(page.getByTestId('solo-creature-select')).not.toHaveValue('missing-built-in-profile')
 })
 
 test('a shared custom profile cannot shadow a saved local profile with the same ID', async ({ page }) => {
@@ -282,7 +350,7 @@ test('corrupt custom-profile storage recovers visibly without overwriting the st
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
-test('legacy history migrates to a versioned envelope and corrupt history remains untouched', async ({ page }) => {
+test('legacy and 0.2 history migrate while corrupt history remains untouched', async ({ page }) => {
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
   const legacy = current.items.map(({ formatVersion: _formatVersion, modelVersion: _modelVersion, dataVersion: _dataVersion, ...item }: Record<string, unknown>) => item)
@@ -297,6 +365,26 @@ test('legacy history migrates to a versioned envelope and corrupt history remain
     modelVersion: expect.any(String),
     dataVersion: expect.any(String),
   }))
+
+  const previous = {
+    ...migrated,
+    items: migrated.items.map((item: Record<string, unknown>) => ({
+      ...item,
+      modelVersion: '0.2.0',
+      dataVersion: '0.2.0',
+      winnerName: 'Deliberately stale result',
+      soloWinProbability: 0.123456,
+    })),
+  }
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: JSON.stringify(previous) })
+  await page.reload()
+  await expect(page.getByTestId('history-warning')).toContainText('recalculated')
+  const remigrated = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  expect(remigrated.items[0].modelVersion).not.toBe('0.2.0')
+  expect(remigrated.items[0].dataVersion).not.toBe('0.2.0')
+  expect(remigrated.items[0].winnerName).not.toBe('Deliberately stale result')
+  expect(remigrated.items[0].soloWinProbability).not.toBe(0.123456)
+  await expect(page.locator('.history-card').first()).not.toContainText('Deliberately stale result')
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
@@ -335,6 +423,21 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))
   expect(exported.result.technical.modelVersion).toBe(exported.modelVersion)
   expect(exported.result.technical.dataVersion).toBe(exported.dataVersion)
+  expect(exported.result.narrative).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: 'briefing', factorIds: expect.any(Array) }),
+    expect.objectContaining({ id: 'uncertainty', factorIds: expect.any(Array) }),
+  ]))
+  expect(exported.result.appliedFactors).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: 'solo-mass', phase: 'briefing', logDelta: expect.any(Number) }),
+    expect.objectContaining({ id: 'group-aggregation', phase: 'pressure', logDelta: expect.any(Number) }),
+  ]))
+  expect(exported.result.technical).toEqual(expect.objectContaining({
+    groupFrontageCapacity: expect.any(Number),
+    groupUsableQuantityLog10: expect.any(Number),
+    groupEffectiveQuantityLog10: expect.any(Number),
+    soloStoppingPenalty: expect.any(Number),
+    groupAttackAccess: expect.any(Number),
+  }))
   expect(exported.scenario.soloId).toBe(customId)
   expect(exported.scenario).toEqual(expect.objectContaining({
     winCondition: 'incapacitation',

@@ -12,8 +12,10 @@ export const MAX_ENCODED_SCENARIO_LENGTH = 64_000
 export const MAX_SHARED_CUSTOM_CREATURES = 2
 
 const LEGACY_SHARE_FORMAT_VERSIONS = [1, 2] as const
-const PREVIOUS_MODEL_VERSION = '0.1.0'
-const PREVIOUS_DATA_VERSION = '0.1.0'
+const PREVIOUS_MODEL_VERSION = '0.2.0'
+const PREVIOUS_DATA_VERSION = '0.2.0'
+const DEPLOYED_V2_MODEL_VERSION = '0.1.0'
+const DEPLOYED_V2_DATA_VERSION = '0.1.0'
 const COMPACT_SEPARATOR = '.'
 const OVERRIDE_KEYS = [
   'attack',
@@ -49,6 +51,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
   const allowed = new Set(keys)
   return Object.keys(value).every((key) => allowed.has(key))
+}
+
+function isSupportedVersionPair(modelVersion: unknown, dataVersion: unknown): boolean {
+  return (modelVersion === MODEL_VERSION && dataVersion === DATA_VERSION)
+    || (modelVersion === PREVIOUS_MODEL_VERSION && dataVersion === PREVIOUS_DATA_VERSION)
+    || (modelVersion === DEPLOYED_V2_MODEL_VERSION && dataVersion === DEPLOYED_V2_DATA_VERSION)
 }
 
 function compactSize(size: Scenario['soloSize']): unknown[] {
@@ -277,10 +285,7 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
   }
   if (
     (value.formatVersion !== SHARE_FORMAT_VERSION && !LEGACY_SHARE_FORMAT_VERSIONS.includes(value.formatVersion as 1 | 2))
-    || !(
-      (value.modelVersion === MODEL_VERSION && value.dataVersion === DATA_VERSION)
-      || (value.modelVersion === PREVIOUS_MODEL_VERSION && value.dataVersion === PREVIOUS_DATA_VERSION)
-    )
+    || !isSupportedVersionPair(value.modelVersion, value.dataVersion)
   ) {
     return {
       ok: false,
@@ -304,7 +309,13 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
 
   return {
     ok: true,
-    status: value.formatVersion === 1 ? 'migrated-v1' : value.formatVersion === 2 ? 'migrated-v2' : 'current',
+    status: value.formatVersion === 1
+      ? 'migrated-v1'
+      : value.formatVersion === 2
+        ? 'migrated-v2'
+        : value.modelVersion === MODEL_VERSION
+          ? 'current'
+          : 'migrated-version',
     payload: currentPayload(scenario, customCreatures),
   }
 }
@@ -314,7 +325,8 @@ function decodeCompactPayload(value: unknown, formatVersion: number): ScenarioDe
     return { ok: false, reason: 'corrupt', message: 'The compact shared scenario has an invalid envelope.' }
   }
   const supportedVersions = (value[0] === MODEL_VERSION && value[1] === DATA_VERSION)
-    || (formatVersion === 2 && value[0] === PREVIOUS_MODEL_VERSION && value[1] === PREVIOUS_DATA_VERSION)
+    || (formatVersion === SHARE_FORMAT_VERSION && value[0] === PREVIOUS_MODEL_VERSION && value[1] === PREVIOUS_DATA_VERSION)
+    || (formatVersion === 2 && value[0] === DEPLOYED_V2_MODEL_VERSION && value[1] === DEPLOYED_V2_DATA_VERSION)
   if (!supportedVersions) {
     return {
       ok: false,

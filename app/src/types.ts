@@ -14,6 +14,9 @@ export type CoordinationDoctrine = 'instinctive' | 'cooperative' | 'disciplined'
 export type CasualtyTolerance = 'natural' | 'committed' | 'unlimited'
 export type SpecimenProfile = 'profile-baseline' | 'average-adult' | 'prime-adult' | 'exceptional'
 export type SpecimenSex = 'unspecified' | 'female' | 'male'
+export type BattlePhaseId = 'briefing' | 'deployment' | 'approach' | 'contact' | 'pressure' | 'resolution' | 'uncertainty'
+export type ModelFactorSide = 'solo' | 'group' | 'neutral'
+export type NarrativeAdvantage = 'solo' | 'group' | 'contested' | 'neutral'
 
 export interface Creature {
   id: string
@@ -126,7 +129,7 @@ export type ScenarioDecodeFailureReason = 'corrupt' | 'oversized' | 'incompatibl
 export type ScenarioDecodeResult =
   | {
       ok: true
-      status: 'current' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
+      status: 'current' | 'migrated-version' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
       payload: ScenarioSharePayload
     }
   | {
@@ -148,15 +151,36 @@ export interface ResolvedCombatant {
   creature: Creature
   targetMassKg: number
   linearScale: number
+  scaledBodyLengthM: number
+  scaledHeightM: number
   scaledReachM: number
   scaledSpeedKph: number
   stats: Required<StatOverrides>
   environmentFactor: number
   scaleIntegrity: number
   specialFactor: number
+  massLogPower: number
+  qualityLogPower: number
   singleLogPower: number
   advantages: string[]
   liabilities: string[]
+}
+
+export interface AppliedModelFactor {
+  id: string
+  phase: BattlePhaseId
+  side: ModelFactorSide
+  logDelta: number
+  explanation: string
+  caveat?: string
+}
+
+export interface BattleNarrativePhase {
+  id: BattlePhaseId
+  title: string
+  advantage: NarrativeAdvantage
+  text: string
+  factorIds: string[]
 }
 
 export interface SimulationTechnical {
@@ -174,6 +198,19 @@ export interface SimulationTechnical {
   groupScaleIntegrity: number
   soloTargetMassKg: number
   groupTargetMassKg: number
+  totalGroupMassLog10: number
+  groupFrontageCapacity: number
+  groupUsableQuantityLog10: number
+  groupEffectiveQuantityLog10: number
+  groupReservePressureRate: number
+  soloStoppingPenalty: number
+  groupStoppingPenalty: number
+  soloAttackAccess: number
+  groupAttackAccess: number
+  soloAreaControlBonus: number
+  arenaCapacityLog10: number | null
+  soloFitsArena: boolean
+  groupFitsArena: boolean
   probabilityStandardError: number
   rawSoloTrialRate: number
   epistemicCompression: number
@@ -187,7 +224,8 @@ export interface SimulationResult {
   confidenceLabel: string
   probabilityRange: [number, number]
   verdict: string
-  narrative: string[]
+  narrative: BattleNarrativePhase[]
+  appliedFactors: AppliedModelFactor[]
   keyFactors: string[]
   soloStrengths: string[]
   soloWeaknesses: string[]
@@ -199,6 +237,7 @@ export interface SimulationResult {
   soloIncapacitationRisk: string
   coinFlipQuantity: string
   conceptualWarning?: string
+  feasibilityWarning?: string
   technical: SimulationTechnical
 }
 

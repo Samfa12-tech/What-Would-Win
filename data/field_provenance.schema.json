@@ -1,84 +1,72 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://samfa12.com/what-would-win/schemas/field_provenance.schema.json",
-  "title": "What Would Win field provenance",
+  "$id": "https://samfa12.com/apps/what-would-win/schemas/field_provenance.schema.json",
+  "title": "What Would Win field provenance audit",
   "type": "object",
   "additionalProperties": false,
-  "required": ["provenanceVersion", "records"],
+  "required": ["provenanceVersion", "reviewed_on", "reviewer", "review_scope", "data_license", "records"],
   "properties": {
-    "provenanceVersion": {
-      "const": 1
-    },
+    "provenanceVersion": { "const": 2 },
+    "reviewed_on": { "type": "string", "format": "date" },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "review_scope": { "type": "string", "minLength": 1 },
+    "data_license": { "const": "CC-BY-SA-4.0" },
     "records": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["creature_id", "sources"],
+        "required": ["creature_id", "release_status", "scientific_status", "review_note", "sources"],
         "properties": {
-          "creature_id": {
-            "type": "string",
-            "minLength": 1
-          },
+          "creature_id": { "type": "string", "minLength": 1 },
+          "release_status": { "const": "licence-cleared-for-public-beta" },
+          "scientific_status": { "enum": ["orientation-only", "authored-profile"] },
+          "review_note": { "type": "string", "minLength": 1 },
           "sources": {
             "type": "array",
             "minItems": 1,
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["source_id", "source_type", "label", "fields", "note"],
+              "required": ["source_id", "source_type", "label", "publisher", "license", "reuse_basis", "copied_expression", "attribution", "fields", "note"],
               "properties": {
-                "source_id": {
-                  "type": "string",
-                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                },
-                "source_type": {
-                  "enum": ["external_orientation", "authored_model"]
-                },
-                "label": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "url": {
-                  "type": "string",
-                  "format": "uri",
-                  "pattern": "^https?://"
-                },
+                "source_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+                "source_type": { "enum": ["external_orientation", "authored_model", "authored_metadata"] },
+                "label": { "type": "string", "minLength": 1 },
+                "publisher": { "type": "string", "minLength": 1 },
+                "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+                "license": { "const": "CC-BY-SA-4.0" },
+                "accessed_on": { "type": "string", "format": "date" },
+                "reuse_basis": { "enum": ["linked-orientation-and-facts", "original-authored-model", "original-authored-metadata"] },
+                "copied_expression": { "const": false },
+                "attribution": { "type": "string", "minLength": 1 },
                 "fields": {
                   "type": "array",
                   "minItems": 1,
                   "uniqueItems": true,
                   "items": {
                     "enum": [
-                      "kind", "category", "representative_peak_mass_kg", "body_length_m",
-                      "shoulder_or_body_height_m", "burst_speed_kph", "effective_reach_m",
-                      "attack", "defense", "durability", "agility", "stamina", "intelligence",
-                      "aggression", "coordination", "morale", "armor", "multi_target",
-                      "habitats", "attack_modes", "traits", "can_fly", "aquatic", "venomous",
-                      "ranged", "regenerates", "undead_or_construct", "model_notes"
+                      "id", "name", "kind", "category", "icon", "representative_peak_mass_kg",
+                      "body_length_m", "shoulder_or_body_height_m", "burst_speed_kph", "effective_reach_m",
+                      "attack", "defense", "durability", "agility", "stamina", "intelligence", "aggression",
+                      "coordination", "morale", "armor", "multi_target", "habitats", "attack_modes", "traits",
+                      "data_confidence", "source_label", "source_url", "model_notes", "can_fly", "aquatic",
+                      "venomous", "ranged", "regenerates", "undead_or_construct"
                     ]
                   }
                 },
-                "note": {
-                  "type": "string",
-                  "minLength": 1
-                }
+                "note": { "type": "string", "minLength": 1 }
               },
               "allOf": [
                 {
-                  "if": {
-                    "properties": {
-                      "source_type": {
-                        "const": "external_orientation"
-                      }
-                    },
-                    "required": ["source_type"]
-                  },
+                  "if": { "properties": { "source_type": { "const": "external_orientation" } }, "required": ["source_type"] },
                   "then": {
                     "properties": {
-                      "url": {}
+                      "url": {},
+                      "accessed_on": {}
                     },
-                    "required": ["url"]
+                    "required": ["url", "accessed_on"]
                   }
                 }
               ]

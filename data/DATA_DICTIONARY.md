@@ -13,7 +13,7 @@ The database is selected for mechanics coverage and scenario value. It is not a 
 - `creature.schema.json` — JSON Schema for one profile.
 - `scenario.schema.json` — JSON Schema for a simulation input.
 - `test_scenarios.json` / `.csv` — calibration and acceptance fixtures.
-- `field_provenance.json` — initial field-level source and authorship records for high-use profiles.
+- `field_provenance.json` — complete field-level licensing and authorship records for all profiles.
 - `field_provenance.schema.json` — contract for those provenance records.
 
 ## Interpretation rule
@@ -72,9 +72,9 @@ Confidence affects trial noise and result labels. It is currently row-level; pro
 
 ## Sources
 
-Each prototype row has an orientation URL and warning label. This is deliberately not represented as full provenance. Before public claims are made, replace it with per-field sources, access dates, definitions, value ranges, transformations and licences.
+Every profile now has a complete, non-overlapping licensing record in `field_provenance.json`. The audit attributes its Wikipedia concept/fact orientation, records CC BY-SA 4.0, states that no third-party prose or media is bundled, and separates those inputs from original Samfa12-tech model and metadata fields. `scripts/generate_provenance_audit.mjs` makes the review reproducible and rejects a new non-Wikipedia source until it receives a manual licence classification.
 
-`field_provenance.json` begins that migration for seven high-use or calibration profiles. It deliberately separates externally oriented physical fields from authored model-score fields, prevents the same field appearing in both groups, and records access dates and caveats. These entries are an auditable starting point, not expert validation or evidence that one broad page supports every listed measurement.
+This is a **licensing and expression audit**, not expert scientific validation. Real and extinct physical inputs still use broad orientation pages and must not be described as authoritative. Stronger production research should add primary per-field sources, permanent source revisions, value ranges, transformation notes, specimen definitions and independent review without weakening the existing licence record.
 
 Useful starting points:
 

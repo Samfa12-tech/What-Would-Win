@@ -79,6 +79,10 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByText('one versus X', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Custom profile tools' })).toContainText('save it only in this browser')
   await expect(page.locator('footer')).toContainText(/Model .+ · Data .+ · React\/TypeScript/)
+  await expect(page.getByRole('link', { name: 'Back to Apps' })).toHaveAttribute('href', 'https://samfa12.com/apps/')
+  await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Samfa12' })).toHaveAttribute('href', 'https://samfa12.com/')
+  await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://samfa12.com/privacy/')
+  await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Licences' })).toHaveAttribute('href', './legal-notices.txt')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
@@ -102,7 +106,13 @@ test('searches the roster and loads a suggested field briefing', async ({ page }
   await expect(page.getByText('Unrun changes', { exact: true })).toHaveCount(1)
 })
 
-test('publishes the branded icon and install metadata', async ({ page, request }) => {
+test('publishes branded install and social metadata', async ({ page, request }) => {
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://samfa12.com/apps/what-would-win/')
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://samfa12.com/apps/what-would-win/')
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://samfa12.com/apps/what-would-win/social/what-would-win-og.png')
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200')
+  await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute('content', '630')
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image')
   await expect(page.locator('link[rel="icon"][sizes="any"]')).toHaveAttribute('href', './icons/favicon.ico')
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', './icons/apple-touch-icon.png')
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', './site.webmanifest')
@@ -119,6 +129,10 @@ test('publishes the branded icon and install metadata', async ({ page, request }
   const iconResponse = await request.get('/icons/icon-192.png')
   expect(iconResponse.ok()).toBe(true)
   expect(iconResponse.headers()['content-type']).toContain('image/png')
+
+  const socialImageResponse = await request.get('/social/what-would-win-og.png')
+  expect(socialImageResponse.ok()).toBe(true)
+  expect(socialImageResponse.headers()['content-type']).toContain('image/png')
 })
 
 test('rejects invalid quantities and handles 10^100 as a conceptual calculation', async ({ page }) => {

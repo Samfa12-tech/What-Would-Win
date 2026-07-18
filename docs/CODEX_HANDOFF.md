@@ -82,7 +82,7 @@ Do not replace the engine with a single LLM prompt. An AI layer may propose stru
 
 ## Known limitations
 
-- Per-field provenance currently covers only seven high-use profiles and still needs expert review.
+- Per-field licensing provenance covers all 134 profiles. Real and extinct physical inputs still need stronger primary sourcing and expert review.
 - Group effectiveness and strict scaling use global calibrated functions rather than archetype-specific fits.
 - Casualty and duration estimates are heuristic.
 - Reaction, acceleration, turning, senses, vulnerable anatomy and injury/venom timing are disclosed but not separately phased.
@@ -96,9 +96,9 @@ Do not replace the engine with a single LLM prompt. An AI layer may propose stru
 Prepare a user-test candidate without changing model coefficients:
 
 1. run a manual exploratory and screen-reader pass, prioritising custom-profile creation, history recovery and compact-share migration;
-2. expand and independently review per-field provenance for the most-used real-animal profiles;
+2. expand and independently review scientific provenance for the most-used real-animal profiles;
 3. add PNG-download automation and validate static hosting from the intended `samfa12.com` subpath;
-4. choose an explicit source-code licence and complete third-party data/licence review;
+4. preserve the MIT / CC BY-SA / protected-brand licence split and manually classify any new external source;
 5. collect structured user feedback before any calibration or visual-polish changes.
 
 ## Verification commands

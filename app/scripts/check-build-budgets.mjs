@@ -11,6 +11,7 @@ const budgets = {
   javascript: 575_000,
   css: 25_000,
   total: 700_000,
+  socialImage: 300_000,
 }
 
 async function filesUnder(directory) {
@@ -32,9 +33,13 @@ const sizes = await Promise.all(files.map(async (path) => ({
 
 const javascript = sizes.filter((file) => file.path.endsWith('.js')).reduce((sum, file) => sum + file.bytes, 0)
 const css = sizes.filter((file) => file.path.endsWith('.css')).reduce((sum, file) => sum + file.bytes, 0)
-const total = sizes.reduce((sum, file) => sum + file.bytes, 0)
+// Social previews are fetched by link crawlers, not by visitors loading the app.
+// Keep them independently bounded without weakening the runtime payload ceiling.
+const socialImages = sizes.filter((file) => relative(appRoot, file.path).replaceAll('\\', '/').startsWith('dist/social/'))
+const socialImage = socialImages.reduce((sum, file) => sum + file.bytes, 0)
+const total = sizes.filter((file) => !socialImages.includes(file)).reduce((sum, file) => sum + file.bytes, 0)
 
-const measurements = { javascript, css, total }
+const measurements = { javascript, css, total, socialImage }
 let failed = false
 for (const [name, bytes] of Object.entries(measurements)) {
   const limit = budgets[name]

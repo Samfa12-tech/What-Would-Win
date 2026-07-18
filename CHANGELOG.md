@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a scoped MIT code licence, CC BY-SA 4.0 data licence and explicit brand/artwork reservation.
+- Completed generated licensing provenance for all 134 built-in profiles while retaining the scientific-review caveat.
+- Added redistributed runtime notices and shipped them with the static application build.
+- Added drift checks for provenance, runtime dependencies and public legal notices to tests and production builds.
 - Reworked the single-page frontend into a clearer case-building workspace with a compact masthead, sticky section navigation and a persistent current-matchup summary.
 - Added searchable filtering for the 134-profile roster while retaining grouped native selects and keyboard accessibility.
 - Added four curated field briefings for quick exploration without changing the deterministic engine or canonical calibration scenarios.

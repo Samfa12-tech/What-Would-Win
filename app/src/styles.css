@@ -117,7 +117,8 @@ a {
   max-width: 360px;
 }
 
-.header-meta span {
+.header-meta span,
+.header-meta a {
   padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -125,6 +126,15 @@ a {
   background: rgba(255, 255, 255, 0.02);
   font-size: 12px;
   white-space: nowrap;
+}
+
+.header-meta a {
+  color: var(--gold-light);
+  text-decoration: none;
+}
+
+.header-meta a:hover {
+  border-color: var(--line-strong);
 }
 
 main {
@@ -1042,6 +1052,26 @@ footer strong {
   color: var(--gold-light);
 }
 
+.footer-identity,
+.footer-links {
+  display: flex;
+  gap: 8px;
+}
+
+.footer-identity {
+  flex-direction: column;
+}
+
+.footer-links {
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.footer-links a {
+  color: var(--gold-light);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1692,9 +1722,14 @@ footer strong {
     max-width: none;
   }
 
-  .header-meta span {
+  .header-meta span,
+  .header-meta a {
     padding: 5px 8px;
     font-size: 10px;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
   }
 
   .workspace-nav {

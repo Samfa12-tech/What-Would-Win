@@ -423,7 +423,7 @@ The 0–100 scores are authored inputs. They are not direct zoological measureme
 
 ### 11.4 Current provenance status
 
-The prototype includes one orientation URL and confidence label per row. These references are enough for navigation during development but are not a production provenance system. Many orientation links point to broad reference pages; normalized scores were manually authored for model coverage.
+The public-beta licensing audit covers all 134 profiles. Each record identifies its CC BY-SA 4.0 Wikipedia orientation link, states that no third-party prose or media is bundled, and separates externally oriented fields from original Samfa12-tech model assumptions and metadata. Automated tests require complete, non-overlapping coverage and reject unclassified external-source domains. This clears the redistribution-licensing gate but remains distinct from scientific validation: many links are broad reference pages, physical inputs remain approximate, and normalized scores are manually authored for model coverage.
 
 ### 11.5 Production provenance model
 
@@ -730,17 +730,17 @@ Model/data/share versioning, integrated schemas, compact and migrated links, loc
 2. Validate the built app from the intended `samfa12.com` staging subpath.
 3. Test PNG and JSON downloads on representative mobile and desktop devices.
 4. Add privacy, methodology and contact/reporting pages plus Open Graph metadata.
-5. Complete data-licence review and cultural-sensitivity review for cryptid composites.
+5. Complete cultural-sensitivity review for cryptid composites; the repository-wide data-licence review is complete.
 6. Collect structured user feedback before changing calibration coefficients.
 
 ### P1 — data quality
 
-1. Replace single-row orientation URLs with per-field provenance records.
+1. Replace broad orientation evidence with primary, expert-reviewed per-field scientific provenance.
 2. Add sex/age/subspecies and distribution fields.
 3. Build a script that reports missing values, outliers, duplicate IDs and unknown tags.
 4. Define a controlled vocabulary for habitats, attack modes and traits.
 5. Review the top 30 most-used profiles first.
-6. Record licences for source datasets and do not redistribute restricted source content.
+6. Preserve the completed licence classifications and reject restricted or unreviewed new source content.
 
 ### P2 — modelling research
 
@@ -798,7 +798,7 @@ The next session should begin by running the existing tests and reading `docs/CO
 
 1. preserve all current passing tests;
 2. run manual exploratory, NVDA/VoiceOver and physical Safari/iOS checks;
-3. expand expert-reviewed per-field provenance and complete data/licence review;
+3. expand expert-reviewed scientific provenance while preserving the completed data/licence audit;
 4. complete cultural-sensitivity review for living-tradition cryptid composites;
 5. validate the production build from the intended `samfa12.com` subpath;
 6. collect structured feedback before changing calibration coefficients.
@@ -842,7 +842,7 @@ A coefficient change should be assessed across the whole set. A change that make
 
 ## Appendix C. Public-beta release checklist
 
-- Confirm code and data licences.
+- [x] Confirm code and data licences.
 - [x] Add model and data version constants.
 - [x] Run schema validation, tests, typecheck and production build.
 - Complete keyboard, axe, VoiceOver/NVDA, Safari iOS and Firefox checks.

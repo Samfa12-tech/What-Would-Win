@@ -80,26 +80,28 @@ describe('canonical data contracts', () => {
     expect(validateCreature({ ...custom, source_url: 'file:///private/profile.json' }).valid).toBe(false)
   })
 
-  test('high-use built-ins have schema-valid, non-overlapping field provenance', () => {
+  test('every built-in has complete, licence-cleared, non-overlapping field provenance', () => {
     expect(validateProvenance(fieldProvenanceJson), provenanceValidator.errorsText(validateProvenance.errors)).toBe(true)
     const creaturesById = new Map(canonicalCreatures.map((creature) => [creature.id, creature]))
-    const required = [
-      'mallard-duck',
-      'horse',
-      'african-bush-elephant',
-      'gray-wolf',
-      'silverback-gorilla',
-      'western-dragon',
-      'prepared-archer',
-    ]
-
-    expect(fieldProvenanceJson.records.map((record) => record.creature_id)).toEqual(required)
+    expect(fieldProvenanceJson.data_license).toBe('CC-BY-SA-4.0')
+    expect(fieldProvenanceJson.records.map((record) => record.creature_id)).toEqual(
+      canonicalCreatures.map((creature) => creature.id),
+    )
     for (const record of fieldProvenanceJson.records) {
       const creature = creaturesById.get(record.creature_id)
       expect(creature, record.creature_id).toBeDefined()
       const fields = record.sources.flatMap((source) => source.fields)
       expect(new Set(fields).size, `${record.creature_id} has overlapping provenance claims`).toBe(fields.length)
-      expect(fields.every((field) => field in (creature as Creature))).toBe(true)
+      expect(new Set(fields), `${record.creature_id} has incomplete field provenance`).toEqual(
+        new Set(Object.keys(creature as Creature)),
+      )
+      expect(record.release_status).toBe('licence-cleared-for-public-beta')
+      expect(record.sources.every((source) => source.copied_expression === false)).toBe(true)
+
+      const external = record.sources.find((source) => source.source_type === 'external_orientation')
+      expect(external?.url).toBe((creature as Creature).source_url)
+      expect(new URL(external?.url ?? '').hostname).toBe('en.wikipedia.org')
+      expect(external?.license).toBe('CC-BY-SA-4.0')
     }
   })
 })

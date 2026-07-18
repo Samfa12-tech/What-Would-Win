@@ -1,0 +1,220 @@
+WHAT WOULD WIN — LICENCES AND THIRD-PARTY NOTICES
+
+===== LICENSE =====
+
+MIT License
+
+Copyright (c) 2026 Samfa12-tech
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== DATA_LICENSE.md =====
+
+# What Would Win data licence
+
+Copyright (c) 2026 Samfa12-tech.
+
+The original What Would Win creature-profile compilation, authored model
+values, calibration fixtures and provenance records are licensed under the
+[Creative Commons Attribution-ShareAlike 4.0 International licence](https://creativecommons.org/licenses/by-sa/4.0/)
+(SPDX: `CC-BY-SA-4.0`).
+
+This licence covers:
+
+- `data/creatures.json` and `data/creatures.csv`;
+- `data/test_scenarios.json` and `data/test_scenarios.csv`;
+- `data/field_provenance.json`; and
+- the matching data embedded in `app/src/data/` and compiled application builds.
+
+Attribution may be provided as: **What Would Win creature data by
+Samfa12-tech, CC BY-SA 4.0**, with a link to the source repository. Adapted
+databases must identify changes and be shared under CC BY-SA 4.0 or a
+compatible licence.
+
+Third-party orientation references remain subject to their own terms. The
+database contains links and factual/model inputs, not copied third-party prose
+or media. Wikipedia attribution and the repository's dependency notices are
+recorded in `data/field_provenance.json` and `THIRD_PARTY_NOTICES.md`.
+
+The data is supplied without warranty. Real, extinct and speculative profiles
+are simulation inputs rather than authoritative zoological measurements.
+
+===== BRAND_LICENSE.md =====
+
+# What Would Win brand and artwork
+
+Copyright (c) 2026 Samfa12-tech. All rights reserved.
+
+The MIT and CC BY-SA licences in this repository do **not** grant permission
+to reuse the What Would Win name as a brand, its logo, application icons,
+social artwork or other distinctive visual identity assets.
+
+This reservation applies in particular to:
+
+- `assets/brand/`;
+- `app/public/icons/`;
+- `app/public/social/`; and
+- substantially similar exports or derivatives of those assets.
+
+Incidental use needed to identify, review or link to the original application
+is not intended to be restricted. No trademark rights or endorsement are
+granted.
+
+===== THIRD_PARTY_NOTICES.md =====
+
+# Third-party notices
+
+This file records third-party material redistributed by, or used as
+orientation for, What Would Win. It does not change the licences of those
+works.
+
+## Wikipedia orientation references
+
+Every built-in profile links to its individual English Wikipedia orientation
+article in `data/field_provenance.json`. Wikipedia text is made available
+under the Creative Commons Attribution-ShareAlike licence; the linked article
+and its history identify the contributors. What Would Win does not bundle
+Wikipedia prose or media. The database records factual inputs, broad concept
+orientation and separately identified Samfa12-tech model assumptions.
+
+- Publisher: Wikipedia contributors / Wikimedia Foundation hosting service
+- Licence: CC BY-SA 4.0 (with additional terms where noted by Wikimedia)
+- Terms: https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use/en
+- Licence: https://creativecommons.org/licenses/by-sa/4.0/
+
+## Browser runtime packages
+
+The production JavaScript bundle incorporates the following packages. Package
+versions are locked in `app/package-lock.json`.
+
+| Package | Licence | Copyright notice |
+|---|---|---|
+| react 19.2.7 | MIT | Copyright (c) Meta Platforms, Inc. and affiliates |
+| react-dom 19.2.7 | MIT | Copyright (c) Meta Platforms, Inc. and affiliates |
+| scheduler 0.27.0 | MIT | Copyright (c) Meta Platforms, Inc. and affiliates |
+| ajv 8.20.0 | MIT | Copyright (c) 2015-2021 Evgeny Poberezkin |
+| ajv-formats 3.0.1 | MIT | Copyright (c) 2020 Evgeny Poberezkin |
+| fast-deep-equal 3.1.3 | MIT | Copyright (c) 2017 Evgeny Poberezkin |
+| json-schema-traverse 1.0.0 | MIT | Copyright (c) 2017 Evgeny Poberezkin |
+| require-from-string 2.0.2 | MIT | Copyright (c) Vsevolod Strukchinsky |
+| fast-uri 3.1.3 | BSD-3-Clause | Copyright (c) Gary Court and the Fastify team |
+
+### MIT-licensed Meta packages
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### MIT-licensed Evgeny Poberezkin packages
+
+Copyright (c) 2015-2021 Evgeny Poberezkin (Ajv)
+
+Copyright (c) 2020 Evgeny Poberezkin (ajv-formats)
+
+Copyright (c) 2017 Evgeny Poberezkin (fast-deep-equal and json-schema-traverse)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### require-from-string
+
+Copyright (c) Vsevolod Strukchinsky <floatdrop@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+### fast-uri
+
+Copyright (c) 2011-2021, Gary Court until
+https://github.com/garycourt/uri-js/commit/a1acf730b4bba3f1097c9f52e7d9d3aba8cdcaae
+
+Copyright (c) 2021-present The Fastify team
+<https://github.com/fastify/fastify#team>
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+3. The names of any contributors may not be used to endorse or promote
+   products derived from this software without specific prior written
+   permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.

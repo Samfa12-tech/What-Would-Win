@@ -1,6 +1,6 @@
 # What Would Win — model 0.4 conditional mechanics
 
-**Status:** parallel synthetic foundation; not active runtime authority
+**Status:** active model-0.4 runtime mechanics
 
 The ability kernel now resolves conditional counters and recovery effects from structured profile fields and encounter context. Creature names are never inspected.
 
@@ -12,7 +12,7 @@ The caller supplies deterministic, bounded context for:
 - solo and group injury pressure;
 - solo and group defeat pressure.
 
-The kernel does not infer these from prose. The later complete engine will derive them from resolved power, stopping and win-condition stages before ability resolution.
+The kernel does not infer these from prose. The active complete engine derives them from resolved power, stopping and win-condition stages before ability resolution.
 
 ## Recovery rules
 
@@ -22,7 +22,7 @@ The kernel does not infer these from prose. The later complete engine will deriv
 - An effect with no injury/defeat need is rejected as condition-unmet and contributes no factor.
 - Healing, regeneration, revival and mobility use the actor’s channel modifiers; opponent immunity cannot suppress a self-effect.
 
-These are explicit draft coefficients, not biological claims or final calibration.
+These are explicit versioned model coefficients, not biological claims.
 
 ## Counter rules
 
@@ -46,4 +46,4 @@ An environmental hazard is represented by:
 
 Environmental delivery does not lose access merely because the scenario starts far from the hazard. Terrain eligibility still applies, and no creature-name exception exists.
 
-Canonical profile authoring, duration/injury derivation, group recovery aggregation and coefficient calibration remain required before model 0.4 activation.
+Canonical profile authoring, duration/injury derivation, group recovery aggregation and the activation calibration gates are implemented in the active canonical-data and engine layers. Future coefficient changes still require rationale, version review and regression coverage.

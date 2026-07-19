@@ -1,8 +1,8 @@
 # What Would Win — model 0.4 structured ability kernel
 
-**Status:** parallel synthetic foundation; not active runtime authority
+**Status:** active model-0.4 runtime component
 
-The first model 0.4 engine component resolves structured abilities for both sides without importing them into the live model 0.3 simulation. It is deliberately numerical and technical-only: no winner selection, Monte Carlo sampling or narrative prose exists in this layer.
+This model 0.4 engine component resolves structured abilities for both sides. It remains deliberately numerical and technical-only: winner selection, Monte Carlo sampling and narrative prose occur downstream in the active engine/runtime layers.
 
 ## Inputs
 
@@ -13,7 +13,7 @@ Each side supplies:
 - target quantity in log10 form;
 - a frontage capacity.
 
-The scenario supplies bounded/open starting geometry, terrain and separate solo/group resource objects. Later size and arena stages will produce these resolved inputs; the kernel does not duplicate those calculations.
+The scenario supplies bounded/open starting geometry, terrain and separate solo/group resource objects. The active size and arena stages produce these resolved inputs; the kernel does not duplicate those calculations.
 
 ## Resolution order
 
@@ -49,8 +49,9 @@ Synthetic tests cover:
 - power stability when an inactive ability’s resource control changes;
 - immunity (`0`), resistance (`<1`) and vulnerability (`>1`);
 - physiology, sense and terrain conditions without creature-name logic;
+- spirit targeting with physical immunity and an explicit incorporeal channel;
 - continuous contact access versus explicit ranged access;
 - bounded area coverage at a target quantity of `10^100` without member allocation;
 - self-effects remaining independent of opponent healing immunity.
 
-This is the structured ability kernel only. Physiology-specific stopping, resurrection timing, hazard persistence, full group aggregation, Monte Carlo uncertainty, sensitivity analysis, canonical creature abilities and UI/persistence activation remain later atomic-cutover slices.
+This is the structured ability kernel only. Physiology-specific stopping, resurrection timing, hazard persistence, full group aggregation, Monte Carlo uncertainty, sensitivity analysis, canonical creature abilities and UI/persistence integration are implemented in the surrounding active model-0.4 layers.

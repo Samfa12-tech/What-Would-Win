@@ -6,7 +6,7 @@
 
 ## Verified automated checks on the current worktree
 
-- `npm test`: **166/166 tests passed across 17 Vitest files**.
+- `npm test`: **167/167 tests passed across 17 Vitest files**.
 - Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; semantic audit reported **0 errors and 0 warnings**.
 - The model-0.4 contract audit verified migration artifacts for all **134 profiles**.
 - Provenance audit verified **134 records**; legal and bundled-runtime notices also passed.
@@ -16,7 +16,9 @@
 - `node scripts/check-build-budgets.mjs`: all current model-0.4 component and total budgets passed.
 - `node scripts/check-static-subpath.mjs`: passed; all **6** local references resolved inside `/apps/what-would-win/`.
 
-The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
+The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses including a synthetic spirit/incorporeal interaction, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
+
+`MODEL_0.4_CALIBRATION_COMPARISON.md` records the reproducible model-0.3 versus model-0.4 solo probabilities for all 16 handoff fixtures and explains every movement. The ordinary-animal case retains the solo winner and moves by 0.075711, inside its approved maximum absolute difference of 0.12.
 
 ## Production build snapshot
 
@@ -43,7 +45,9 @@ The exact production build completed the model-0.4 Playwright matrix with **93 p
 - Physical Safari/iOS or other physical-device checks: **not performed**.
 - Real NVDA and VoiceOver checks: **not performed**.
 - Automated static-artifact subpath validation: **passed**.
-- Smoke test of the deployed `samfa12.com/apps/what-would-win/` artifact: **not performed**.
+- The exact tested `app/dist/` tree was synced to the Samfa12 website repository with **16/16 files SHA-256 identical** before publication. Website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6` passed the GitHub Pages deployment workflow.
+- Smoke test of `https://samfa12.com/apps/what-would-win/`: **passed**. The rendered deployment exposed 134 profiles and Model/Data 0.4.0; running a simulation and copying its share link produced a `?s=4.` URL and the visible `Share link copied.` status.
+- Public hashed JavaScript/CSS/data assets matched the published website repository. Cloudflare-injected delivery scripts and Git line-ending normalization mean raw HTML/legal-response bytes are not claimed to be identical to the local files; these transformations did not alter the hashed runtime assets.
 - PNG/JSON downloads on representative physical mobile/desktop devices: **not performed**; automated browser coverage is recorded separately above.
 
 Automated unit, axe, keyboard, build and static-path coverage is useful but must not be described as physical-device or screen-reader validation.
@@ -51,7 +55,6 @@ Automated unit, axe, keyboard, build and static-path coverage is useful but must
 ## Known QA gaps and risks
 
 - Run real screen-reader and physical-device checks, including custom editing, v4 sharing, v2 recovery and legacy migration flows.
-- Upload the exact tested `app/dist/` artifact and smoke the deployed subpath rather than inferring hosting success from relative paths alone.
 - Structured abilities remain aggregate factors rather than event/projectile/anatomy simulation.
 - The physical foundation and ordinary duration/loss values remain transparent heuristics.
 - Creature values and migrated ability declarations require continued scientific, cultural and game-systems review.

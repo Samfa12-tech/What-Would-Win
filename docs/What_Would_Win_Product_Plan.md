@@ -864,7 +864,7 @@ These references justify the use of size-aware modelling, structured trait data 
 
 The next session should begin by running the model-0.4 verification gates and reading `docs/CODEX_HANDOFF.md`. A successful user-test preparation iteration should:
 
-1. preserve the 166-test unit/audit baseline, typecheck, simulation budget, build budgets and static-subpath check;
+1. preserve the 167-test unit/audit baseline, typecheck, simulation budget, build budgets and static-subpath check;
 2. complete and record the model-0.4 production browser matrix;
 3. run manual exploratory, real NVDA/VoiceOver and physical Safari/iOS checks;
 4. validate the exact tested production build from the intended `samfa12.com/apps/what-would-win/` subpath;

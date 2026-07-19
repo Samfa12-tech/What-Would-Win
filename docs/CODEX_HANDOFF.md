@@ -48,11 +48,12 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 7. `app/src/model04/runtime.ts`
 8. `app/src/model04/persistence.ts`
 9. `app/src/model04/migrateV3.ts`
-10. `app/src/App.tsx`
-11. `app/src/test/model04*.test.ts`
-12. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
-13. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
-14. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
+10. `docs/MODEL_0.4_CALIBRATION_COMPARISON.md`
+11. `app/src/App.tsx`
+12. `app/src/test/model04*.test.ts`
+13. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
+14. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
+15. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
 
 ## Product invariants
 
@@ -94,7 +95,8 @@ The explanation and sensitivity panel cannot independently change the winner. Do
 - Conceptual results omit logistics, heat, food, travel and planetary constraints.
 - Thunderbird and Bunyip remain fictional cryptozoological composites pending cultural-sensitivity review; Charybdis is an explicitly modelled environmental-hazard abstraction.
 - Custom profiles are browser-local and need explicit JSON export or a share link for backup/transfer.
-- Physical Safari/iOS, real NVDA/VoiceOver and deployed-host checks have not been evidenced for the model-0.4 candidate.
+- Physical Safari/iOS and real NVDA/VoiceOver checks have not been evidenced for the model-0.4 release.
+- The exact tested build was published at `https://samfa12.com/apps/what-would-win/` through Samfa12 website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6`; the Pages workflow, rendered model/data identity, simulation and v4 share-link flow were verified on the live route.
 - Automated browser coverage is complete for the exact candidate artifact (93 passed, 3 expected project-scope skips); this is not evidence of physical-device or real screen-reader behaviour.
 
 ## Recommended next tasks
@@ -102,11 +104,10 @@ The explanation and sensitivity panel cannot independently change the winner. Do
 Prepare and verify a model-0.4 user-test candidate without silently retuning it:
 
 1. run exploratory physical-device and real NVDA/VoiceOver checks;
-2. validate the exact tested `app/dist/` artifact at the intended `samfa12.com/apps/what-would-win/` path;
-3. exercise v4 sharing, v2 custom/history recovery and supported legacy migrations on representative physical devices;
-4. independently review high-use profile data and migrated structured abilities, including cultural-sensitivity cases;
-5. test PNG/JSON downloads on representative devices; and
-6. collect structured feedback before changing coefficients or ability magnitudes.
+2. exercise v4 sharing, v2 custom/history recovery and supported legacy migrations on representative physical devices;
+3. independently review high-use profile data and migrated structured abilities, including cultural-sensitivity cases;
+4. test PNG/JSON downloads on representative devices; and
+5. collect structured feedback before changing coefficients or ability magnitudes.
 
 ## Verification commands
 

@@ -36,16 +36,22 @@ function resultIdentity(run: ReturnType<typeof simulateModel04>) {
   }
 }
 
-describe('parallel model 0.4 full-engine adapter', () => {
+describe('active model 0.4 full-engine adapter', () => {
   test('executes all 16 handoff mythology fixtures through the full engine and enforces declared ability states', () => {
     expect(mythologyFixturesJson.fixtures).toHaveLength(16)
     for (const fixture of mythologyFixturesJson.fixtures) {
-      const run = simulateModel04(canonical, scenario({
+      const fixtureScenario = scenario({
         soloId: fixture.soloId,
         groupId: fixture.groupId,
         groupQuantity: fixture.groupQuantity,
         ...(fixture.scenarioOverrides as Partial<ScenarioV4Draft>),
-      }))
+      })
+      const run = simulateModel04(canonical, fixtureScenario)
+      if ((globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.PRINT_MODEL04_CALIBRATION === '1') {
+        const { schemaVersion: _schemaVersion, soloResources: _soloResources, groupResources: _groupResources, ...legacyInputs } = fixtureScenario
+        const legacy = simulate(v3Creatures, { ...legacyInputs, resourcesPercent: 100 })
+        console.log(`CALIBRATION04 ${fixture.id} ${legacy.soloWinProbability.toFixed(6)} ${run.result.soloWinProbability.toFixed(6)} ${(run.result.soloWinProbability - legacy.soloWinProbability).toFixed(6)} ${run.result.winner}`)
+      }
       expect(Number.isFinite(run.result.soloWinProbability), fixture.id).toBe(true)
       const expectations = fixture.expectations as {
         activeSoloAbilities?: string[]

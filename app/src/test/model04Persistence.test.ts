@@ -66,7 +66,7 @@ function legacyHistoryItem(overrides: Record<string, unknown> = {}) {
   }
 }
 
-describe('parallel model 0.4 persistence and codecs', () => {
+describe('active model 0.4 persistence and codecs', () => {
   test('round trips v4 shares with asymmetric side and per-ability resources', () => {
     const payload = payloadV4()
     const encoded = encodeModel04Scenario(payload)

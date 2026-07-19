@@ -1,0 +1,541 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://samfa12.com/what-would-win/schemas/model-0.4/creature.schema.json",
+  "title": "What Would Win model 0.4 draft creature",
+  "description": "Prototype profile schema. Physical fields and normalized model scores must remain distinguishable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "category",
+    "icon",
+    "representative_peak_mass_kg",
+    "body_length_m",
+    "shoulder_or_body_height_m",
+    "burst_speed_kph",
+    "attack",
+    "defense",
+    "durability",
+    "agility",
+    "stamina",
+    "intelligence",
+    "aggression",
+    "coordination",
+    "morale",
+    "armor",
+    "multi_target",
+    "habitats",
+    "attack_modes",
+    "traits",
+    "data_confidence",
+    "source_label",
+    "source_url",
+    "model_notes",
+    "schemaVersion",
+    "contact_reach_m",
+    "physiology",
+    "senses",
+    "locomotion",
+    "channelModifiers",
+    "abilities",
+    "migration"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*|custom:[a-z0-9]+(?:-[a-z0-9]+)*)$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "kind": {
+      "enum": [
+        "animal",
+        "extinct",
+        "fantasy",
+        "human"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "icon": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8
+    },
+    "representative_peak_mass_kg": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1000000000000
+    },
+    "body_length_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000
+    },
+    "shoulder_or_body_height_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000
+    },
+    "burst_speed_kph": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "attack": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "defense": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "durability": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "agility": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "stamina": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "intelligence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "aggression": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "coordination": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "morale": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "armor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "multi_target": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "habitats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "attack_modes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "traits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "data_confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "modelled"
+      ]
+    },
+    "source_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "model_notes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": 4
+    },
+    "contact_reach_m": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000000
+    },
+    "physiology": {
+      "enum": [
+        "living",
+        "undead",
+        "construct",
+        "spirit",
+        "environmental-hazard",
+        "legacy-nonliving"
+      ]
+    },
+    "senses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vision",
+        "hearing",
+        "smell",
+        "echolocation",
+        "supernaturalPerception"
+      ],
+      "properties": {
+        "vision": {
+          "type": "boolean"
+        },
+        "hearing": {
+          "type": "boolean"
+        },
+        "smell": {
+          "type": "boolean"
+        },
+        "echolocation": {
+          "type": "boolean"
+        },
+        "supernaturalPerception": {
+          "type": "boolean"
+        }
+      }
+    },
+    "locomotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "flight",
+        "aquatic",
+        "amphibious",
+        "land"
+      ],
+      "properties": {
+        "flight": {
+          "type": "boolean"
+        },
+        "aquatic": {
+          "type": "boolean"
+        },
+        "amphibious": {
+          "type": "boolean"
+        },
+        "land": {
+          "type": "boolean"
+        }
+      }
+    },
+    "channelModifiers": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "physical-blunt",
+          "physical-piercing",
+          "physical-crushing",
+          "fire",
+          "cold",
+          "electric",
+          "venom",
+          "petrification",
+          "psychic",
+          "sonic",
+          "restraint",
+          "healing",
+          "regeneration",
+          "revival",
+          "mobility"
+        ]
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 4
+      }
+    },
+    "abilities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "delivery",
+          "effects",
+          "activationRate",
+          "resource",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 80
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "kind": {
+            "enum": [
+              "attack",
+              "restraint",
+              "regeneration",
+              "resurrection",
+              "healing",
+              "mobility",
+              "aura",
+              "hazard",
+              "summon"
+            ]
+          },
+          "delivery": {
+            "enum": [
+              "contact",
+              "ranged",
+              "area",
+              "gaze",
+              "auditory",
+              "self",
+              "environmental"
+            ]
+          },
+          "effects": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "channel",
+                "potency"
+              ],
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "harm",
+                    "restraint",
+                    "healing",
+                    "regeneration",
+                    "revival",
+                    "mobility",
+                    "morale"
+                  ]
+                },
+                "channel": {
+                  "enum": [
+                    "physical-blunt",
+                    "physical-piercing",
+                    "physical-crushing",
+                    "fire",
+                    "cold",
+                    "electric",
+                    "venom",
+                    "petrification",
+                    "psychic",
+                    "sonic",
+                    "restraint",
+                    "healing",
+                    "regeneration",
+                    "revival",
+                    "mobility"
+                  ]
+                },
+                "potency": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "targetModifier": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 4
+                }
+              }
+            }
+          },
+          "rangeM": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000000
+          },
+          "areaRadiusM": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000000
+          },
+          "targetLimit": {
+            "enum": [
+              "single",
+              "frontage",
+              "area"
+            ]
+          },
+          "activationRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "conditions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "minimumDistanceM": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10000000
+              },
+              "maximumDistanceM": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10000000
+              },
+              "terrains": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                }
+              },
+              "targetPhysiology": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "living",
+                    "undead",
+                    "construct",
+                    "spirit",
+                    "environmental-hazard",
+                    "legacy-nonliving"
+                  ]
+                }
+              },
+              "requiredTargetSenses": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "vision",
+                    "hearing",
+                    "smell",
+                    "echolocation",
+                    "supernaturalPerception"
+                  ]
+                }
+              }
+            }
+          },
+          "resource": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pool"
+            ],
+            "properties": {
+              "pool": {
+                "enum": [
+                  "none",
+                  "side-default",
+                  "ability"
+                ]
+              },
+              "capacity": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "rechargeSeconds": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "legacyGenerated": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceModel",
+        "sourceData",
+        "reviewRequired",
+        "notes"
+      ],
+      "properties": {
+        "sourceModel": {
+          "const": "0.3.0"
+        },
+        "sourceData": {
+          "enum": [
+            "0.3.0",
+            "0.3.1",
+            "custom-v1"
+          ]
+        },
+        "reviewRequired": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}

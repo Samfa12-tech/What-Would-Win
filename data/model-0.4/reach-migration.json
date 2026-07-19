@@ -1,0 +1,1083 @@
+{
+  "schemaVersion": 1,
+  "targetModel": "0.4.0-draft.1",
+  "policy": {
+    "contactReach": "Conservatively copy model 0.3 effective_reach_m until the profile receives a reviewed anatomical contact value.",
+    "rangedReach": "For ranged:true profiles only, generate legacy-ranged with the same old value; canonical abilities must replace it before activation.",
+    "activation": "No row in this table changes model 0.3 runtime data or results."
+  },
+  "profiles": [
+    {
+      "id": "african-bush-elephant",
+      "legacyEffectiveReachM": 3,
+      "contactReachM": 3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "asian-elephant",
+      "legacyEffectiveReachM": 2.7,
+      "contactReachM": 2.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "white-rhinoceros",
+      "legacyEffectiveReachM": 2.2,
+      "contactReachM": 2.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "hippopotamus",
+      "legacyEffectiveReachM": 1.7,
+      "contactReachM": 1.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giraffe",
+      "legacyEffectiveReachM": 2.8,
+      "contactReachM": 2.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cape-buffalo",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "moose",
+      "legacyEffectiveReachM": 1.8,
+      "contactReachM": 1.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "elk",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "horse",
+      "legacyEffectiveReachM": 1.4,
+      "contactReachM": 1.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "breeding-bull",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "wild-boar",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "dromedary-camel",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "red-kangaroo",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mountain-goat",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "north-american-porcupine",
+      "legacyEffectiveReachM": 0.4,
+      "contactReachM": 0.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "polar-bear",
+      "legacyEffectiveReachM": 1.4,
+      "contactReachM": 1.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "grizzly-bear",
+      "legacyEffectiveReachM": 1.3,
+      "contactReachM": 1.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "african-lion",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "bengal-tiger",
+      "legacyEffectiveReachM": 1.1,
+      "contactReachM": 1.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "jaguar",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "leopard",
+      "legacyEffectiveReachM": 0.75,
+      "contactReachM": 0.75,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cheetah",
+      "legacyEffectiveReachM": 0.65,
+      "contactReachM": 0.65,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "gray-wolf",
+      "legacyEffectiveReachM": 0.65,
+      "contactReachM": 0.65,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "spotted-hyena",
+      "legacyEffectiveReachM": 0.65,
+      "contactReachM": 0.65,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "african-wild-dog",
+      "legacyEffectiveReachM": 0.5,
+      "contactReachM": 0.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "wolverine",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "honey-badger",
+      "legacyEffectiveReachM": 0.35,
+      "contactReachM": 0.35,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "silverback-gorilla",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "chimpanzee",
+      "legacyEffectiveReachM": 0.75,
+      "contactReachM": 0.75,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "olive-baboon",
+      "legacyEffectiveReachM": 0.55,
+      "contactReachM": 0.55,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-panda",
+      "legacyEffectiveReachM": 0.7,
+      "contactReachM": 0.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mastiff-type-dog",
+      "legacyEffectiveReachM": 0.55,
+      "contactReachM": 0.55,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "house-cat",
+      "legacyEffectiveReachM": 0.3,
+      "contactReachM": 0.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "brown-rat",
+      "legacyEffectiveReachM": 0.1,
+      "contactReachM": 0.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "house-mouse",
+      "legacyEffectiveReachM": 0.04,
+      "contactReachM": 0.04,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "saltwater-crocodile",
+      "legacyEffectiveReachM": 1.3,
+      "contactReachM": 1.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "american-alligator",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "komodo-dragon",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "green-anaconda",
+      "legacyEffectiveReachM": 1.3,
+      "contactReachM": 1.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "reticulated-python",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "king-cobra",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "inland-taipan",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "common-snapping-turtle",
+      "legacyEffectiveReachM": 0.35,
+      "contactReachM": 0.35,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "ostrich",
+      "legacyEffectiveReachM": 1.25,
+      "contactReachM": 1.25,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "southern-cassowary",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "golden-eagle",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "peregrine-falcon",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "great-horned-owl",
+      "legacyEffectiveReachM": 0.5,
+      "contactReachM": 0.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "domestic-goose",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mallard-duck",
+      "legacyEffectiveReachM": 0.3,
+      "contactReachM": 0.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "rooster",
+      "legacyEffectiveReachM": 0.35,
+      "contactReachM": 0.35,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "great-white-shark",
+      "legacyEffectiveReachM": 1.1,
+      "contactReachM": 1.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "orca",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "bottlenose-dolphin",
+      "legacyEffectiveReachM": 1.1,
+      "contactReachM": 1.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "walrus",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-pacific-octopus",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-squid",
+      "legacyEffectiveReachM": 5,
+      "contactReachM": 5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "electric-eel",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": 1,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "peacock-mantis-shrimp",
+      "legacyEffectiveReachM": 0.08,
+      "contactReachM": 0.08,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "western-honey-bee",
+      "legacyEffectiveReachM": 0.005,
+      "contactReachM": 0.005,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "army-ant-soldier",
+      "legacyEffectiveReachM": 0.006,
+      "contactReachM": 0.006,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "yellowjacket-wasp",
+      "legacyEffectiveReachM": 0.006,
+      "contactReachM": 0.006,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "emperor-scorpion",
+      "legacyEffectiveReachM": 0.08,
+      "contactReachM": 0.08,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "goliath-birdeater",
+      "legacyEffectiveReachM": 0.12,
+      "contactReachM": 0.12,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "tyrannosaurus-rex",
+      "legacyEffectiveReachM": 2.5,
+      "contactReachM": 2.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "velociraptor",
+      "legacyEffectiveReachM": 0.55,
+      "contactReachM": 0.55,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "triceratops",
+      "legacyEffectiveReachM": 2.6,
+      "contactReachM": 2.6,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "ankylosaurus",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "stegosaurus",
+      "legacyEffectiveReachM": 2.2,
+      "contactReachM": 2.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "woolly-mammoth",
+      "legacyEffectiveReachM": 3,
+      "contactReachM": 3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "smilodon",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "megalodon",
+      "legacyEffectiveReachM": 3,
+      "contactReachM": 3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "unarmed-peak-adult-human",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "trained-unarmed-fighter",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "armoured-spear-carrier",
+      "legacyEffectiveReachM": 2.5,
+      "contactReachM": 2.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "prepared-archer",
+      "legacyEffectiveReachM": 80,
+      "contactReachM": 80,
+      "rangedAbilityRangeM": 80,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "western-dragon",
+      "legacyEffectiveReachM": 35,
+      "contactReachM": 35,
+      "rangedAbilityRangeM": 35,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "wyvern",
+      "legacyEffectiveReachM": 18,
+      "contactReachM": 18,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "griffin",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "hydra",
+      "legacyEffectiveReachM": 7,
+      "contactReachM": 7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "kraken",
+      "legacyEffectiveReachM": 25,
+      "contactReachM": 25,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "roc",
+      "legacyEffectiveReachM": 12,
+      "contactReachM": 12,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "phoenix",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": 2,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "minotaur",
+      "legacyEffectiveReachM": 1.8,
+      "contactReachM": 1.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cyclops",
+      "legacyEffectiveReachM": 4,
+      "contactReachM": 4,
+      "rangedAbilityRangeM": 4,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "centaur",
+      "legacyEffectiveReachM": 2.5,
+      "contactReachM": 2.5,
+      "rangedAbilityRangeM": 2.5,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "hill-giant",
+      "legacyEffectiveReachM": 5,
+      "contactReachM": 5,
+      "rangedAbilityRangeM": 5,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "troll",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "ogre",
+      "legacyEffectiveReachM": 1.8,
+      "contactReachM": 1.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "goblin-skirmisher",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": 1.2,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "werewolf",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "vampire",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "zombie",
+      "legacyEffectiveReachM": 0.7,
+      "contactReachM": 0.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "stone-golem",
+      "legacyEffectiveReachM": 2.2,
+      "contactReachM": 2.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "unicorn",
+      "legacyEffectiveReachM": 1.8,
+      "contactReachM": 1.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "basilisk",
+      "legacyEffectiveReachM": 8,
+      "contactReachM": 8,
+      "rangedAbilityRangeM": 8,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cerberus",
+      "legacyEffectiveReachM": 1.6,
+      "contactReachM": 1.6,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "chimera",
+      "legacyEffectiveReachM": 12,
+      "contactReachM": 12,
+      "rangedAbilityRangeM": 12,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "manticore",
+      "legacyEffectiveReachM": 35,
+      "contactReachM": 35,
+      "rangedAbilityRangeM": 35,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-spider",
+      "legacyEffectiveReachM": 15,
+      "contactReachM": 15,
+      "rangedAbilityRangeM": 15,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "sperm-whale",
+      "legacyEffectiveReachM": 5,
+      "contactReachM": 5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "blue-whale",
+      "legacyEffectiveReachM": 6,
+      "contactReachM": 6,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "colossal-squid",
+      "legacyEffectiveReachM": 5,
+      "contactReachM": 5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "tiger-shark",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "bull-shark",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "southern-elephant-seal",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "american-bison",
+      "legacyEffectiveReachM": 1.7,
+      "contactReachM": 1.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cougar",
+      "legacyEffectiveReachM": 0.8,
+      "contactReachM": 0.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "nile-crocodile",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "spinosaurus",
+      "legacyEffectiveReachM": 2.7,
+      "contactReachM": 2.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "allosaurus",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "deinosuchus",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "sarcosuchus",
+      "legacyEffectiveReachM": 1.8,
+      "contactReachM": 1.8,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "argentinosaurus",
+      "legacyEffectiveReachM": 7,
+      "contactReachM": 7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "titanoboa",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "megatherium",
+      "legacyEffectiveReachM": 2.2,
+      "contactReachM": 2.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "cave-bear",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-short-faced-bear",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "therizinosaurus",
+      "legacyEffectiveReachM": 3.5,
+      "contactReachM": 3.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giganotosaurus",
+      "legacyEffectiveReachM": 2.6,
+      "contactReachM": 2.6,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mapusaurus",
+      "legacyEffectiveReachM": 2.3,
+      "contactReachM": 2.3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "bigfoot",
+      "legacyEffectiveReachM": 1.4,
+      "contactReachM": 1.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "yeti",
+      "legacyEffectiveReachM": 1.4,
+      "contactReachM": 1.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "loch-ness-monster",
+      "legacyEffectiveReachM": 3,
+      "contactReachM": 3,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mothman",
+      "legacyEffectiveReachM": 1,
+      "contactReachM": 1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "chupacabra",
+      "legacyEffectiveReachM": 0.6,
+      "contactReachM": 0.6,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "jersey-devil",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "thunderbird-cryptid-interpretation",
+      "legacyEffectiveReachM": 10,
+      "contactReachM": 10,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "bunyip-fixed-model",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "medusa",
+      "legacyEffectiveReachM": 30,
+      "contactReachM": 30,
+      "rangedAbilityRangeM": 30,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "nemean-lion",
+      "legacyEffectiveReachM": 1.1,
+      "contactReachM": 1.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "scylla",
+      "legacyEffectiveReachM": 10,
+      "contactReachM": 10,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "charybdis",
+      "legacyEffectiveReachM": 40,
+      "contactReachM": 40,
+      "rangedAbilityRangeM": 40,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "siren",
+      "legacyEffectiveReachM": 50,
+      "contactReachM": 50,
+      "rangedAbilityRangeM": 50,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    }
+  ]
+}

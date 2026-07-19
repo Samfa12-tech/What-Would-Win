@@ -1,6 +1,8 @@
 import type { Creature, Scenario } from '../types'
 
 export const MODEL_04_DRAFT_VERSION = '0.4.0-draft.1' as const
+export const MODEL_04_VERSION = '0.4.0' as const
+export const MODEL_04_DATA_VERSION = '0.4.0' as const
 export const MODEL_04_SHARE_FORMAT_VERSION = 4 as const
 export const MODEL_04_CUSTOM_STORAGE_VERSION = 2 as const
 export const MODEL_04_HISTORY_STORAGE_VERSION = 2 as const
@@ -162,6 +164,39 @@ export interface ScenarioV4Draft extends Omit<Scenario, 'resourcesPercent'> {
   soloResources: SideResources
   groupResources: SideResources
 }
+
+export interface ScenarioSharePayloadV4 {
+  formatVersion: typeof MODEL_04_SHARE_FORMAT_VERSION
+  modelVersion: typeof MODEL_04_VERSION
+  dataVersion: typeof MODEL_04_DATA_VERSION
+  scenario: ScenarioV4Draft
+  customCreatures?: CreatureV4Draft[]
+}
+
+export interface Model04SourceIdentity {
+  shareFormat: number | 'unversioned' | 'storage-v1' | 'storage-v2'
+  modelVersion: string | null
+  dataVersion: string | null
+}
+
+export interface Model04MigrationNotice {
+  code: string
+  severity: 'warning' | 'review-required'
+  message: string
+  field?: string
+}
+
+export type ScenarioDecodeResultV4 =
+  | {
+      ok: true
+      status: 'current' | 'migrated-v3' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
+      payload: ScenarioSharePayloadV4
+    }
+  | {
+      ok: false
+      reason: 'corrupt' | 'oversized' | 'incompatible'
+      message: string
+    }
 
 export type AbilityRejectionReason =
   | 'resource-depleted'

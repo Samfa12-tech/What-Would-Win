@@ -1,0 +1,41 @@
+# What Would Win — model 0.4 persistence and compatibility
+
+**Status:** parallel implementation; not yet reachable from the model 0.3 UI
+
+Model 0.4 introduces dormant v4 share and v2 browser-storage contracts before the runtime cutover. The active app still emits share v3 and writes the two v1 browser keys.
+
+## Recovery boundary
+
+- Model 0.4 custom profiles use `what-would-win-custom-creatures-v2`.
+- Model 0.4 history uses `what-would-win-history-v2`.
+- A successful migration writes only the new key. The original v1 bytes are never edited or removed.
+- A partial or invalid v1 store is usable in memory where safe, but no v2 copy is written.
+- A damaged v2 store remains authoritative and untouched; loading does not silently replace it from v1.
+
+V1 custom exports remain importable. Imports receive conservative structured abilities and an explicit review-required notice. New exports use storage format 2 only.
+
+## History truthfulness
+
+Migrating history converts inputs, not outcomes. A legacy numerical result remains attached as a snapshot with `pending-recalculation` status. Missing profiles produce `pending-unavailable-profile`. Only `finalizeModel04HistoryItem` may attach a result carrying model/data 0.4.0 identity after the activated engine has actually run.
+
+## Share routing
+
+The parallel codec emits `4.` and accepts current v4 payloads. Existing v3, deployed v2, v1 and unversioned links pass through the established decoder and then the pure v3-to-v4 migration. Unknown formats, incompatible identities, malformed data and oversized links fail without returning a partially migrated scenario.
+
+Side resource defaults may differ, and `abilityPercent` maps are serialized in sorted key order so equivalent scenarios have one canonical link. Embedded legacy custom profiles are migrated visibly with stable IDs and review-required metadata.
+
+## Verification
+
+The unit suite locks:
+
+- asymmetric side and per-ability resource round trips;
+- v3 resource/seed preservation;
+- embedded custom-profile migration;
+- byte-identical v1 recovery stores;
+- all-or-nothing recovery-copy writes;
+- v1 import and v2 export compatibility;
+- pending and unavailable history states;
+- explicit 0.4 result finalization;
+- inactive per-ability resource mechanical identity.
+
+The codec and storage modules remain outside the production entry graph until the atomic model 0.4 activation.

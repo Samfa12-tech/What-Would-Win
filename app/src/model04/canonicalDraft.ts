@@ -1,12 +1,8 @@
 import type { Creature } from '../types'
-import type { Ability, AbilityChannel, CreatureV4Draft, LocomotionProfile, Physiology, SenseProfile } from './contracts'
+import type { Ability, AbilityChannel, CreatureV4Draft, LocomotionProfile, Model04ProfileReview, Physiology, SenseProfile } from './contracts'
 import { migrateCreatureV3ToV4Draft } from './migrateV3'
 
-export interface ComplexProfileReview {
-  status: 'reviewed-draft'
-  interpretation: string
-  note: string
-}
+export type ComplexProfileReview = Model04ProfileReview
 
 export interface ComplexProfileOverride {
   id: string
@@ -21,7 +17,7 @@ export interface ComplexProfileOverride {
 
 export interface ComplexProfileOverrideStore {
   schemaVersion: 1
-  targetModel: '0.4.0-draft.1'
+  targetModel: '0.4.1'
   profiles: ComplexProfileOverride[]
 }
 
@@ -65,6 +61,7 @@ export function buildCanonicalModel04Draft(
       ...(override.locomotion ? { locomotion: structuredClone(override.locomotion) } : {}),
       channelModifiers: structuredClone(override.channelModifiers),
       abilities: structuredClone(override.abilities),
+      review: structuredClone(override.review),
       migration: {
         ...migrated.migration,
         reviewRequired: false,
@@ -93,6 +90,11 @@ export function activateCanonicalModel04Data(draft: CanonicalModel04Draft): Acti
           ...creature.migration.notes,
           'Accepted by the model 0.4 conservative-migration review: ordinary-profile regression, schema, ledger and extreme-quantity gates passed.',
         ],
+      },
+      review: {
+        status: 'reviewed' as const,
+        interpretation: 'Conservative model 0.3 migration',
+        note: 'Accepted for model 0.4.1 only where the release ability-coverage audit confirms that every mechanical source token has a truthful route or a documented descriptive-only decision.',
       },
     }
   })

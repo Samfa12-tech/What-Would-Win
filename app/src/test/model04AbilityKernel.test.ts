@@ -208,6 +208,29 @@ describe('model 0.4 structured ability kernel', () => {
     expect(areaResult.soloLogDelta).toBeLessThan(1)
   })
 
+  test('resolves explicit geometry scaling policies from the resized linear scale', () => {
+    const target = side(creature(1))
+    const run = (geometryScaling: Ability['geometryScaling'], scalingMode: ScenarioV4Draft['scalingMode'] = 'functional') => resolveAbilityKernel(
+      side(creature(0, { abilities: [ability({ rangeM: 10, geometryScaling })] }), { resolvedLinearScale: 8 }),
+      target,
+      scenario({ startingDistanceM: 5, scalingMode }),
+    ).resolutions[0]
+    expect(run('fixed').resolvedRangeM).toBe(10)
+    expect(run('linear').resolvedRangeM).toBe(80)
+    expect(run('functional').resolvedRangeM).toBeCloseTo(10 * Math.sqrt(8), 12)
+    expect(run('magical', 'strict').resolvedRangeM).toBe(10)
+    expect(run('magical', 'magical').resolvedRangeM).toBeCloseTo(10 * 8 ** 0.25, 12)
+
+    const hazard = creature(0, { abilities: [ability({
+      delivery: 'environmental', rangeM: undefined, areaRadiusM: 40,
+      geometryScaling: 'environmental-fixed', resource: { pool: 'none' },
+    })] })
+    const hazardResult = resolveAbilityKernel(
+      side(hazard, { resolvedLinearScale: 100 }), target, scenario({ startingDistanceM: 40 }),
+    ).resolutions[0]
+    expect(hazardResult).toMatchObject({ active: true, resolvedAreaRadiusM: 40 })
+  })
+
   test('applies self-effects against the actor rather than opponent immunity', () => {
     const healer = creature(0, { abilities: [ability({
       id: 'self-heal', kind: 'healing', delivery: 'self',

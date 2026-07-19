@@ -43,8 +43,9 @@
       "environment": ["ambush", "amphibious", "climber", "cold-adapted", "echolocation", "fire", "formation", "heat-adapted", "land-capable", "night-vision", "runner", "semi-aquatic", "sprinter", "thick-fur"],
       "group-aggregation": ["eusocial", "formation", "pack-hunter", "swarm"],
       "special-factor": ["armored", "electric", "fire", "heavy-armor", "many-heads", "many-limbs", "petrification"],
+      "ability-requirement": ["healing", "hypnosis", "limited-ammunition", "magic"],
       "stopping-bypass": ["cavitation-strike", "electric", "petrification"]
     },
-    "descriptive": ["apex-predator", "armored-skull", "burrower", "camouflage", "colossal", "deep-diver", "domestic", "electroreception", "endurance", "equipment", "extinct", "extreme-speed", "fearless", "feathered", "flock", "giant", "hands", "healing", "height", "herd", "hooks", "hypnosis", "impenetrable-hide", "limited-ammunition", "magic", "pack-compatible", "pack-possible", "plates", "quills", "silent-flight", "swimmer", "tail-balance", "thick-hide", "tool-potential", "tool-use", "trained", "troop"]
+    "descriptive": ["apex-predator", "armored-skull", "burrower", "camouflage", "colossal", "deep-diver", "domestic", "electroreception", "endurance", "equipment", "extinct", "extreme-speed", "fearless", "feathered", "flock", "giant", "hands", "height", "herd", "hooks", "impenetrable-hide", "pack-compatible", "pack-possible", "plates", "quills", "silent-flight", "swimmer", "tail-balance", "thick-hide", "tool-potential", "tool-use", "trained", "troop"]
   }
 }

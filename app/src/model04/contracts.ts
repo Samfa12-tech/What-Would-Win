@@ -1,8 +1,8 @@
 import type { Creature, Scenario } from '../types'
 
-export const MODEL_04_DRAFT_VERSION = '0.4.0-draft.1' as const
-export const MODEL_04_VERSION = '0.4.0' as const
-export const MODEL_04_DATA_VERSION = '0.4.0' as const
+export const MODEL_04_DRAFT_VERSION = '0.4.1' as const
+export const MODEL_04_VERSION = '0.4.1' as const
+export const MODEL_04_DATA_VERSION = '0.4.1' as const
 export const MODEL_04_SHARE_FORMAT_VERSION = 4 as const
 export const MODEL_04_CUSTOM_STORAGE_VERSION = 2 as const
 export const MODEL_04_HISTORY_STORAGE_VERSION = 2 as const
@@ -50,6 +50,13 @@ export type AbilityDelivery =
   | 'self'
   | 'environmental'
 
+export type AbilityGeometryScaling =
+  | 'fixed'
+  | 'linear'
+  | 'functional'
+  | 'magical'
+  | 'environmental-fixed'
+
 export type AbilityEffectKind =
   | 'harm'
   | 'restraint'
@@ -92,7 +99,11 @@ export interface AbilityEffect {
 
 export interface AbilityCondition {
   requiresLineOfSight?: boolean
+  /** @deprecated Model 0.4.1 profiles must declare the relevant participant explicitly. */
   requiresFacing?: boolean
+  requiresAttackerFacing?: boolean
+  requiresTargetFacing?: boolean
+  requiresMutualFacing?: boolean
   minimumDistanceM?: number
   maximumDistanceM?: number
   minimumTargetMassKg?: number
@@ -118,6 +129,7 @@ export interface Ability {
   effects: AbilityEffect[]
   rangeM?: number
   areaRadiusM?: number
+  geometryScaling?: AbilityGeometryScaling
   targetLimit?: 'single' | 'frontage' | 'area'
   activationRate: number
   conditions?: AbilityCondition
@@ -157,6 +169,13 @@ export interface CreatureV4Draft extends Omit<Creature, ReplacedCreatureFields> 
   channelModifiers: Partial<Record<AbilityChannel, number>>
   abilities: Ability[]
   migration: Model04MigrationMetadata
+  review?: Model04ProfileReview
+}
+
+export interface Model04ProfileReview {
+  status: 'reviewed'
+  interpretation: string
+  note: string
 }
 
 export interface ScenarioV4Draft extends Omit<Scenario, 'resourcesPercent'> {
@@ -189,7 +208,7 @@ export interface Model04MigrationNotice {
 export type ScenarioDecodeResultV4 =
   | {
       ok: true
-      status: 'current' | 'migrated-v3' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
+      status: 'current' | 'migrated-v4' | 'migrated-v3' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
       payload: ScenarioSharePayloadV4
     }
   | {
@@ -216,7 +235,16 @@ export interface AbilityResolution {
   counterChannel?: AbilityChannel
   resourcePercent: number
   accessFactor: number
+  physicalAccessFactor?: number
+  executionFactor?: number
   channelFactor: number
+  resolvedRangeM: number
+  resolvedAreaRadiusM: number
+  coverageFactor: number
+  availableUses: number | null
+  resolvedUses: number | null
+  rechargeOpportunities: number
+  conditionFailures?: string[]
   logDelta: number
   effects: AbilityEffectResolution[]
 }
@@ -228,6 +256,7 @@ export interface AbilityEffectResolution {
   channel: AbilityChannel
   potency: number
   channelFactor: number
+  stoppingFactor?: number
   logDelta: number
   recipient: 'self' | 'opponent'
 }
@@ -246,6 +275,7 @@ export interface AbilityKernelSide {
   resolvedContactReachM: number
   resolvedBodyLengthM: number
   resolvedMassKg: number
+  resolvedLinearScale?: number
   targetQuantityLog10: number
   frontageCapacity: number
 }
@@ -260,6 +290,8 @@ export interface AbilityKernelContext {
   groupLineOfSight: boolean
   soloFacesTarget: boolean
   groupFacesTarget: boolean
+  soloAttackerFacingFactor?: number
+  groupAttackerFacingFactor?: number
   soloAppliedChannels: AbilityChannel[]
   groupAppliedChannels: AbilityChannel[]
   ignoreCounters?: boolean

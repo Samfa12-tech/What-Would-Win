@@ -73,11 +73,12 @@ describe('active model 0.4 full-engine adapter', () => {
 
   test('combines physical and bilateral ability factors under model 0.4 identity', () => {
     const run = simulateModel04(canonical, scenario({ soloId: 'medusa', groupId: 'unarmed-peak-adult-human', startingDistanceM: 15 }))
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.0', dataVersion: '0.4.0' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.1', dataVersion: '0.4.1' })
     const abilityFactors = run.result.appliedFactors.filter((factor) => factor.id.startsWith('ability:'))
     expect(abilityFactors.length).toBeGreaterThan(0)
     expect(abilityFactors.every((factor) => factor.logDelta !== 0)).toBe(true)
-    expect(run.result.narrative.find((phase) => phase.id === 'resolution')?.factorIds).toEqual(expect.arrayContaining(abilityFactors.map((factor) => factor.id)))
+    const narratedFactorIds = run.result.narrative.flatMap((phase) => phase.factorIds)
+    expect(narratedFactorIds).toEqual(expect.arrayContaining(abilityFactors.map((factor) => factor.id)))
   })
 
   test('reconstructs deterministic side powers exactly from the final ledger', () => {
@@ -161,6 +162,22 @@ describe('active model 0.4 full-engine adapter', () => {
     expect(new Set(run.sensitivity.map((point) => point.id))).toEqual(new Set(['solo-resources-low', 'group-resources-low', 'distance-near', 'distance-far']))
     expect(run.sensitivity.every((point) => Number.isFinite(point.marginDelta))).toBe(true)
     expect(run.sensitivity.every((point) => !('winner' in point))).toBe(true)
+  })
+
+  test('adds bounded factor-level sensitivity only at technical depth', () => {
+    const run = simulateModel04(canonical, scenario({
+      soloId: 'giant-spider', groupId: 'white-rhinoceros', startingDistanceM: 12, reportDepth: 'technical',
+    }))
+    expect(run.sensitivity.length).toBeGreaterThan(4)
+    expect(run.sensitivity.length).toBeLessThanOrEqual(12)
+    expect(run.sensitivity.map((point) => point.id)).toEqual(expect.arrayContaining([
+      'dominant-ability-potency-low',
+      'dominant-ability-activation-low',
+      'dominant-channel-resistance-high',
+      'group-coordination-low',
+      'stopping-coefficients-high',
+    ]))
+    expect(run.sensitivity.every((point) => point.field.length > 0 && point.caveat.length > 0)).toBe(true)
   })
 
   test('keeps ordinary profiles and conceptual quantities finite without member instantiation', () => {

@@ -28,6 +28,18 @@ const DEFAULT_CONTEXT: AbilityKernelContext = {
   groupAppliedChannels: [],
 }
 
+interface ResolvedGeometry {
+  rangeM: number
+  areaRadiusM: number
+}
+
+interface ResolvedUseAvailability {
+  availableUses: number | null
+  resolvedUses: number | null
+  rechargeOpportunities: number
+  contributionFactor: number
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value))
 }
@@ -40,6 +52,9 @@ function rejection(
   resourcePercent: number,
   accessFactor: number,
   counterChannel?: Ability['effects'][number]['channel'],
+  diagnostics: Partial<Pick<AbilityResolution,
+    'resolvedRangeM' | 'resolvedAreaRadiusM' | 'coverageFactor' | 'availableUses' |
+    'resolvedUses' | 'rechargeOpportunities' | 'conditionFailures'>> = {},
 ): AbilityResolution {
   return {
     factorId: `ability:${creatureId}:${ability.id}:rejected`,
@@ -51,9 +66,37 @@ function rejection(
     resourcePercent,
     accessFactor,
     channelFactor: 0,
+    resolvedRangeM: diagnostics.resolvedRangeM ?? 0,
+    resolvedAreaRadiusM: diagnostics.resolvedAreaRadiusM ?? 0,
+    coverageFactor: diagnostics.coverageFactor ?? 0,
+    availableUses: diagnostics.availableUses ?? null,
+    resolvedUses: diagnostics.resolvedUses ?? null,
+    rechargeOpportunities: diagnostics.rechargeOpportunities ?? 0,
     logDelta: 0,
     effects: [],
+    ...(diagnostics.conditionFailures?.length ? { conditionFailures: diagnostics.conditionFailures } : {}),
     ...(counterChannel ? { counterChannel } : {}),
+  }
+}
+
+function geometryScale(ability: Ability, attacker: AbilityKernelSide, scenario: ScenarioV4Draft): number {
+  const linearScale = Math.max(EPSILON, attacker.resolvedLinearScale
+    ?? attacker.resolvedBodyLengthM / Math.max(attacker.creature.body_length_m, EPSILON))
+  switch (ability.geometryScaling ?? 'fixed') {
+    case 'linear': return linearScale
+    case 'functional': return clamp(Math.sqrt(linearScale), 0.25, 4)
+    case 'magical': return scenario.scalingMode === 'magical' ? clamp(linearScale ** 0.25, 0.4, 2.5) : 1
+    case 'fixed':
+    case 'environmental-fixed':
+    default: return 1
+  }
+}
+
+function resolvedGeometry(ability: Ability, attacker: AbilityKernelSide, scenario: ScenarioV4Draft): ResolvedGeometry {
+  const scale = geometryScale(ability, attacker, scenario)
+  return {
+    rangeM: (ability.rangeM ?? 0) * scale,
+    areaRadiusM: (ability.areaRadiusM ?? 0) * scale,
   }
 }
 
@@ -62,37 +105,54 @@ function resourcePercent(ability: Ability, resources: SideResources): number {
   return resources.abilityPercent[ability.id] ?? resources.defaultPercent
 }
 
-function conditionsMet(
+function facingFactor(side: 'solo' | 'group', participant: 'attacker' | 'target', context: AbilityKernelContext): number {
+  const participantSide = participant === 'attacker' ? side : side === 'solo' ? 'group' : 'solo'
+  const explicit = participantSide === 'solo' ? context.soloAttackerFacingFactor : context.groupAttackerFacingFactor
+  if (explicit !== undefined) return clamp(explicit, 0, 1)
+  return (participantSide === 'solo' ? context.soloFacesTarget : context.groupFacesTarget) ? 1 : 0
+}
+
+function evaluateConditions(
   side: 'solo' | 'group',
   ability: Ability,
   target: AbilityKernelSide,
   scenario: ScenarioV4Draft,
   context: AbilityKernelContext,
   distanceM: number,
-): boolean {
+): { met: boolean; accessFactor: number; failures: string[] } {
   const conditions = ability.conditions
-  if (!conditions) return true
-  if (conditions.requiresLineOfSight && !(side === 'solo' ? context.soloLineOfSight : context.groupLineOfSight)) return false
-  if (conditions.requiresFacing && !(side === 'solo' ? context.soloFacesTarget : context.groupFacesTarget)) return false
-  if (conditions.minimumDistanceM !== undefined && distanceM < conditions.minimumDistanceM) return false
-  if (conditions.maximumDistanceM !== undefined && distanceM > conditions.maximumDistanceM) return false
-  if (conditions.minimumTargetMassKg !== undefined && target.resolvedMassKg < conditions.minimumTargetMassKg) return false
-  if (conditions.maximumTargetMassKg !== undefined && target.resolvedMassKg > conditions.maximumTargetMassKg) return false
-  if (conditions.terrains && !conditions.terrains.includes(scenario.terrain)) return false
-  if (conditions.forbiddenWeather?.includes(scenario.weather)) return false
-  if (conditions.timeOfDay && !conditions.timeOfDay.includes(scenario.timeOfDay)) return false
-  if (conditions.targetPhysiology && !conditions.targetPhysiology.includes(target.creature.physiology)) return false
-  if (conditions.requiredTargetSenses?.some((sense) => !target.creature.senses[sense])) return false
-  return true
+  if (!conditions) return { met: true, accessFactor: 1, failures: [] }
+  const failures: string[] = []
+  if (conditions.requiresLineOfSight && !(side === 'solo' ? context.soloLineOfSight : context.groupLineOfSight)) failures.push('line-of-sight')
+  if (conditions.minimumDistanceM !== undefined && distanceM < conditions.minimumDistanceM) failures.push('minimum-distance')
+  if (conditions.maximumDistanceM !== undefined && distanceM > conditions.maximumDistanceM) failures.push('maximum-distance')
+  if (conditions.minimumTargetMassKg !== undefined && target.resolvedMassKg < conditions.minimumTargetMassKg) failures.push('minimum-target-mass')
+  if (conditions.maximumTargetMassKg !== undefined && target.resolvedMassKg > conditions.maximumTargetMassKg) failures.push('maximum-target-mass')
+  if (conditions.terrains && !conditions.terrains.includes(scenario.terrain)) failures.push('terrain')
+  if (conditions.forbiddenWeather?.includes(scenario.weather)) failures.push('weather')
+  if (conditions.timeOfDay && !conditions.timeOfDay.includes(scenario.timeOfDay)) failures.push('time-of-day')
+  if (conditions.targetPhysiology && !conditions.targetPhysiology.includes(target.creature.physiology)) failures.push('target-physiology')
+  if (conditions.requiredTargetSenses?.some((sense) => !target.creature.senses[sense])) failures.push('target-sense')
+  const attackerFacing = facingFactor(side, 'attacker', context)
+  const targetFacing = facingFactor(side, 'target', context)
+  let orientationFactor = 1
+  if (conditions.requiresFacing || conditions.requiresAttackerFacing) orientationFactor *= attackerFacing
+  if (conditions.requiresTargetFacing) orientationFactor *= targetFacing
+  if (conditions.requiresMutualFacing) orientationFactor *= Math.min(attackerFacing, targetFacing)
+  if (orientationFactor <= EPSILON && (conditions.requiresFacing || conditions.requiresAttackerFacing || conditions.requiresTargetFacing || conditions.requiresMutualFacing)) {
+    failures.push('facing')
+  }
+  return { met: failures.length === 0, accessFactor: orientationFactor, failures }
 }
 
-function deliveryAccess(ability: Ability, attacker: AbilityKernelSide, distanceM: number, beneficial: boolean): number {
-  if (beneficial || ability.delivery === 'self' || ability.delivery === 'environmental') return 1
+function deliveryAccess(ability: Ability, attacker: AbilityKernelSide, distanceM: number, beneficial: boolean, geometry: ResolvedGeometry): number {
+  if (beneficial || ability.delivery === 'self') return 1
+  if (ability.delivery === 'environmental') return distanceM <= geometry.rangeM + geometry.areaRadiusM + EPSILON ? 1 : 0
   if (ability.delivery === 'contact') {
     if (distanceM <= attacker.resolvedContactReachM) return 1
     return clamp(attacker.resolvedContactReachM / Math.max(distanceM, EPSILON), 0.05, 0.95)
   }
-  const deliveryRange = (ability.rangeM ?? 0) + (ability.delivery === 'area' ? ability.areaRadiusM ?? 0 : 0)
+  const deliveryRange = geometry.rangeM + (ability.delivery === 'area' ? geometry.areaRadiusM : 0)
   if (distanceM > deliveryRange + EPSILON) return 0
   return clamp(deliveryRange / Math.max(distanceM, deliveryRange, EPSILON), 0.2, 1)
 }
@@ -108,7 +168,7 @@ function effectContextFactor(
   const durationFactor = clamp(context.durationSeconds / 60, 0, 2)
   if (effectKind === 'healing') return clamp(injuryPressure, 0, 1)
   if (effectKind === 'regeneration') return clamp(injuryPressure, 0, 1) * durationFactor
-  if (effectKind === 'revival') return scenario.winCondition === 'death' ? clamp(defeatPressure, 0, 1) * durationFactor : 0
+  if (effectKind === 'revival') return scenario.winCondition === 'death' && defeatPressure > EPSILON ? 1 : 0
   return 1
 }
 
@@ -125,7 +185,7 @@ function targetPreparednessFactor(
   return (knows ? 0.7 : 1) * (defended ? 0.82 : 1) * (disciplinedGroup ? 0.88 : 1)
 }
 
-function targetCoverage(ability: Ability, attacker: AbilityKernelSide, target: AbilityKernelSide): number {
+function targetCoverage(ability: Ability, attacker: AbilityKernelSide, target: AbilityKernelSide, geometry: ResolvedGeometry): number {
   if (target.targetQuantityLog10 <= 0) return 1
   const limit = ability.targetLimit ?? 'single'
   if (limit === 'single') return 1
@@ -133,9 +193,51 @@ function targetCoverage(ability: Ability, attacker: AbilityKernelSide, target: A
     ? Math.min(target.targetQuantityLog10, Math.log10(Math.max(1, attacker.frontageCapacity)))
     : Math.min(
         target.targetQuantityLog10,
-        2 * Math.log10(Math.max(1, (ability.areaRadiusM ?? attacker.resolvedBodyLengthM) / Math.max(target.resolvedBodyLengthM, EPSILON))),
+        2 * Math.log10(Math.max(1, (geometry.areaRadiusM || attacker.resolvedBodyLengthM) / Math.max(target.resolvedBodyLengthM, EPSILON))),
       )
   return clamp(1 + Math.max(0, coverageLog10) * 0.12, 1, 2.5)
+}
+
+function resolveUseAvailability(
+  side: 'solo' | 'group',
+  ability: Ability,
+  suppliedPercent: number,
+  target: AbilityKernelSide,
+  coverage: number,
+  scenario: ScenarioV4Draft,
+  context: AbilityKernelContext,
+): ResolvedUseAvailability {
+  const rechargeOpportunities = ability.resource.rechargeSeconds && ability.resource.rechargeSeconds > 0
+    ? Math.floor(Math.max(0, context.durationSeconds) / ability.resource.rechargeSeconds)
+    : 0
+  const durationCycles = clamp(context.durationSeconds / 60, 0, 2)
+  const hasRevival = ability.effects.some((effect) => effect.kind === 'revival')
+  const defeatPressure = side === 'solo' ? context.soloDefeatPressure : context.groupDefeatPressure
+  const targetDemand = ability.targetLimit === 'single' || target.targetQuantityLog10 <= 0
+    ? 1
+    : Math.min(1000, 10 ** Math.min(3, target.targetQuantityLog10)) * clamp(coverage, 1, 2.5)
+  const desiredUses = hasRevival
+    ? (scenario.winCondition === 'death' ? defeatPressure * durationCycles : 0)
+    : targetDemand * Math.max(1, durationCycles)
+  if (ability.resource.capacity === undefined) {
+    return {
+      availableUses: null,
+      resolvedUses: null,
+      rechargeOpportunities,
+      contributionFactor: hasRevival ? desiredUses : suppliedPercent / 100,
+    }
+  }
+  if (suppliedPercent <= 0) {
+    return { availableUses: 0, resolvedUses: 0, rechargeOpportunities: 0, contributionFactor: 0 }
+  }
+  const availableUses = ability.resource.capacity * (suppliedPercent / 100) + rechargeOpportunities
+  const resolvedUses = Math.min(availableUses, desiredUses)
+  return {
+    availableUses,
+    resolvedUses,
+    rechargeOpportunities,
+    contributionFactor: hasRevival ? resolvedUses : desiredUses > EPSILON ? clamp(resolvedUses / desiredUses, 0, 1) : 0,
+  }
 }
 
 function resolveAbility(
@@ -154,32 +256,52 @@ function resolveAbility(
   const beneficial = SELF_ABILITY_KINDS.has(ability.kind) || ability.effects.every((effect) => SELF_EFFECT_KINDS.has(effect.kind))
   const conditionTarget = beneficial ? attacker : target
   const opposingChannels = side === 'solo' ? context.groupAppliedChannels : context.soloAppliedChannels
+  const geometry = resolvedGeometry(ability, attacker, scenario)
+  const coverage = targetCoverage(ability, attacker, conditionTarget, geometry)
+  const conditions = evaluateConditions(side, ability, conditionTarget, scenario, context, distanceM)
+  const uses = resolveUseAvailability(side, ability, suppliedPercent, conditionTarget, coverage, scenario, context)
+  const diagnostics = {
+    resolvedRangeM: geometry.rangeM,
+    resolvedAreaRadiusM: geometry.areaRadiusM,
+    coverageFactor: coverage,
+    availableUses: uses.availableUses,
+    resolvedUses: uses.resolvedUses,
+    rechargeOpportunities: uses.rechargeOpportunities,
+  }
 
   if (
-    !conditionsMet(side, ability, conditionTarget, scenario, context, distanceM)
+    !conditions.met
     || ability.activationRate <= 0
   ) {
-    return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0)
+    return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0, undefined, {
+      ...diagnostics,
+      conditionFailures: conditions.failures.length ? conditions.failures : ['activation-rate'],
+    })
   }
 
   const counterChannel = context.ignoreCounters
     ? undefined
     : ability.counteredBy?.find((channel) => opposingChannels.includes(channel))
-  if (counterChannel) return rejection(side, attacker.creature.id, ability, 'countered', suppliedPercent, 0, counterChannel)
+  if (counterChannel) return rejection(side, attacker.creature.id, ability, 'countered', suppliedPercent, 0, counterChannel, diagnostics)
 
-  const accessFactor = deliveryAccess(ability, attacker, distanceM, beneficial)
+  const accessFactor = deliveryAccess(ability, attacker, distanceM, beneficial, geometry) * conditions.accessFactor
   if (accessFactor <= EPSILON) {
-    return rejection(side, attacker.creature.id, ability, 'out-of-range', suppliedPercent, 0)
+    return rejection(side, attacker.creature.id, ability, 'out-of-range', suppliedPercent, 0, undefined, diagnostics)
   }
   if (suppliedPercent <= 0) {
-    return rejection(side, attacker.creature.id, ability, 'resource-depleted', suppliedPercent, accessFactor)
+    return rejection(side, attacker.creature.id, ability, 'resource-depleted', suppliedPercent, accessFactor, undefined, diagnostics)
   }
 
-  const coverage = targetCoverage(ability, attacker, conditionTarget)
-  const resourceFactor = suppliedPercent / 100
+  const resourceFactor = uses.contributionFactor
   const contextFactors = ability.effects.map((effect) => effectContextFactor(effect.kind, side, scenario, context))
   if (contextFactors.every((factor) => factor <= EPSILON)) {
-    return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, accessFactor)
+    return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, accessFactor, undefined, {
+      ...diagnostics,
+      conditionFailures: ['effect-context'],
+    })
+  }
+  if (resourceFactor <= EPSILON) {
+    return rejection(side, attacker.creature.id, ability, 'resource-depleted', suppliedPercent, accessFactor, undefined, diagnostics)
   }
   const effects: AbilityEffectResolution[] = ability.effects.map((effect, effectIndex) => {
     const recipient = ability.delivery === 'self' || SELF_EFFECT_KINDS.has(effect.kind) ? attacker : target
@@ -200,7 +322,7 @@ function resolveAbility(
   })
   const logDelta = effects.reduce((sum, effect) => sum + effect.logDelta, 0)
   if (logDelta <= EPSILON) {
-    return rejection(side, attacker.creature.id, ability, 'target-immune', suppliedPercent, accessFactor)
+    return rejection(side, attacker.creature.id, ability, 'target-immune', suppliedPercent, accessFactor, undefined, diagnostics)
   }
   const weightedChannel = effects.reduce((sum, effect) => sum + effect.channelFactor * effect.potency, 0)
     / Math.max(EPSILON, effects.reduce((sum, effect) => sum + effect.potency, 0))
@@ -213,6 +335,7 @@ function resolveAbility(
     resourcePercent: suppliedPercent,
     accessFactor,
     channelFactor: weightedChannel,
+    ...diagnostics,
     logDelta,
     effects,
   }

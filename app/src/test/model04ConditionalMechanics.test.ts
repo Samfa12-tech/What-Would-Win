@@ -68,7 +68,8 @@ describe('model 0.4 conditional mechanics', () => {
       id: 'petrifying-gaze', name: 'Petrifying gaze', kind: 'restraint', delivery: 'gaze',
       effects: [{ kind: 'restraint', channel: 'petrification', potency: 100 }], rangeM: 50,
       targetLimit: 'single', activationRate: 1,
-      conditions: { requiresLineOfSight: true, requiresFacing: true, targetPhysiology: ['living'], requiredTargetSenses: ['vision'] },
+      geometryScaling: 'fixed',
+      conditions: { requiresLineOfSight: true, requiresTargetFacing: true, targetPhysiology: ['living'], requiredTargetSenses: ['vision'] },
       resource: { pool: 'none' }, notes: 'Synthetic visual counter test.',
     })
     const siren = singleAbility(profile('siren'), {
@@ -84,7 +85,10 @@ describe('model 0.4 conditional mechanics', () => {
 
     expect(resolveAbilityKernel(side(medusa), side(listener), scenario()).resolutions[0].active).toBe(true)
     expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ soloLineOfSight: false })).resolutions[0].rejectionReason).toBe('condition-unmet')
-    expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ soloFacesTarget: false })).resolutions[0].rejectionReason).toBe('condition-unmet')
+    expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ soloFacesTarget: false })).resolutions[0].active).toBe(true)
+    expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ groupFacesTarget: false })).resolutions[0].rejectionReason).toBe('condition-unmet')
+    const randomOrientation = resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ groupAttackerFacingFactor: 0.5 }))
+    expect(randomOrientation.resolutions[0].accessFactor).toBe(0.5)
     expect(resolveAbilityKernel(side(medusa), side(blind), scenario()).resolutions[0].rejectionReason).toBe('condition-unmet')
     expect(resolveAbilityKernel(side(siren), side(listener), scenario()).resolutions[0].active).toBe(true)
     expect(resolveAbilityKernel(side(siren), side(deaf), scenario()).resolutions[0].rejectionReason).toBe('condition-unmet')
@@ -133,6 +137,28 @@ describe('model 0.4 conditional mechanics', () => {
     expect(long.soloLogDelta).toBeGreaterThan(short.soloLogDelta)
   })
 
+  test('capacity caps aggregate uses and recharge only adds uses after elapsed intervals', () => {
+    const rebirth = (capacity: number, rechargeSeconds?: number) => singleAbility(profile('phoenix'), {
+      id: 'rebirth', name: 'Rebirth', kind: 'resurrection', delivery: 'self',
+      effects: [{ kind: 'revival', channel: 'revival', potency: 100 }], targetLimit: 'single',
+      activationRate: 1, resource: { pool: 'ability', capacity, ...(rechargeSeconds ? { rechargeSeconds } : {}) },
+      notes: 'Synthetic bounded revival test.',
+    })
+    const opponent = side(profile('african-lion'))
+    const death = scenario({ winCondition: 'death' })
+    const one = resolveAbilityKernel(side(rebirth(1)), opponent, death, context({ durationSeconds: 120, soloDefeatPressure: 1 }))
+    const two = resolveAbilityKernel(side(rebirth(2)), opponent, death, context({ durationSeconds: 120, soloDefeatPressure: 1 }))
+    expect(one.resolutions[0]).toMatchObject({ availableUses: 1, resolvedUses: 1, rechargeOpportunities: 0 })
+    expect(two.resolutions[0]).toMatchObject({ availableUses: 2, resolvedUses: 2, rechargeOpportunities: 0 })
+    expect(two.soloLogDelta).toBeGreaterThan(one.soloLogDelta)
+
+    const beforeRecharge = resolveAbilityKernel(side(rebirth(1, 60)), opponent, death, context({ durationSeconds: 59.9, soloDefeatPressure: 1 }))
+    const afterRecharge = resolveAbilityKernel(side(rebirth(1, 60)), opponent, death, context({ durationSeconds: 120, soloDefeatPressure: 1 }))
+    expect(beforeRecharge.resolutions[0]).toMatchObject({ availableUses: 1, rechargeOpportunities: 0 })
+    expect(afterRecharge.resolutions[0]).toMatchObject({ availableUses: 3, resolvedUses: 2, rechargeOpportunities: 2 })
+    expect(afterRecharge.soloLogDelta).toBeGreaterThan(beforeRecharge.soloLogDelta)
+  })
+
   test('explicit channel modifiers implement hide and venom counters', () => {
     const piercing = singleAbility(profile('giant-spider'), {
       id: 'piercing-bite', name: 'Piercing bite', kind: 'attack', delivery: 'contact',
@@ -151,20 +177,25 @@ describe('model 0.4 conditional mechanics', () => {
     expect(resolveAbilityKernel(side(venom), side(golem), scenario({ startingDistanceM: 0 })).resolutions[0].rejectionReason).toBe('condition-unmet')
   })
 
-  test('stationary environmental hazards use terrain and ignore separation', () => {
+  test('stationary environmental hazards obey their fixed radius and terrain', () => {
     const charybdis = singleAbility(profile('charybdis', {
       physiology: 'environmental-hazard',
       locomotion: { flight: false, aquatic: false, amphibious: false, land: false },
     }), {
       id: 'maelstrom', name: 'Maelstrom', kind: 'hazard', delivery: 'environmental',
-      effects: [{ kind: 'harm', channel: 'physical-crushing', potency: 95 }], areaRadiusM: 80,
+      effects: [{ kind: 'harm', channel: 'physical-crushing', potency: 95 }], areaRadiusM: 40,
+      geometryScaling: 'environmental-fixed',
       targetLimit: 'area', activationRate: 1, conditions: { terrains: ['ocean', 'deep-ocean'] },
       resource: { pool: 'none' }, notes: 'Synthetic stationary hazard test.',
     })
     const target = profile('african-lion')
-    const ocean = resolveAbilityKernel(side(charybdis), side(target), scenario({ terrain: 'ocean', startingDistanceM: 1000 }))
+    for (const distance of [0, 39.9, 40]) {
+      expect(resolveAbilityKernel(side(charybdis), side(target), scenario({ terrain: 'ocean', startingDistanceM: distance })).resolutions[0], `${distance}m`).toMatchObject({ active: true, accessFactor: 1 })
+    }
+    for (const distance of [40.1, 100, 1000]) {
+      expect(resolveAbilityKernel(side(charybdis), side(target), scenario({ terrain: 'ocean', startingDistanceM: distance })).resolutions[0], `${distance}m`).toMatchObject({ active: false, rejectionReason: 'out-of-range' })
+    }
     const land = resolveAbilityKernel(side(charybdis), side(target), scenario({ terrain: 'open', startingDistanceM: 0 }))
-    expect(ocean.resolutions[0]).toMatchObject({ active: true, accessFactor: 1 })
     expect(land.resolutions[0].rejectionReason).toBe('condition-unmet')
   })
 

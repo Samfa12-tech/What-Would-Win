@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://samfa12.com/what-would-win/schemas/model-0.4/scenario.schema.json",
-  "title": "What Would Win model 0.4 draft scenario",
+  "title": "What Would Win model 0.4.1 scenario",
   "type": "object",
   "additionalProperties": false,
   "required": [

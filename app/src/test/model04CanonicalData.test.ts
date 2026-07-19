@@ -73,7 +73,7 @@ describe('active model 0.4 canonical ability data', () => {
   test('validates the override contract and all 134 merged draft profiles', () => {
     expect(validateOverrides(complexOverridesJson), ajv.errorsText(validateOverrides.errors)).toBe(true)
     expect(draft.creatures).toHaveLength(134)
-    expect(Object.keys(draft.reviews)).toHaveLength(11)
+    expect(Object.keys(draft.reviews)).toHaveLength(29)
     for (const creature of draft.creatures) {
       expect(validateCreature(creature), `${creature.id}: ${ajv.errorsText(validateCreature.errors)}`).toBe(true)
       expect(new Set(creature.abilities.map((ability) => ability.id)).size).toBe(creature.abilities.length)
@@ -88,7 +88,7 @@ describe('active model 0.4 canonical ability data', () => {
 
   test('accepts conservative simple-profile migrations only after the activation review gate', () => {
     const activated = activateCanonicalModel04Data(draft)
-    expect(activated).toMatchObject({ reviewedComplexCount: 11, acceptedConservativeMigrationCount: 123 })
+    expect(activated).toMatchObject({ reviewedComplexCount: 29, acceptedConservativeMigrationCount: 105 })
     expect(activated.creatures).toHaveLength(134)
     expect(activated.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(activated.creatures.every((creature) => creature.abilities.every((ability) => ability.legacyGenerated !== true))).toBe(true)
@@ -105,6 +105,42 @@ describe('active model 0.4 canonical ability data', () => {
     expect(profile('giant-spider').contact_reach_m).toBe(3)
     expect(profile('giant-spider').abilities.find((ability) => ability.id === 'web-restraint')?.rangeM).toBe(15)
     expect(profile('charybdis').abilities.find((ability) => ability.id === 'maelstrom')?.areaRadiusM).toBe(40)
+  })
+
+  test('keeps reviewed dragon, gaze, web and environmental geometry policies distinct when resized', () => {
+    const target = side(profile('unarmed-peak-adult-human'))
+    const resolution = (id: string, abilityId: string, terrain = 'open') => resolveAbilityKernel(
+      { ...side(profile(id)), resolvedLinearScale: 8 },
+      target,
+      scenario({ startingDistanceM: 0, terrain }),
+    ).resolutions.find((candidate) => candidate.side === 'solo' && candidate.abilityId === abilityId)!
+    expect(resolution('western-dragon', 'fire-breath').resolvedRangeM).toBeCloseTo(35 * Math.sqrt(8), 12)
+    expect(resolution('medusa', 'petrifying-gaze').resolvedRangeM).toBe(30)
+    expect(resolution('giant-spider', 'web-restraint').resolvedRangeM).toBeCloseTo(15 * Math.sqrt(8), 12)
+    expect(resolution('charybdis', 'maelstrom', 'ocean').resolvedAreaRadiusM).toBe(40)
+  })
+
+  test('routes Basilisk, Chimera and Unicorn defining mechanics without generic substitutions', () => {
+    const basilisk = profile('basilisk')
+    expect(basilisk.abilities.find((ability) => ability.id === 'petrifying-gaze')).toMatchObject({
+      delivery: 'gaze', geometryScaling: 'fixed',
+      effects: [{ channel: 'petrification' }],
+      conditions: { requiresLineOfSight: true, requiresMutualFacing: true, requiredTargetSenses: ['vision'] },
+    })
+    expect(basilisk.abilities.find((ability) => ability.id === 'basilisk-bite')?.effects[0].channel).toBe('physical-piercing')
+    expect(basilisk.abilities.find((ability) => ability.id === 'basilisk-venom')?.conditions?.targetPhysiology).toEqual(['living'])
+
+    const chimera = profile('chimera')
+    expect(chimera.abilities.find((ability) => ability.id === 'fire-breath')).toMatchObject({
+      delivery: 'area', geometryScaling: 'functional', targetLimit: 'area', effects: [{ channel: 'fire' }],
+    })
+    expect(chimera.abilities.find((ability) => ability.id === 'many-part-assault')?.targetLimit).toBe('frontage')
+
+    const unicorn = profile('unicorn')
+    expect(unicorn.abilities.find((ability) => ability.id === 'restorative-magic')).toMatchObject({
+      kind: 'healing', resource: { pool: 'ability', capacity: 2, rechargeSeconds: 90 },
+    })
+    expect(unicorn.review?.interpretation).toContain('restorative magic')
   })
 
   test('locks the exact 16 handoff mythology fixtures to valid profiles and scenarios', () => {
@@ -151,7 +187,7 @@ describe('active model 0.4 canonical ability data', () => {
     expect(fire.resolutions.find((resolution) => resolution.abilityId === 'head-regrowth')).toMatchObject({ active: false, rejectionReason: 'countered', counterChannel: 'fire' })
 
     const arrows = resolveAbilityKernel(side(profile('nemean-lion')), archer, scenario({ startingDistanceM: 30 }))
-    expect(arrows.resolutions.find((resolution) => resolution.side === 'group' && resolution.abilityId === 'legacy-ranged')).toMatchObject({ active: false, rejectionReason: 'target-immune' })
+    expect(arrows.resolutions.find((resolution) => resolution.side === 'group' && resolution.abilityId === 'bow-shot')).toMatchObject({ active: false, rejectionReason: 'target-immune' })
 
     const vampire = side(profile('vampire'))
     const human = side(profile('unarmed-peak-adult-human'))
@@ -172,6 +208,20 @@ describe('active model 0.4 canonical ability data', () => {
     expect(oneWeb?.active).toBe(true)
     expect(manyWeb?.active).toBe(true)
     expect(manyWeb?.logDelta).toBeCloseTo(oneWeb?.logDelta ?? 0, 12)
+
+    const limitedSpider = {
+      ...profile('giant-spider'),
+      abilities: profile('giant-spider').abilities.map((ability) => ability.id === 'web-restraint'
+        ? { ...ability, resource: { ...ability.resource, capacity: 1 } }
+        : ability),
+    }
+    const limitedWeb = resolveAbilityKernel(side(limitedSpider), rhino, scenario({ startingDistanceM: 12, terrain: 'forest' }), context({ durationSeconds: 120 }))
+      .resolutions.find((resolution) => resolution.abilityId === 'web-restraint')
+    const suppliedWeb = resolveAbilityKernel(spider, rhino, scenario({ startingDistanceM: 12, terrain: 'forest' }), context({ durationSeconds: 120 }))
+      .resolutions.find((resolution) => resolution.abilityId === 'web-restraint')
+    expect(limitedWeb?.resolvedUses).toBe(1)
+    expect(suppliedWeb?.resolvedUses).toBe(2)
+    expect(suppliedWeb?.logDelta ?? 0).toBeGreaterThan(limitedWeb?.logDelta ?? 0)
 
     const hazard = resolveAbilityKernel(
       side(profile('charybdis')),

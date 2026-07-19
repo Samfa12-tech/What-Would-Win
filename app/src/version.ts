@@ -3,8 +3,9 @@
  * Bump DATA_VERSION whenever the bundled creature records change materially.
  * SHARE_FORMAT_VERSION changes only when the serialized envelope is incompatible.
  */
-export const MODEL_VERSION = '0.4.0' as const
-export const DATA_VERSION = '0.4.0' as const
+export const APPLICATION_VERSION = '0.4.1' as const
+export const MODEL_VERSION = '0.4.1' as const
+export const DATA_VERSION = '0.4.1' as const
 export const SHARE_FORMAT_VERSION = 4 as const
 
 /** Frozen identity used only by the retained model 0.3 engine and v3 codec. */

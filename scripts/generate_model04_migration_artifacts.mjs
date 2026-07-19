@@ -11,6 +11,7 @@ const outputDirectory = join(root, 'data', 'model-0.4')
 const physiologyValues = ['living', 'undead', 'construct', 'spirit', 'environmental-hazard', 'legacy-nonliving']
 const abilityKinds = ['attack', 'restraint', 'regeneration', 'resurrection', 'healing', 'mobility', 'aura', 'hazard', 'summon']
 const abilityDeliveries = ['contact', 'ranged', 'area', 'gaze', 'auditory', 'self', 'environmental']
+const abilityGeometryScaling = ['fixed', 'linear', 'functional', 'magical', 'environmental-fixed']
 const abilityEffectKinds = ['harm', 'restraint', 'healing', 'regeneration', 'revival', 'mobility', 'morale']
 const abilityChannels = ['physical', 'physical-blunt', 'physical-piercing', 'physical-slashing', 'physical-crushing', 'fire', 'cold', 'electric', 'venom', 'disease', 'petrification', 'hypnosis', 'fear', 'psychic', 'sonic', 'magic', 'incorporeal', 'restraint', 'healing', 'regeneration', 'revival', 'mobility']
 
@@ -42,6 +43,7 @@ const abilitySchema = {
     effects: { type: 'array', minItems: 1, maxItems: 8, items: abilityEffectSchema },
     rangeM: { type: 'number', minimum: 0, maximum: 10000000 },
     areaRadiusM: { type: 'number', exclusiveMinimum: 0, maximum: 10000000 },
+    geometryScaling: { enum: abilityGeometryScaling },
     targetLimit: { enum: ['single', 'frontage', 'area'] },
     activationRate: { type: 'number', minimum: 0, maximum: 1 },
     counteredBy: { type: 'array', uniqueItems: true, items: { enum: abilityChannels } },
@@ -50,6 +52,9 @@ const abilitySchema = {
       properties: {
         requiresLineOfSight: { type: 'boolean' },
         requiresFacing: { type: 'boolean' },
+        requiresAttackerFacing: { type: 'boolean' },
+        requiresTargetFacing: { type: 'boolean' },
+        requiresMutualFacing: { type: 'boolean' },
         minimumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         maximumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         minimumTargetMassKg: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
@@ -68,6 +73,10 @@ const abilitySchema = {
         capacity: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
         rechargeSeconds: { type: 'number', minimum: 0, maximum: 1000000000 },
       },
+      allOf: [{
+        if: { properties: { rechargeSeconds: {} }, required: ['rechargeSeconds'] },
+        then: { properties: { capacity: {} }, required: ['capacity'] },
+      }],
     },
     notes: { type: 'string', minLength: 1, maxLength: 2000 },
     legacyGenerated: { type: 'boolean' },
@@ -83,11 +92,19 @@ const migrationMetadataSchema = {
     notes: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 500 } },
   },
 }
+const profileReviewSchema = {
+  type: 'object', additionalProperties: false, required: ['status', 'interpretation', 'note'],
+  properties: {
+    status: { const: 'reviewed' },
+    interpretation: { type: 'string', minLength: 1, maxLength: 200 },
+    note: { type: 'string', minLength: 1, maxLength: 500 },
+  },
+}
 
 function creatureV4Schema() {
   const schema = structuredClone(creatureV3Schema)
   schema.$id = 'https://samfa12.com/what-would-win/schemas/model-0.4/creature.schema.json'
-  schema.title = 'What Would Win model 0.4 draft creature'
+  schema.title = 'What Would Win model 0.4.1 creature'
   const removed = ['effective_reach_m', 'can_fly', 'aquatic', 'venomous', 'ranged', 'regenerates', 'undead_or_construct']
   schema.required = schema.required.filter((key) => !removed.includes(key))
   for (const key of removed) delete schema.properties[key]
@@ -99,6 +116,7 @@ function creatureV4Schema() {
     channelModifiers: { type: 'object', propertyNames: { enum: abilityChannels }, additionalProperties: { type: 'number', minimum: 0, maximum: 4 } },
     abilities: { type: 'array', minItems: 1, maxItems: 64, items: abilitySchema },
     migration: migrationMetadataSchema,
+    review: profileReviewSchema,
   })
   return schema
 }
@@ -117,7 +135,7 @@ const sideResourcesSchema = {
 function scenarioV4Schema() {
   const schema = structuredClone(scenarioV3Schema)
   schema.$id = 'https://samfa12.com/what-would-win/schemas/model-0.4/scenario.schema.json'
-  schema.title = 'What Would Win model 0.4 draft scenario'
+  schema.title = 'What Would Win model 0.4.1 scenario'
   schema.required = schema.required.filter((key) => key !== 'resourcesPercent')
   delete schema.properties.resourcesPercent
   schema.required.push('schemaVersion', 'soloResources', 'groupResources')
@@ -134,7 +152,7 @@ function complexOverridesSchema() {
     title: 'What Would Win model 0.4 complex profile overrides',
     type: 'object', additionalProperties: false, required: ['schemaVersion', 'targetModel', 'profiles'],
     properties: {
-      schemaVersion: { const: 1 }, targetModel: { const: '0.4.0-draft.1' },
+      schemaVersion: { const: 1 }, targetModel: { const: '0.4.1' },
       profiles: {
         type: 'array', minItems: 1, uniqueItems: true,
         items: {
@@ -148,14 +166,7 @@ function complexOverridesSchema() {
             locomotion: locomotionProfile,
             channelModifiers: { type: 'object', propertyNames: { enum: abilityChannels }, additionalProperties: { type: 'number', minimum: 0, maximum: 4 } },
             abilities: { type: 'array', minItems: 1, maxItems: 64, items: abilitySchema },
-            review: {
-              type: 'object', additionalProperties: false, required: ['status', 'interpretation', 'note'],
-              properties: {
-                status: { const: 'reviewed-draft' },
-                interpretation: { type: 'string', minLength: 1, maxLength: 200 },
-                note: { type: 'string', minLength: 1, maxLength: 500 },
-              },
-            },
+            review: profileReviewSchema,
           },
         },
       },
@@ -165,7 +176,7 @@ function complexOverridesSchema() {
 
 const reachMigration = {
   schemaVersion: 1,
-  targetModel: '0.4.0-draft.1',
+  targetModel: '0.4.1',
   policy: {
     contactReach: 'Conservatively copy model 0.3 effective_reach_m until the profile receives a reviewed anatomical contact value.',
     rangedReach: 'For ranged:true profiles only, generate legacy-ranged with the same old value; canonical abilities must replace it before activation.',
@@ -183,7 +194,7 @@ const reachMigration = {
 
 const resourceMigration = {
   schemaVersion: 1,
-  targetModel: '0.4.0-draft.1',
+  targetModel: '0.4.1',
   sourceField: 'resourcesPercent',
   targetFields: ['soloResources.defaultPercent', 'groupResources.defaultPercent'],
   policy: {

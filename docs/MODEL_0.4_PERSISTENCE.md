@@ -1,8 +1,8 @@
 # What Would Win — model 0.4 persistence and compatibility
 
-**Status:** parallel implementation; not yet reachable from the model 0.3 UI
+**Status:** active v4 share and v2 browser-storage implementation
 
-Model 0.4 introduces dormant v4 share and v2 browser-storage contracts before the runtime cutover. The active app still emits share v3 and writes the two v1 browser keys.
+Model 0.4 emits v4 shares and writes the two v2 browser-storage keys. The frozen legacy codecs and v1 stores remain migration/recovery inputs.
 
 ## Recovery boundary
 
@@ -20,7 +20,7 @@ Migrating history converts inputs, not outcomes. A legacy numerical result remai
 
 ## Share routing
 
-The parallel codec emits `4.` and accepts current v4 payloads. Existing v3, deployed v2, v1 and unversioned links pass through the established decoder and then the pure v3-to-v4 migration. Unknown formats, incompatible identities, malformed data and oversized links fail without returning a partially migrated scenario.
+The active codec emits `4.` and accepts current v4 payloads. Existing v3, deployed v2, v1 and unversioned links pass through the established decoder and then the pure v3-to-v4 migration. Unknown formats, incompatible identities, malformed data and oversized links fail without returning a partially migrated scenario.
 
 Side resource defaults may differ, and `abilityPercent` maps are serialized in sorted key order so equivalent scenarios have one canonical link. Embedded legacy custom profiles are migrated visibly with stable IDs and review-required metadata.
 
@@ -38,4 +38,4 @@ The unit suite locks:
 - explicit 0.4 result finalization;
 - inactive per-ability resource mechanical identity.
 
-The codec and storage modules remain outside the production entry graph until the atomic model 0.4 activation.
+The codec and storage modules are wired into the production entry graph; the regression suite locks their active formats and legacy recovery paths.

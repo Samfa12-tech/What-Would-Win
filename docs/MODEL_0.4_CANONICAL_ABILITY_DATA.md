@@ -1,6 +1,6 @@
-# What Would Win — parallel model 0.4 canonical ability data
+# What Would Win — model 0.4 canonical ability data
 
-**Status:** reviewed draft subset; not active runtime data
+**Status:** active canonical model-0.4 data
 
 The v3-to-v4 migration provides a deterministic compatibility baseline for all 134 profiles. It is not sufficient for complex mythical mechanics. `data/model-0.4/complex-profile-overrides.json` therefore replaces generated legacy abilities for eleven reviewed draft profiles:
 
@@ -16,7 +16,7 @@ The v3-to-v4 migration provides a deterministic compatibility baseline for all 1
 - Vampire
 - Stone golem
 
-The merged draft still contains all 134 profiles in stable order. Reviewed profiles set `migration.reviewRequired` false and contain no generated legacy abilities; the remaining profiles stay visibly review-required. No reviewed draft record is imported by the live app.
+The canonical migration contains all 134 profiles in stable order. Eleven complex profiles use explicit reviewed overrides; the remaining conservative migrations were accepted only after the activation gates in `MODEL_0.4_ACTIVATION_REVIEW.md` passed. The active runtime rejects any canonical set that still contains review-required or legacy-generated markers.
 
 ## Geometry decisions
 
@@ -69,4 +69,4 @@ These decisions are data. The kernel contains no profile-name branch.
 15. Stone golem versus poison/hypnosis.
 16. An ordinary elephant-versus-wolves non-regression case.
 
-The fixture artifact locks inputs and qualitative expectations now. Numerical probability bands are added only after the complete model 0.4 deterministic engine exists; inventing bands against the partial ability kernel would create false calibration authority.
+The fixture artifact locks inputs and qualitative expectations. The complete model-0.4 engine tests enforce those structured-mechanics expectations, finite deterministic output and the ordinary elephant-versus-wolves non-regression tolerance. They do not invent biological probability bands where the handoff supplied only qualitative mechanics expectations.

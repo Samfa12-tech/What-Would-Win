@@ -1,14 +1,14 @@
 # What Would Win — model 0.4 contract and migration spine
 
-**Status:** parallel draft; not active runtime authority
+**Status:** active public contract and retained migration record
 
-**Draft contract:** `0.4.0-draft.1`
+**Active contract:** `0.4.0`
 
-**Active public identity remains:** app 0.3.1, model 0.3.0, data 0.3.1, share v3
+**Active public identity:** app/model/data 0.4.0, share v4, custom/history v2
 
 ## Decision
 
-Model 0.4 is an atomic cutover. The draft contracts may be implemented and tested beside model 0.3, but production must not emit model 0.4 results or share links until structured abilities, canonical data, persistence migrations, calibration and UI activate together.
+Model 0.4 was delivered as an atomic cutover. The contracts were implemented and tested beside model 0.3, and production emission was withheld until structured abilities, canonical data, persistence migrations, calibration and UI activated together.
 
 This boundary prevents three silent failures:
 
@@ -16,9 +16,9 @@ This boundary prevents three silent failures:
 2. applying both old capability booleans and new abilities to the same effect;
 3. relabelling v3 custom/history/share data as v4 without a reviewable migration.
 
-At activation the identities advance together:
+The identities advanced together at activation:
 
-| Contract | Active now | Model 0.4 activation |
+| Contract | Before cutover | Active release |
 |---|---:|---:|
 | Application | 0.3.1 | 0.4.0 |
 | Model | 0.3.0 | 0.4.0 |
@@ -27,11 +27,11 @@ At activation the identities advance together:
 | Custom storage/export | v1 | v2 |
 | History storage/item | v1 | v2 |
 
-The v3 creature and scenario schemas are hash-locked by tests. The v4 schemas live under `data/model-0.4/` and do not replace them.
+The v3 creature and scenario schemas remain hash-locked compatibility inputs. The active v4 schemas live under `data/model-0.4/`.
 
 ## Reach migration
 
-The active field combines contact anatomy and built-in ranged delivery. The v4 contract replaces it with:
+The legacy field combined contact anatomy and built-in ranged delivery. The v4 contract replaces it with:
 
 - `contact_reach_m` on the creature;
 - `rangeM` on each ranged, gaze or other distance-bearing ability;
@@ -41,10 +41,10 @@ The active field combines contact anatomy and built-in ranged delivery. The v4 c
 
 - copy `effective_reach_m` to `contact_reach_m`;
 - for `ranged: true` only, generate `legacy-ranged` and copy the old value to its `rangeM`;
-- mark every row `reviewStatus: required`;
-- do not change model 0.3 data or runtime behaviour.
+- mark every migration-evidence row `reviewStatus: required`;
+- leave the frozen model-0.3 data and compatibility runtime unchanged.
 
-This is a complete migration table, not a claim that the copied values are canonical. Before activation each profile needs reviewed anatomical contact geometry, and each ranged/area ability needs independently sourced or explicitly authored geometry.
+This is a complete migration-evidence table, not a claim that every copied value has independent empirical authority. Activation accepts the conservative rows only through the tested canonical review boundary; eleven complex profiles use explicit authored geometry and abilities.
 
 ## Resource migration
 
@@ -85,7 +85,7 @@ Generated abilities are migration evidence, not permission to double-count the c
 
 ## Ability resolution and explanation contract
 
-The engine will resolve abilities bilaterally. Active and rejected attempts produce technical `AbilityResolution` records with stable IDs:
+The engine resolves abilities bilaterally. Active and rejected attempts produce technical `AbilityResolution` records with stable IDs:
 
 ```text
 ability:<creature-id>:<ability-id>:<stage>
@@ -95,7 +95,7 @@ Every material non-zero ability effect must have a factor-ledger record. Rejecte
 
 ## Persistence and compatibility matrix
 
-The v4 decoder will use a migration registry keyed by share format, model version and data version. It must continue to accept:
+The v4 decoder uses a migration registry keyed by share format, model version and data version. It accepts:
 
 | Input | Required result after activation |
 |---|---|
@@ -110,13 +110,13 @@ The v4 decoder will use a migration registry keyed by share format, model versio
 
 Custom storage/history activation writes new v2 keys and leaves v1 keys untouched as recovery copies. Custom export imports v1 and v2 but emits only v2. Failed or partial migrations never overwrite the source record.
 
-## Implementation order
+## Completed activation sequence
 
-1. Contract and migration spine (this parallel draft).
-2. Pure structured ability resolver with synthetic profiles; model 0.3 remains active.
+1. Contract and migration spine.
+2. Pure structured ability resolver with synthetic profiles while model 0.3 remained active.
 3. Physiology, senses, channels, regeneration, resurrection, healing and hazards.
-4. Parallel reviewed canonical v4 data and expanded calibration fixtures.
+4. Reviewed canonical v4 data and expanded calibration fixtures.
 5. Share v4, custom/history v2 and side/per-ability UI.
-6. Atomic activation, full regression/sensitivity/browser/accessibility/release proof.
+6. Atomic activation and full regression/sensitivity/browser/accessibility/release proof.
 
-Required final proof includes all existing fixtures, the planned mythology fixtures, bilateral counter/immunity cases, factor-to-prose traceability, every legacy share/storage path, inactive-resource seed stability, logarithmic extreme-quantity performance and exact-artifact publishing.
+Final proof covers all existing and handoff mythology fixtures, bilateral counter/immunity cases, factor-to-prose traceability, every supported legacy share/storage path, inactive-resource seed stability, logarithmic extreme-quantity performance and exact-artifact publishing. Exact counts and the live-deployment evidence are recorded in `QA_REPORT.md`.

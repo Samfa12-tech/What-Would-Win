@@ -1,8 +1,8 @@
-# What Would Win — parallel model 0.4 engine
+# What Would Win — model 0.4 engine
 
-**Status:** deterministic parallel engine; not yet selected by the production UI
+**Status:** active deterministic production engine
 
-The model 0.4 adapter combines the established physical/logarithmic engine with the structured bilateral ability kernel. Model 0.3 remains the public runtime until the UI, canonical-review gate and release checks activate together.
+The model 0.4 adapter combines the established physical/logarithmic engine with the structured bilateral ability kernel. The UI selects this engine through the canonical-review gate; model 0.3 remains only as a frozen compatibility and comparison path.
 
 ## Resolution order
 

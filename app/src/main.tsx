@@ -19,9 +19,11 @@ async function start(): Promise<void> {
 
   try {
     const builtInCreatures = await loadBuiltInCreatures()
+    const { Model04Runtime } = await import('./model04/runtime')
+    const model04Runtime = new Model04Runtime(builtInCreatures)
     root.render(
       <StrictMode>
-        <App builtInCreatures={builtInCreatures} />
+        <App builtInCreatures={builtInCreatures} model04Runtime={model04Runtime} />
       </StrictMode>,
     )
   } catch (caught) {

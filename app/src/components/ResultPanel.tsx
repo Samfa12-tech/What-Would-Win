@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { Creature, ReportDepth, Scenario, SimulationResult } from '../types'
+import type { Model04SensitivityPoint } from '../model04/engineV4'
 
 const TechnicalReport = lazy(async () => {
   const module = await import('./TechnicalReport')
@@ -8,6 +9,7 @@ const TechnicalReport = lazy(async () => {
 
 interface ResultPanelProps {
   result: SimulationResult
+  sensitivity: Model04SensitivityPoint[]
   scenario: Scenario
   solo: Creature
   group: Creature
@@ -34,7 +36,7 @@ function depthAtLeast(current: ReportDepth, target: ReportDepth): boolean {
   return order.indexOf(current) >= order.indexOf(target)
 }
 
-export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopyShare, onDownloadImage, onDownloadJson }: ResultPanelProps) {
+export function ResultPanel({ result, sensitivity, scenario, solo, group, shareStatus, onCopyShare, onDownloadImage, onDownloadJson }: ResultPanelProps) {
   const winningProbability = result.winner === 'solo' ? result.soloWinProbability : result.groupWinProbability
   const advantageLabel = (advantage: (typeof result.narrative)[number]['advantage']) => {
     if (advantage === 'solo') return `${solo.name} edge`
@@ -55,6 +57,21 @@ export function ResultPanel({ result, scenario, solo, group, shareStatus, onCopy
           <span>model win rate</span>
         </div>
       </div>
+
+      {depthAtLeast(scenario.reportDepth, 'assumptions') && (
+        <div className="report-section" aria-labelledby="sensitivity-heading">
+          <h3 id="sensitivity-heading">Sensitivity</h3>
+          <p className="section-intro">Deterministic margin checks only. These do not select a second winner or replace the baseline verdict.</p>
+          <ul className="factor-list">
+            {sensitivity.map((point) => (
+              <li key={point.id}>
+                <strong>{point.label}</strong>
+                <span>{point.marginDelta >= 0 ? '+' : ''}{point.marginDelta.toFixed(3)} log-margin shift{point.reversesDeterministicLeader ? ' · reverses the deterministic leader' : ''}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {result.conceptualWarning && <div className="warning-banner">{result.conceptualWarning}</div>}
       {result.feasibilityWarning && <div className="warning-banner">{result.feasibilityWarning}</div>}

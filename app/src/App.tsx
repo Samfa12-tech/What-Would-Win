@@ -19,6 +19,9 @@ import type { Creature, HistoryItem, HistoryStore, Scenario, SimulationResult, S
 import { validateScenario } from './validation'
 import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
 import { withMethodologyDefaults } from './scenarioDefaults'
+import type { Model04Runtime, Model04RuntimeResources } from './model04/runtime'
+import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
+import type { Model04SensitivityPoint } from './model04/engineV4'
 
 const CustomCreatureEditor = lazy(async () => {
   const module = await import('./components/CustomCreatureEditor')
@@ -119,6 +122,7 @@ function mergeScenario(candidate: Scenario | null, creatures: Creature[]): Scena
 
 interface InitialAppState {
   scenario: Scenario
+  resources: Model04RuntimeResources
   savedCustoms: SavedCustomCreature[]
   sharedCustoms: Creature[]
   warning: string
@@ -305,10 +309,16 @@ function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]):
   return [...new Set([item.scenario.soloId, item.scenario.groupId].filter((id) => !availableIds.has(id)))]
 }
 
-function initialAppState(builtInCreatures: Creature[]): InitialAppState {
+function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04Runtime): InitialAppState {
+  const defaultResources = (scenario: Scenario): Model04RuntimeResources => ({
+    solo: { defaultPercent: scenario.resourcesPercent, abilityPercent: {} },
+    group: { defaultPercent: scenario.resourcesPercent, abilityPercent: {} },
+  })
   if (typeof window === 'undefined') {
+    const scenario = defaultScenario(builtInCreatures)
     return {
-      scenario: defaultScenario(builtInCreatures),
+      scenario,
+      resources: defaultResources(scenario),
       savedCustoms: [],
       sharedCustoms: [],
       warning: '',
@@ -318,8 +328,9 @@ function initialAppState(builtInCreatures: Creature[]): InitialAppState {
   }
   const loaded = loadCustomCreatures(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
+  const decodedV4 = encoded && model04Runtime ? model04Runtime.decodeForUi(encoded) : null
   const decoded = encoded ? decodeScenarioPayload(encoded) : null
-  const decodedSharedCustoms = decoded?.ok ? decoded.payload.customCreatures ?? [] : []
+  const decodedSharedCustoms = decodedV4?.customCreatures ?? (decoded?.ok ? decoded.payload.customCreatures ?? [] : [])
   const savedIds = new Set(loaded.items.map((item) => item.creature.id))
   const sharedCustoms = decodedSharedCustoms.filter((creature) => !savedIds.has(creature.id))
   const ignoredSharedCount = decodedSharedCustoms.length - sharedCustoms.length
@@ -329,11 +340,14 @@ function initialAppState(builtInCreatures: Creature[]): InitialAppState {
     ...sharedCustoms,
   ]
   const availableIds = new Set(creatures.map((creature) => creature.id))
-  const unavailableSharedIds = decoded?.ok
-    ? [...new Set([decoded.payload.scenario.soloId, decoded.payload.scenario.groupId].filter((id) => !availableIds.has(id)))]
+  const decodedScenario = decodedV4?.scenario ?? (decoded?.ok ? decoded.payload.scenario : null)
+  const unavailableSharedIds = decodedScenario
+    ? [...new Set([decodedScenario.soloId, decodedScenario.groupId].filter((id) => !availableIds.has(id)))]
     : []
   const loadedHistory = loadHistory(window.localStorage, creatures)
-  const shareWarning = decoded && !decoded.ok
+  const shareWarning = decodedV4 && decodedV4.status !== 'current'
+    ? 'This earlier share was migrated and will be recalculated under model 0.4.'
+    : decoded && !decoded.ok
     ? decoded.message
     : decoded?.status === 'migrated-version'
       ? 'This share uses earlier simulation or bundled-data versions. Its inputs were preserved and recalculated with the current versions.'
@@ -355,7 +369,8 @@ function initialAppState(builtInCreatures: Creature[]): InitialAppState {
     ? `${unavailableHistoryCount} recent history ${unavailableHistoryCount === 1 ? 'entry references' : 'entries reference'} a profile that is no longer available. Import the missing custom profile to restore it.`
     : ''
   return {
-    scenario: mergeScenario(decoded?.ok ? decoded.payload.scenario : null, creatures),
+    scenario: mergeScenario(decodedScenario, creatures),
+    resources: decodedV4?.resources ?? defaultResources(decodedScenario ?? defaultScenario(creatures)),
     savedCustoms: loaded.items,
     sharedCustoms,
     warning: [loaded.warning, shareWarning, collisionWarning, unavailableShareWarning].filter(Boolean).join(' '),
@@ -438,10 +453,11 @@ function wrapCanvasText(context: CanvasRenderingContext2D, text: string, x: numb
 
 export interface AppProps {
   builtInCreatures: Creature[]
+  model04Runtime: Model04Runtime
 }
 
-function App({ builtInCreatures }: AppProps) {
-  const starting = useMemo(() => initialAppState(builtInCreatures), [builtInCreatures])
+function App({ builtInCreatures, model04Runtime }: AppProps) {
+  const starting = useMemo(() => initialAppState(builtInCreatures, model04Runtime), [builtInCreatures, model04Runtime])
   const startingScenario = starting.scenario
   const [savedCustoms, setSavedCustoms] = useState<SavedCustomCreature[]>(starting.savedCustoms)
   const [sharedCustoms] = useState<Creature[]>(starting.sharedCustoms)
@@ -459,7 +475,12 @@ function App({ builtInCreatures }: AppProps) {
   }, [savedCustoms, sharedCustoms])
   const [scenario, setScenario] = useState<Scenario>(startingScenario)
   const [simulatedScenario, setSimulatedScenario] = useState<Scenario>(startingScenario)
-  const [result, setResult] = useState<SimulationResult>(() => simulate(creatures, startingScenario))
+  const initialResources = starting.resources
+  const [resources, setResources] = useState<Model04RuntimeResources>(initialResources)
+  const [simulatedResources, setSimulatedResources] = useState<Model04RuntimeResources>(initialResources)
+  const initialRun = useMemo(() => model04Runtime.simulate(startingScenario, initialResources, creatures), [model04Runtime])
+  const [result, setResult] = useState<SimulationResult>(initialRun.result)
+  const [sensitivity, setSensitivity] = useState<Model04SensitivityPoint[]>(initialRun.sensitivity)
   const [error, setError] = useState('')
   const [shareStatus, setShareStatus] = useState('')
   const [history, setHistory] = useState<HistoryItem[]>(starting.history)
@@ -469,7 +490,7 @@ function App({ builtInCreatures }: AppProps) {
   const group = creatures.find((item) => item.id === scenario.groupId) ?? creatures[1]
   const simulatedSolo = creatures.find((item) => item.id === simulatedScenario.soloId) ?? creatures[0]
   const simulatedGroup = creatures.find((item) => item.id === simulatedScenario.groupId) ?? creatures[1]
-  const isDirty = JSON.stringify(scenario) !== JSON.stringify(simulatedScenario)
+  const isDirty = JSON.stringify(scenario) !== JSON.stringify(simulatedScenario) || JSON.stringify(resources) !== JSON.stringify(simulatedResources)
 
   function update<K extends keyof Scenario>(key: K, value: Scenario[K]) {
     setScenario((current) => ({ ...current, [key]: value }))
@@ -601,12 +622,16 @@ function App({ builtInCreatures }: AppProps) {
     }
   }
 
-  function run(nextScenario = scenario, recordHistory = true): boolean {
+  function run(nextScenario = scenario, recordHistory = true, nextResources = resources): boolean {
     try {
-      const nextResult = simulate(creatures, nextScenario)
+      const simulated = model04Runtime.simulate(nextScenario, nextResources, creatures)
+      const nextResult = simulated.result
       setResult(nextResult)
+      setSensitivity(simulated.sensitivity)
       setScenario(nextScenario)
       setSimulatedScenario(nextScenario)
+      setResources(nextResources)
+      setSimulatedResources(nextResources)
       setError('')
       setShareStatus('')
       if (recordHistory) saveHistory(nextScenario, nextResult)
@@ -667,7 +692,7 @@ function App({ builtInCreatures }: AppProps) {
 
   async function copyShareLink() {
     const referencedCustoms = [simulatedSolo, simulatedGroup].filter(isCustomCreature)
-    const url = buildShareUrl(simulatedScenario, referencedCustoms)
+    const url = model04Runtime.buildShareUrl(simulatedScenario, simulatedResources, referencedCustoms)
     try {
       await navigator.clipboard.writeText(url)
       window.history.replaceState({}, '', url)
@@ -681,9 +706,9 @@ function App({ builtInCreatures }: AppProps) {
   function downloadResultJson() {
     const payload = {
       app: 'What Would Win',
-      modelVersion: MODEL_VERSION,
-      dataVersion: DATA_VERSION,
-      shareFormatVersion: SHARE_FORMAT_VERSION,
+      modelVersion: '0.4.0',
+      dataVersion: '0.4.0',
+      shareFormatVersion: 4,
       exportedAt: new Date().toISOString(),
       scenario: simulatedScenario,
       contestants: { solo: simulatedSolo, group: simulatedGroup },
@@ -1001,7 +1026,8 @@ function App({ builtInCreatures }: AppProps) {
                   </label>
                   <label className="field-stack"><span>Arena diameter (m)</span><input type="number" min="1" max="1000000" value={scenario.arenaDiameterM} onChange={(event) => update('arenaDiameterM', Math.max(1, Number(event.target.value) || 1))} /></label>
                   <label className="field-stack"><span>Water depth (m)</span><input type="number" min="0" max="10000" step="0.1" value={scenario.waterDepthM} onChange={(event) => update('waterDepthM', Math.max(0, Number(event.target.value) || 0))} /></label>
-                  <label className="field-stack"><span>Resources / ammunition</span><input type="range" min="0" max="100" value={scenario.resourcesPercent} onChange={(event) => update('resourcesPercent', Number(event.target.value))} /><small>{scenario.resourcesPercent}% available</small></label>
+                  <label className="field-stack"><span>Solo resources</span><input type="range" min="0" max="100" value={resources.solo.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, solo: { ...current.solo, defaultPercent: Number(event.target.value) } }))} /><small>{resources.solo.defaultPercent}% available; per-ability overrides inherit this value</small></label>
+                  <label className="field-stack"><span>Group resources</span><input type="range" min="0" max="100" value={resources.group.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, group: { ...current.group, defaultPercent: Number(event.target.value) } }))} /><small>{resources.group.defaultPercent}% available; per-ability overrides inherit this value</small></label>
                   <label className="toggle-field"><input type="checkbox" checked={scenario.escapeAllowed} onChange={(event) => update('escapeAllowed', event.target.checked)} /><span><strong>Escape allowed</strong><small>Mobility can secure a retreat and expected losses fall.</small></span></label>
                 </div>
               </section>
@@ -1066,6 +1092,7 @@ function App({ builtInCreatures }: AppProps) {
 
         <ResultPanel
           result={result}
+          sensitivity={sensitivity}
           scenario={simulatedScenario}
           solo={simulatedSolo}
           group={simulatedGroup}
@@ -1133,7 +1160,7 @@ function App({ builtInCreatures }: AppProps) {
       <footer>
         <div className="footer-identity">
           <strong>What Would Win</strong>
-          <span>Model {MODEL_VERSION} · Data {DATA_VERSION} · React/TypeScript</span>
+          <span>Model {MODEL_04_VERSION} · Data {MODEL_04_DATA_VERSION} · React/TypeScript</span>
         </div>
         <nav className="footer-links" aria-label="Samfa12 links">
           <span>A <a href="https://samfa12.com/">Samfa12</a> app</span>

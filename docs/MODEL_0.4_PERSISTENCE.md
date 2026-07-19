@@ -16,11 +16,11 @@ V1 custom exports remain importable. Imports receive conservative structured abi
 
 ## History truthfulness
 
-Migrating history converts inputs, not outcomes. A legacy numerical result remains attached as a snapshot with `pending-recalculation` status. Missing profiles produce `pending-unavailable-profile`. Only `finalizeModel04HistoryItem` may attach a result carrying model/data 0.4.0 identity after the activated engine has actually run.
+Migrating history converts inputs, not outcomes. A legacy numerical result remains attached as a snapshot with `pending-recalculation` status. Missing profiles produce `pending-unavailable-profile`. Only `finalizeModel04HistoryItem` may attach a result carrying model/data 0.4.1 identity after the activated engine has actually run.
 
 ## Share routing
 
-The active codec emits `4.` and accepts current v4 payloads. Existing v3, deployed v2, v1 and unversioned links pass through the established decoder and then the pure v3-to-v4 migration. Unknown formats, incompatible identities, malformed data and oversized links fail without returning a partially migrated scenario.
+The active codec emits `4.` and accepts current v4 payloads. Released v4/0.4.0 is a deliberate `migrated-v4` input; existing v3, deployed v2, v1 and unversioned links pass through the established migration spine. Embedded custom IDs must be unique `custom:` IDs and exactly equal the custom IDs referenced by the contestants—no missing or unreferenced extras and no built-in shadowing.
 
 Side resource defaults may differ, and `abilityPercent` maps are serialized in sorted key order so equivalent scenarios have one canonical link. Embedded legacy custom profiles are migrated visibly with stable IDs and review-required metadata.
 

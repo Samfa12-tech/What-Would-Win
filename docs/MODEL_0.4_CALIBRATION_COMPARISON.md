@@ -1,50 +1,42 @@
-# What Would Win — model 0.4 calibration comparison
+# What Would Win — model 0.4.1 calibration comparison
 
 **Comparison date:** 19 July 2026
 
-**Active identity:** application/model/data 0.4.0, share v4
+**Active identity:** application/model/data 0.4.1, share v4, custom/history v2
+**Released baseline commit:** `c54c1525f9da59cdffd449355dbcb70a02488aa2`
 
 ## Method
 
-The sixteen handoff mythology fixtures were executed through the active model-0.4 engine. For comparison, the same profile IDs, quantities, scenario geometry and deterministic seed were passed through the frozen model-0.3 engine with the legacy shared resource value set to 100%. The command is reproducible from `app/`:
+All sixteen original model-0.3 physical fixtures were executed through released model 0.4.0 and corrected model 0.4.1 with the same verdict depth, seed `12345` and resources. Released values were captured from a detached exact-commit worktree; corrected values are locked by `model04PhysicalRegression.test.ts`.
 
 ```powershell
-$env:PRINT_MODEL04_CALIBRATION='1'
-npx vitest run src/test/model04Engine.test.ts --reporter=verbose --disableConsoleIntercept
+$env:PRINT_MODEL041_PHYSICAL_CALIBRATION='1'
+npx vitest run src/test/model04PhysicalRegression.test.ts --reporter=verbose --disableConsoleIntercept
 ```
 
-The table reports solo win probability. These values are versioned behavioural observations, not biological truth. Only the ordinary-animal fixture has a numerical cross-version acceptance tolerance; the mythology fixtures primarily lock structured ability state, counters, immunities and qualitative direction.
+Probabilities are the displayed solo win probability. `Power S/G` shows deterministic solo/group log power. These are versioned behavioural observations, not biological truth.
 
 ## Results
 
-| Fixture | Model 0.3 | Model 0.4 | Delta | 0.4 winner |
-|---|---:|---:|---:|---|
-| `medusa-eyeless-construct` | 0.061097 | 0.061097 | 0.000000 | group |
-| `medusa-informed-shielded-humans` | 0.061097 | 0.061097 | 0.000000 | group |
-| `phoenix-incapacitation` | 0.938903 | 0.447332 | -0.491571 | group |
-| `phoenix-one-revival-death` | 0.938903 | 0.603142 | -0.335761 | solo |
-| `troll-fire-counter` | 0.061097 | 0.061097 | 0.000000 | group |
-| `nemean-lion-arrows` | 0.100599 | 0.098404 | -0.002195 | group |
-| `nemean-lion-crushing-restraint` | 0.899401 | 0.879651 | -0.019751 | solo |
-| `siren-hearing-humans` | 0.919152 | 0.135711 | -0.783441 | group |
-| `siren-construct-counter` | 0.122544 | 0.063292 | -0.059252 | group |
-| `giant-spider-large-target` | 0.221297 | 0.429776 | 0.208479 | group |
-| `giant-spider-many-tiny-targets` | 0.938903 | 0.938903 | 0.000000 | solo |
-| `charybdis-hazard-edge` | 0.938903 | 0.473666 | -0.465237 | group |
-| `vampire-day-night` (day baseline) | 0.208130 | 0.131322 | -0.076808 | group |
-| `hydra-regeneration-counter` (ordinary arrows baseline) | 0.936708 | 0.668978 | -0.267731 | solo |
-| `stone-golem-poison-hypnosis` | 0.905985 | 0.813815 | -0.092170 | solo |
-| `ordinary-animal-non-regression` | 0.958853 | 0.883142 | -0.075711 | solo |
+| Fixture | 0.4.0 | 0.4.1 | Delta | Winner 0.4.0 → 0.4.1 | Power S/G 0.4.0 → 0.4.1 | Responsible movement |
+|---|---:|---:|---:|---|---|---|
+| `duck-horse-classic-functional` | 0.958853 | 0.958853 | 0.000000 | solo → solo | 1.739/0.863 → 1.821/0.851 | Routed execution; displayed result saturated unchanged. |
+| `elephant-wolves` | 0.880848 | 0.938204 | +0.057356 | solo → solo | 2.635/2.406 → 2.757/2.403 | Per-effect stopping and explicit body-scale control restore megafauna leverage. |
+| `gorilla-ducks` | 0.956559 | 0.958853 | +0.002294 | solo → solo | 1.672/1.196 → 1.737/1.195 | Bounded physical area control; qualitative result unchanged. |
+| `dragon-archers` | 0.938903 | 0.938903 | 0.000000 | solo → solo | 3.031/2.107 → 3.310/1.974 | Fire geometry, execution and finite bow use move powers inside the same displayed ceiling. |
+| `trex-chickens` | 0.898903 | 0.928928 | +0.030025 | solo → solo | 2.607/2.235 → 2.816/2.232 | Individual stopping plus physical span/frontage. |
+| `kraken-orcas-water` | 0.381496 | 0.873067 | +0.491571 | group → solo | 3.693/3.766 → 4.105/3.771 | Reviewed many-limb frontage/restraint plus routed execution. Expected systemic reversal. |
+| `extreme-quantity` | 0.061097 | 0.061097 | 0.000000 | group → group | 2.417/54.256 → 3.240/54.254 | Logarithmic conceptual pressure remains dominant and finite. |
+| `sperm-whale-orca-pod` | 0.234065 | 0.354165 | +0.120100 | group → group | 3.227/3.366 → 3.300/3.373 | Per-effect stopping narrows but does not reverse pod pressure. |
+| `spinosaurus-nile-crocodiles` | 0.815262 | 0.840998 | +0.025736 | solo → solo | 2.703/2.470 → 2.760/2.475 | Aquatic access and execution routing. |
+| `bigfoot-humans-fixed` | 0.344190 | 0.425387 | +0.081197 | group → group | 1.836/1.941 → 1.876/1.940 | Explicit execution narrows the already group-led model-0.4 result. |
+| `medusa-spear-group` | 0.061097 | 0.089626 | +0.028529 | group → group | 1.698/2.378 → 1.850/2.383 | Target-facing gaze eligibility and routed contact fallback. |
+| `charybdis-orcas-hazard` | 0.061097 | 0.061097 | 0.000000 | group → group | 3.089/3.831 → 2.589/3.834 | The 40 m stationary hazard is correctly rejected at 80 m; probability remains at the uncertainty floor. |
+| `dog-mouse-mouse-kangaroos-functional` | 0.906085 | 0.938204 | +0.032119 | solo → solo | 0.902/0.659 → 0.966/0.657 | Cross-scale per-member stopping and execution. |
+| `rhinoceros-mouse-swarm` | 0.958853 | 0.958853 | 0.000000 | solo → solo | 2.355/1.478 → 2.626/1.476 | Tiny attacks retain a stopping barrier; displayed ceiling unchanged. |
+| `eagle-million-mice-access` | 0.958853 | 0.958853 | 0.000000 | solo → solo | 0.685/-0.172 → 0.946/-0.174 | Explicit group ability-access limit preserves flight mismatch. |
+| `orca-wolves-dry-land` | 0.041147 | 0.041147 | 0.000000 | group → group | 1.438/2.152 → 1.491/2.152 | Dry-land locomotion mismatch remains decisive. |
 
-## Movement review
+## Review
 
-- The two Medusa and the troll/fire cases remain numerically unchanged at their base fixture settings. Their important model-0.4 acceptance is the explicit rejected/countered technical record rather than an invented multiplier.
-- Phoenix no longer receives one combined ranged/regeneration/special-capability bonus. Rebirth is a distinct death-triggered, resource-bounded effect: it is rejected under incapacitation and partly restores the Phoenix only under the death condition.
-- Nemean-lion movement is small. Piercing immunity is applied bilaterally in the ledger, while crushing/restraint remains eligible; the residual changes come from replacing the legacy combined capability term with explicit channel factors.
-- Siren song is an auditory, living-target, coverage-bounded ability instead of a blanket legacy special multiplier. It is rejected against the construct, and against the hearing group it cannot scale as an unlimited effect over every member.
-- Giant-spider webbing helps against one eligible target, producing the only large positive movement. It does not scale as an area effect against the thousand-mouse fixture, which remains unchanged.
-- Charybdis now applies a stationary, terrain-bound environmental hazard at its declared radius instead of receiving the legacy combined special-capability multiplier. The edge case therefore moves materially toward even odds.
-- Vampire day regeneration is unavailable and its hypnosis/healing effects are condition- and target-bounded. Hydra regrowth is explicit and counterable. Stone-golem immunities suppress only the declared channels. Each loses the unrelated stacking implicit in the old combined term.
-- The ordinary elephant-versus-wolves fixture keeps the solo winner and moves by 0.075711, inside the approved maximum absolute difference of 0.12. This is the cross-version guardrail for the new physical/ability decomposition, not a target to tune toward.
-
-Every changed model-0.4 probability is therefore tied to the documented versioned cutover from aggregate capability bonuses to applied structured factors. No fixture was silently retuned to recover a preferred winner.
+The only released-model-0.4 winner reversal is Kraken versus orcas. It is expected: Kraken's defining many-limb mechanic was previously discarded by generic migration and is now an explicit reviewed frontage/restraint route. Charybdis is a large deterministic correction even though its displayed probability stays at the floor; its finite 40 m hazard no longer applies at the fixture's 80 m start. No fixture uses creature-name logic or isolated probability tuning.

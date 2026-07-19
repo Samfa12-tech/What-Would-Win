@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.1 — 2026-07-19
+
+- Added a release-blocking model-0.4 ability-coverage audit: 118 mechanical source tokens route across all 134 profiles, with 29 reviewed structured overrides including the complete mythical review queue.
+- Restored an explicit model-0.4 physical/ability decomposition with routed offensive execution, effect-level stopping and locomotion access, bounded physical area control, truthful group aggregation and no hidden model-0.3 causal terms.
+- Added per-ability geometry-scaling policies, resolved range/area diagnostics, target/attacker/mutual facing semantics and generic fixed-radius environmental hazards.
+- Implemented bounded capacity/recharge/use aggregation and a deterministic pre-ability duration estimate; finite rebirth, web and ammunition supplies now affect results and diagnostics.
+- Rebuilt model-0.4 narrative from final v4 factors and exposed applied, countered, ineligible, immune, out-of-range and depleted abilities only at technical depth.
+- Made JSON exports fully reproducible from the exact v4 run snapshot and hardened v4 custom-share decoding against missing, duplicate, unreferenced or built-in-shaped embedded profiles.
+- Added full model-0.3 physical-fixture coverage through model 0.4.1, stat-routing/inactivity checks, deep technical sensitivity and a read-only activated v4 dossier.
+- Advanced application/model/data to 0.4.1. Share format remains v4 and custom/history storage remain v2; released v4/0.4.0 links migrate explicitly.
+- Moved legacy history recalculation out of the active entry path and kept dossier/technical UI lazy; documented reviewed build ceilings with useful headroom.
+
 ## 0.4.0 — 2026-07-19
 
 - Activated the reviewed 134-profile model/data 0.4 contract with explicit contact reach, physiology, senses, locomotion, channel modifiers and structured bilateral abilities.

@@ -2,7 +2,7 @@
 
 **Status:** active canonical model-0.4 data
 
-The v3-to-v4 migration provides a deterministic compatibility baseline for all 134 profiles. It is not sufficient for complex mythical mechanics. `data/model-0.4/complex-profile-overrides.json` therefore replaces generated legacy abilities for eleven reviewed draft profiles:
+The v3-to-v4 migration provides a deterministic compatibility baseline for all 134 profiles. It is not sufficient for defining mythical or specialised mechanics. `data/model-0.4/complex-profile-overrides.json` therefore replaces generated legacy abilities for 29 active reviewed profiles, including the original set:
 
 - Western dragon
 - Medusa
@@ -16,7 +16,7 @@ The v3-to-v4 migration provides a deterministic compatibility baseline for all 1
 - Vampire
 - Stone golem
 
-The canonical migration contains all 134 profiles in stable order. Eleven complex profiles use explicit reviewed overrides; the remaining conservative migrations were accepted only after the activation gates in `MODEL_0.4_ACTIVATION_REVIEW.md` passed. The active runtime rejects any canonical set that still contains review-required or legacy-generated markers.
+The added reviewed set includes Basilisk, Chimera, Unicorn, Cerberus, Kraken, Scylla, Manticore, Wyvern, Roc, Griffin, Werewolf, electric eel, three many-limbed cephalopods, prepared archer, Cyclops and hill giant. The remaining conservative migrations were accepted only after activation gates passed. `npm run audit:model04-abilities` verifies 118 defining source tokens across all 134 profiles and rejects missing or misleading routes.
 
 ## Geometry decisions
 
@@ -35,7 +35,7 @@ All values remain explicit modelled assumptions pending final calibration/proven
 
 ## Conditional decisions
 
-- Medusa has a visual, line-of-sight, facing and living-target gaze plus a contact fallback.
+- Medusa, Vampire and Basilisk use explicit line-of-sight, target-vision and target/mutual-facing gaze semantics plus separate contact fallbacks.
 - Phoenix fire immunity, ordinary regeneration and one death-mode rebirth are independent.
 - Hydra head regrowth and troll regeneration declare an applied-fire counter.
 - Nemean lion is immune to ordinary piercing/slashing, resistant to blunt force and not immune to crushing/restraint.
@@ -45,6 +45,7 @@ All values remain explicit modelled assumptions pending final calibration/proven
 - Vampire blood healing requires a living target, hypnosis requires a visual living target and regeneration is night-only in this fixed interpretation.
 - Stone golem uses construct physiology and explicit poison, disease, hypnosis, fear and petrification immunities.
 - Western dragon supplies a real fire effect channel for regeneration-counter fixtures.
+- Chimera has separate many-part contact and area fire-breath channels; Unicorn uses a bounded self-healing magic interpretation; many-head/limb profiles declare frontage or area coverage explicitly.
 
 These decisions are data. The kernel contains no profile-name branch.
 

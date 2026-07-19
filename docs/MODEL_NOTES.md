@@ -1,6 +1,6 @@
 # What Would Win — model notes for implementers
 
-This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.4.0, data 0.4.0, share format v4, custom storage v2 and history storage v2**.
+This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.4.1, data 0.4.1, share format v4, custom storage v2 and history storage v2**.
 
 `app/src/version.ts` exposes the active identity and separately named frozen `LEGACY_*` model-0.3 constants used only by retained migration/compatibility code.
 
@@ -18,14 +18,14 @@ Scale: runtime and memory remain independent of the literal opposing quantity.
 
 Model 0.4 retains the audited model-0.3 physical aggregate calculation, then resolves special capabilities as explicit bilateral ability factors rather than one combined `special` multiplier.
 
-- `contact_reach_m` describes physical contact reach. Ability `rangeM`, `areaRadiusM`, delivery and target limit describe non-contact or area access separately.
+- `contact_reach_m` describes physical contact reach. Ability `rangeM`, `areaRadiusM`, delivery, target limit and `geometryScaling` describe non-contact or area access separately. Resolved geometry is recorded per run.
 - Physiology distinguishes living, undead, construct, spirit, environmental hazard and migrated legacy nonliving profiles.
 - Sense and locomotion profiles make vision, hearing, smell, echolocation, supernatural perception, flight, aquatic, amphibious and land access explicit.
 - Abilities declare kind, delivery, effects, activation rate, conditions, counters, channel modifiers and resources.
 - `soloResources` and `groupResources` provide side-specific defaults and per-ability overrides. A shared resource slider is retained only as a legacy migration input.
-- The ability kernel evaluates access, conditions, counters, resource supply and attack/defence channels for both sides. Rejected or inactive abilities are retained in the technical record with a reason.
+- The ability kernel evaluates access, explicit attacker/target facing, conditions, counters, bounded capacity/recharge uses, resource supply and attack/defence channels for both sides. Rejected or inactive abilities are retained in the technical record with a reason.
 - Applied ability factors use stable `ability:*` identifiers and expose their log delta. They are deterministic inputs to the same seeded result authority as the physical factors.
-- Deterministic sensitivity points vary selected assumptions such as distance and resources and explicitly avoid publishing a second competing winner.
+- Four deterministic sensitivity points remain available at all depths. Technical depth adds a bounded set for active potency, activation, range, reach, resistance, coordination and stopping assumptions without publishing a second winner.
 
 The v4 share codec serializes the structured scenario. Custom creatures and history use v2 storage contracts with recovery for incompatible/corrupt payloads. Supported legacy v3, v2, v1 and unversioned scenarios are migrated and visibly recalculated; unavailable referenced custom profiles remain pending.
 
@@ -58,7 +58,7 @@ Explicit land/amphibious/aquatic locomotion and resized body depth route environ
 
 ### Bilateral stopping, access and aggregation
 
-Both sides must overcome protection and a body-mass stopping barrier. Active frontage, bounded arena occupancy, logarithmically weighted reserves, access ceilings and area control limit effective pressure without allocating one object per combatant:
+Each opponent-directed physical effect receives a bounded stopping and delivery-access factor based on per-member mass, target protection, channel and locomotion. Active frontage, bounded arena occupancy, logarithmically weighted reserves, explicit access ceilings and bounded physical area control limit effective pressure without allocating one object per combatant:
 
 `group_log_power = member_log_power + E × effective_quantity_log10 + bounded adjustments`
 

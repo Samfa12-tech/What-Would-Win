@@ -19,10 +19,10 @@ The scenario supplies bounded/open starting geometry, terrain and separate solo/
 
 For every solo and group ability, the kernel evaluates:
 
-1. explicit terrain, distance, target-physiology and target-sense conditions;
+1. explicit terrain, distance, line-of-sight, attacker/target/mutual-facing, target-physiology and target-sense conditions;
 2. delivery access for contact, ranged, area, gaze, auditory, self or environmental delivery;
-3. per-ability resource override or inherited side default;
-4. bounded single/frontage/area coverage in log space;
+3. per-ability resource override or inherited side default plus bounded capacity/recharge uses from encounter duration;
+4. declared geometry scaling (`fixed`, `linear`, `functional`, `magical` or `environmental-fixed`) and bounded single/frontage/area coverage in log space;
 5. target channel immunity, resistance or vulnerability;
 6. one numerical log delta per material effect.
 
@@ -36,7 +36,7 @@ Active effects produce ledger-ready IDs:
 ability:<creature-id>:<ability-id>:effect-<index>
 ```
 
-Rejected abilities produce a technical resolution with one stable reason—condition unmet, out of range, resource depleted, target immune or delivery inaccessible—and zero log delta. Rejections do not create applied factors.
+Rejected abilities produce a technical resolution with one stable reason—condition unmet, out of range, resource depleted, target immune, delivery inaccessible or countered—and zero log delta. Resolutions expose resolved range/area, coverage, available/resolved uses, recharge opportunities and unmet conditions. Rejections do not create applied factors.
 
 The result contains solo and group totals, every technical resolution and every material factor. This layer intentionally emits no explanatory sentence; later narrative can only reference factor IDs that survive the full engine.
 

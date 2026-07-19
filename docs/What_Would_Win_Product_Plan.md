@@ -260,7 +260,7 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.4.0, data 0.4.0 and share format v4**; the application version is **0.4.0**. Custom-creature and history storage use format **v2**. Supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result. `app/src/version.ts` exposes the active identity plus separately named frozen `LEGACY_*` constants; `app/src/model04/contracts.ts` independently locks the active model-0.4 contract.
+The current reproducibility identity is **model 0.4.1, data 0.4.1 and share format v4**; the application version is **0.4.1**. Custom-creature and history storage remain format **v2** because their serialized shapes remain compatible. Released v4/0.4.0 plus supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
@@ -268,11 +268,11 @@ All constants in this section are **versioned design parameters**. They should b
 
 1. Decode or migrate the scenario, then resolve canonical/custom `CreatureV4` records and overrides.
 2. Parse quantity, convert it to `log10(N)` and classify ordinary versus conceptual scale.
-3. Resolve target mass, linear scale, body geometry, contact reach, movement and structural integrity.
+3. Resolve target mass, linear scale, body geometry, contact reach, movement, structural integrity and each ability's declared geometry-scaling policy.
 4. Evaluate environment and water access using resolved geometry and explicit locomotion profiles.
 5. Run the audited model-0.3 physical aggregate foundation without its legacy combined special multiplier.
-6. Apply bilateral stopping/access, bounded-arena occupancy, frontage, reserves and bounded area control.
-7. Resolve structured abilities bilaterally through delivery, range/area, conditions, counters, resources and channel modifiers.
+6. Reconstruct bounded-arena occupancy, frontage, reserves, group aggregation and physical body-scale area control as explicit ledger factors.
+7. Resolve structured abilities bilaterally through stat execution, per-effect stopping/access, delivery, range/area, conditions, counters, bounded uses/recharge and channel modifiers.
 8. Calculate deterministic solo/group log power and record stable physical and `ability:*` factors, including inactive/rejected reasons.
 9. Run seeded Monte Carlo trials around those deterministic values.
 10. Reserve explicit probability weight for unmodelled uncertainty without a conceptual-threshold certainty jump.
@@ -300,7 +300,7 @@ The resolved linear scale is:
 
 `L = cube_root(M / M0)`
 
-Body length, body height and contact reach scale approximately with `L`. Ability range and area remain explicit ability properties rather than being folded into contact reach. Speed and structural integrity depend on the selected law. The active model retains model-0.3's geometry-before-environment/frontage/occupancy ordering.
+Body length, body height and contact reach scale approximately with `L`. Every distance-bearing ability declares `fixed`, `linear`, `functional`, `magical` or `environmental-fixed` geometry. Functional geometry uses a bounded allometric multiplier; magical geometry follows the selected magical-sizing contract; stationary environmental geometry never inherits creature pursuit. Resolved range and area are technical outputs.
 
 ### 10.5 Structural integrity
 
@@ -326,7 +326,7 @@ These values intentionally prevent speed from rising in direct proportion to siz
 
 ### 10.7 Single-profile log power
 
-Normalized attack quality combines attack, aggression, agility, speed, reach, intelligence, multi-target capability and stamina. Defence quality combines defence, durability, armour, stamina, agility, morale and intelligence.
+Defence quality combines defence, durability, armour, stamina, agility, morale and intelligence. Model 0.4.1 routes attack, agility, stamina, intelligence and aggression through delivery-specific ability execution rather than restoring the legacy combined offensive-quality factor. Ability potency remains the authored attack-tool capability; scenario-resolved stats determine application quality.
 
 The current core terms are:
 
@@ -340,7 +340,7 @@ Model 0.4 removes the legacy combined `special` multiplier from the active path.
 
 ### 10.8 Group aggregation
 
-Perfectly linear scaling would assume every member attacks effectively at once. That is implausible for most large groups. Model 0.3 first limits usable quantity to approximate single-layer occupancy in bounded arenas, then estimates an active front from resized defender span, attacker width, terrain and engagement mode. Members beyond that front contribute through a bounded logarithmic reserve weight; severe access mismatch applies a smooth effective-pressure ceiling. Group force is therefore:
+Perfectly linear scaling would assume every member attacks effectively at once. That is implausible for most large groups. The physical foundation introduced in model 0.3 and explicitly reconstructed in model 0.4.1 first limits usable quantity to approximate single-layer occupancy in bounded arenas, then estimates an active front from resized defender span, attacker width, terrain and engagement mode. Members beyond that front contribute through a bounded logarithmic reserve weight; severe access mismatch applies a smooth effective-pressure ceiling. Group force is therefore:
 
 `group_log_power = member_log_power + E × effective_quantity_log10 + adjustments`
 
@@ -356,12 +356,12 @@ Active frontage and reserve weighting make contact saturation inspectable while 
 
 The deterministic layer also applies:
 
-- **Bilateral stopping:** both sides must overcome protection and a separately bounded body-mass stopping barrier; relevant delivery mechanisms can bypass part, but not all, of that resistance.
+- **Effect-level stopping:** each relevant opponent-directed effect must overcome a separately bounded per-member body-mass/protection barrier; channel and delivery can bypass part, but not all, of that resistance.
 - **Attack access:** locomotion/medium mismatch, starting distance, contact reach and each ability's delivery/range/area change opportunity to deliver an effective attack.
 - **Access ceiling:** where a group lacks credible access, additional reserves do not create new attack opportunities by themselves.
 - **Solo area control:** multi-target score, mass ratio and area-effect traits add bounded resistance to effective group pressure.
 - **Frontage and reserves:** contact geometry limits the active front, while coordination, doctrine and casualty tolerance affect the rate at which reserves sustain pressure.
-- **Resources and channels:** solo/group resource defaults and per-ability overrides scale supply; conditions, counters and physiology/sense/channel modifiers can activate, reduce or reject an ability.
+- **Resources and channels:** solo/group resource defaults and per-ability overrides scale supply; capacity plus encounter-duration-bounded recharge determine resolved uses; conditions, counters and physiology/sense/channel modifiers can activate, reduce or reject an ability.
 - **Range and closing:** contact reach is separate from ability range/area; slow contact profiles pay a bounded closing cost.
 - **Environment:** habitat match, explicit land/amphibious capability, resized geometry, terrain, weather and time of day affect each side separately.
 - **Preparation, ambush and defence:** intelligent profiles convert preparation into a capped advantage.
@@ -409,7 +409,7 @@ This sequence is a deterministic explanation of the calculated state. It is not 
 
 ### 10.15 Deterministic sensitivity points
 
-Model 0.4 reports selected deterministic perturbations, including resource and distance cases, to show how assumptions influence the same authoritative calculation. A sensitivity point records the varied input and numerical movement but deliberately does not publish a second winner. This is focused scenario analysis, not a global field-level uncertainty distribution.
+Model 0.4.1 reports four fast resource/distance perturbations at all depths. Technical depth adds a bounded set chosen from active ability potency, activation, range, contact reach, channel resistance, group coordination and stopping assumptions. Each point records baseline and perturbed margin, delta, reversal state, varied field/factor and caveat, but deliberately does not publish a second winner.
 
 ## 11. Data strategy
 
@@ -664,10 +664,12 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
 - model-0.4 migration artifacts for all 134 canonical profiles;
+- release-blocking coverage for 118 mechanical source tokens and reviewed explicit routes for complex profiles;
 - structured bilateral ability access, delivery, conditions, counters, physiology/senses, resources and channel modifiers;
 - stable applied/rejected ability factors, regeneration/revival and environmental-hazard cases;
 - deterministic sensitivity points that do not publish a competing winner;
 - v4 share migration plus v2 custom/history persistence and corrupt/incompatible recovery;
+- released v4/0.4.0 migration, exact custom-reference-set validation and reproducible canonical-v4 JSON export;
 - component build budgets and static `/apps/what-would-win/` reference validation.
 
 The fixtures are behavioural calibration bands, not assertions of objective biological truth.
@@ -742,6 +744,14 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 - deterministic sensitivity points without a competing winner;
 - v4 share codec and v2 custom/history persistence with supported legacy migrations and recovery.
 
+### Phase 1C.1 — model/data 0.4.1 rectification (delivered)
+
+- roster-wide structured ability coverage gate and 29 reviewed overrides;
+- explicit physical/ability decomposition, stat execution, effect-level stopping/access and geometry scaling;
+- finite-use/recharge, environmental radius and gaze-facing correction;
+- v4-native narrative, complete ability diagnostics, activated v4 dossier and canonical reproducible export;
+- all 16 physical fixtures through v4 plus bounded technical sensitivity.
+
 ### Phase 1D — trustworthy beta (next)
 
 - complete expert-reviewed per-field provenance, licences and cultural-sensitivity review;
@@ -789,9 +799,9 @@ The engine/data audit, resized environment geometry, explicit land/amphibious tr
 
 The Stage A semantic cleanup defines a controlled built-in mechanics vocabulary, distinguishes mechanical and descriptive tags, gates releases with stable semantic diagnostics, corrects the ranged classification of Stegosaurus, Cyclops, Hill giant and Phoenix, and preserves earlier v3, v2, v1 and unversioned migration paths. All 16 calibration fixtures are exactly unchanged. The decision record is `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`.
 
-### Delivered in model/data 0.4
+### Delivered in model/data 0.4.1
 
-The active release migrates all 134 profiles into explicit physiology, senses, locomotion, contact reach, channel modifiers and structured abilities. It replaces the legacy combined special multiplier and shared resource input with bilateral ability resolution and side/per-ability resources, adds stable technical factors and deterministic sensitivity points, and versions sharing/custom/history as v4/v2/v2. The model-0.3 physical audit and data-0.3.1 semantic audit remain historical foundation records.
+The active release migrates all 134 profiles into explicit physiology, senses, locomotion, contact reach, channel modifiers and structured abilities, then verifies 118 defining source mechanics through a release audit. It replaces the legacy combined special multiplier and shared resource input with bilateral ability resolution, side/per-ability resources, geometry/facing/use contracts, stable technical factors and deterministic sensitivity. Sharing/custom/history remain v4/v2/v2 with explicit released-v4 migration. The model-0.3 physical audit and data-0.3.1 semantic audit remain historical foundation records.
 
 ### P0 — user-test and deployment preparation
 

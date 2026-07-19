@@ -19,14 +19,14 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 
 ## Current state
 
-- React/TypeScript/Vite static application, version **0.4.0**.
-- Active reproducibility identity: **model 0.4.0, data 0.4.0, share format v4**; custom/history storage formats **v2**.
+- React/TypeScript/Vite static application, version **0.4.1**.
+- Active reproducibility identity: **model 0.4.1, data 0.4.1, share format v4**; custom/history storage formats **v2**.
 - 134 canonical profiles and an audited model-0.3 physical aggregate foundation.
-- Structured model-0.4 abilities with explicit delivery, range/area, activation, effects, conditions, counters, resources and bilateral channel resolution.
+- Structured model-0.4 abilities with explicit delivery, geometry scaling, activation, effects, facing/eligibility, counters, bounded uses/recharge and bilateral channel resolution.
 - Contact reach is distinct from ability range. Scenarios have separate solo/group resources and optional per-ability overrides.
 - Explicit physiology, senses, locomotion and channel modifiers replace legacy capability booleans in the active contract.
-- Stable `ability:*` factors expose applied/rejected abilities, resource/access/channel effects and log deltas in technical output.
-- Deterministic sensitivity points vary selected assumptions without publishing a competing winner.
+- Stable `ability:*` factors and full resolution records expose applied/rejected abilities, resolved geometry, uses, resource/access/stopping/channel effects and log deltas in technical output.
+- Four fast deterministic sensitivity points remain at all depths; technical depth adds bounded active-factor perturbations without publishing a competing winner.
 - Seeded Monte Carlo remains subordinate to deterministic/versioned inputs; generated text never selects the outcome.
 - Quantities such as `10^100` stay logarithmic, with no per-member allocation.
 - Strict, functional and magical resizing; bilateral stopping/access; frontage/reserves; area control; and bounded-arena occupancy remain from model 0.3.
@@ -35,7 +35,7 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 - Four report depths, URL sharing, PNG/JSON export and local browser history remain available.
 - Static hosting requires no account, database or server-side simulation service.
 
-`app/src/version.ts` exposes the active 0.4.0/v4 identity and separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
+`app/src/version.ts` exposes the active 0.4.1/v4 identity and separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
 
 ## Read these files in order
 
@@ -96,7 +96,7 @@ The explanation and sensitivity panel cannot independently change the winner. Do
 - Thunderbird and Bunyip remain fictional cryptozoological composites pending cultural-sensitivity review; Charybdis is an explicitly modelled environmental-hazard abstraction.
 - Custom profiles are browser-local and need explicit JSON export or a share link for backup/transfer.
 - Physical Safari/iOS and real NVDA/VoiceOver checks have not been evidenced for the model-0.4 release.
-- The exact tested build was published at `https://samfa12.com/apps/what-would-win/` through Samfa12 website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6`; the Pages workflow, rendered model/data identity, simulation and v4 share-link flow were verified on the live route.
+- The released 0.4.0 build was published at `https://samfa12.com/apps/what-would-win/` through Samfa12 website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6`; the Pages workflow, rendered 0.4.0 identity, simulation and v4 share-link flow were verified on the live route. This 0.4.1 rectification remains a candidate until its exact tested `app/dist/` tree is reviewed and synced; do not describe it as deployed from this repository alone.
 - Automated browser coverage is complete for the exact candidate artifact (93 passed, 3 expected project-scope skips); this is not evidence of physical-device or real screen-reader behaviour.
 
 ## Recommended next tasks
@@ -113,6 +113,7 @@ Prepare and verify a model-0.4 user-test candidate without silently retuning it:
 
 ```bash
 npm run audit:release
+npm run audit:model04-abilities
 npm run audit:model04-contract
 npm run test
 npm run typecheck
@@ -127,4 +128,4 @@ Run commands from `app/`. Record exact current counts and build sizes in `docs/Q
 
 ## Handoff prompt for Codex
 
-> Continue What Would Win from app/model/data 0.4.0, share format v4 and custom/history storage v2. Read the product plan, model notes and `app/src/model04/` contracts, engine, runtime and persistence before editing; treat the model-0.3 and data-0.3.1 audits as historical foundation records. Preserve static-first hosting, deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, selectable scaling, abstract violence and transparent uncertainty. Keep contact reach separate from structured ability range/area; preserve physiology, senses, locomotion, bilateral conditions/counters, side-specific and per-ability resources, stable technical factor IDs and honest inactive/rejection reasons. Do not let generated text or sensitivity variants choose a competing winner. Complete unit/audit/typecheck/simulation-budget/build-budget/static-subpath and production-browser gates, then run physical-device, real screen-reader and deployed-path checks before claiming them. Explain and regression-test every coefficient, ability-contract, persistence or version change.
+> Continue What Would Win from app/model/data 0.4.1, share format v4 and custom/history storage v2. Read the 0.4.1 rectification audit, product plan, model notes and `app/src/model04/` contracts, engine, runtime and persistence before editing; treat model 0.3 and data 0.3.1 as historical foundation records. Preserve deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, static subpath hosting and factor-ledger truth. Keep contact reach separate from versioned ability geometry; preserve explicit physiology, senses, locomotion, facing, effect-level stopping/access, bounded uses, counters and complete technical rejection records. Run ability coverage, the full physical regression suite, persistence migrations, build budgets and browser gates for every material change.

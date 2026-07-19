@@ -43,7 +43,9 @@ The exact production build completed the model-0.4 Playwright matrix with **93 p
 - Physical Safari/iOS or other physical-device checks: **not performed**.
 - Real NVDA and VoiceOver checks: **not performed**.
 - Automated static-artifact subpath validation: **passed**.
-- Smoke test of the deployed `samfa12.com/apps/what-would-win/` artifact: **not performed**.
+- The exact tested `app/dist/` tree was synced to the Samfa12 website repository with **16/16 files SHA-256 identical** before publication. Website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6` passed the GitHub Pages deployment workflow.
+- Smoke test of `https://samfa12.com/apps/what-would-win/`: **passed**. The rendered deployment exposed 134 profiles and Model/Data 0.4.0; running a simulation and copying its share link produced a `?s=4.` URL and the visible `Share link copied.` status.
+- Public hashed JavaScript/CSS/data assets matched the published website repository. Cloudflare-injected delivery scripts and Git line-ending normalization mean raw HTML/legal-response bytes are not claimed to be identical to the local files; these transformations did not alter the hashed runtime assets.
 - PNG/JSON downloads on representative physical mobile/desktop devices: **not performed**; automated browser coverage is recorded separately above.
 
 Automated unit, axe, keyboard, build and static-path coverage is useful but must not be described as physical-device or screen-reader validation.
@@ -51,7 +53,6 @@ Automated unit, axe, keyboard, build and static-path coverage is useful but must
 ## Known QA gaps and risks
 
 - Run real screen-reader and physical-device checks, including custom editing, v4 sharing, v2 recovery and legacy migration flows.
-- Upload the exact tested `app/dist/` artifact and smoke the deployed subpath rather than inferring hosting success from relative paths alone.
 - Structured abilities remain aggregate factors rather than event/projectile/anatomy simulation.
 - The physical foundation and ordinary duration/loss values remain transparent heuristics.
 - Creature values and migrated ability declarations require continued scientific, cultural and game-systems review.

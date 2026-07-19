@@ -7,128 +7,123 @@ cd app
 npm ci
 npm run test
 npm run typecheck
-npx playwright install chromium firefox webkit
-npm run test:e2e
+npm run test:simulation-budget
 npm run build
+node scripts/check-build-budgets.mjs
+node scripts/check-static-subpath.mjs
+npx playwright install chromium firefox webkit
+npm run test:e2e -- --workers=2
 ```
 
-Use `npm run dev` for local iteration. Upload the contents of `app/dist/` to the chosen static path on `samfa12.com`; assets and share-query links remain compatible with subdirectory hosting.
+Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/dist/` to `/apps/what-would-win/` on `samfa12.com`; do not hand-edit the hosted artifact.
 
 ## Current state
 
-- React/TypeScript/Vite static application.
-- Reproducibility identity: **model 0.3.0, data 0.3.1, share format v3**; application version **0.3.1**.
-- 134 bundled profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic humans.
-- One-versus-X engine using deterministic log power plus seeded Monte Carlo trials; generated text never selects the winner.
-- Quantities such as `10^100` are handled in logarithmic space without per-member allocation.
-- Strict, functional and magical resizing modes with scaled mass, body geometry, movement, reach and environment checks.
-- Bilateral stopping and attack access, continuous ranged/resource effects, access ceilings, active frontage, logarithmic reserve weighting, bounded area control and bounded-arena occupancy caps with feasibility warnings.
-- Explicit win condition, side-specific mindset, knowledge, awareness, facing, arena/water geometry, group doctrine, casualty tolerance and structured specimen declarations.
-- Four report-depth modes, compact share URLs, PNG/JSON export and versioned local browser history.
-- Data-0.3.0/model-0.3.0 and model/data-0.2.0 shares/history preserve structured inputs and are visibly recalculated under the current identity when referenced profiles are available; unavailable-profile history remains marked pending. Deployed v2, v1 and delivered unversioned links retain migration coverage.
-- Draft 2020-12 validation for canonical data, custom imports and shared records. Data 0.3.1 adds a controlled built-in mechanics vocabulary, semantic release linter and four reviewed ranged-capability corrections.
-- Named private custom profiles can be cloned, edited, saved locally, imported/exported and embedded in reproducible shares.
-- Ordinary results provide seven deterministic explanatory phases backed by an applied-factor ledger; conceptual results provide three aggregate phases and withhold physical duration/loss estimates.
-- 16 calibration fixtures plus focused semantic, invariant and performance coverage; Playwright targets desktop/mobile Chromium, Firefox and WebKit against the production build.
-- Automated axe and keyboard checks, a visible methodology/version panel, CI budgets and complete licensing provenance for all bundled profiles are in place.
+- React/TypeScript/Vite static application, version **0.4.0**.
+- Active reproducibility identity: **model 0.4.0, data 0.4.0, share format v4**; custom/history storage formats **v2**.
+- 134 canonical profiles and an audited model-0.3 physical aggregate foundation.
+- Structured model-0.4 abilities with explicit delivery, range/area, activation, effects, conditions, counters, resources and bilateral channel resolution.
+- Contact reach is distinct from ability range. Scenarios have separate solo/group resources and optional per-ability overrides.
+- Explicit physiology, senses, locomotion and channel modifiers replace legacy capability booleans in the active contract.
+- Stable `ability:*` factors expose applied/rejected abilities, resource/access/channel effects and log deltas in technical output.
+- Deterministic sensitivity points vary selected assumptions without publishing a competing winner.
+- Seeded Monte Carlo remains subordinate to deterministic/versioned inputs; generated text never selects the outcome.
+- Quantities such as `10^100` stay logarithmic, with no per-member allocation.
+- Strict, functional and magical resizing; bilateral stopping/access; frontage/reserves; area control; and bounded-arena occupancy remain from model 0.3.
+- V4 shares and v2 custom/history persistence include recovery and migrations from supported v3, v2, v1 and unversioned inputs.
+- Ordinary results use seven factor-backed explanatory phases; conceptual results use three aggregate phases and withhold physical duration/loss estimates.
+- Four report depths, URL sharing, PNG/JSON export and local browser history remain available.
+- Static hosting requires no account, database or server-side simulation service.
+
+`app/src/version.ts` exposes the active 0.4.0/v4 identity and separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
 
 ## Read these files in order
 
 1. `docs/What_Would_Win_Product_Plan.md`
-2. `docs/MODEL_AUDIT_0.3.md`
-3. `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`
-4. `docs/MODEL_NOTES.md`
-5. `app/src/types.ts`
-6. `app/src/simulation/quantity.ts`
-7. `app/src/simulation/engine.ts`
-8. `app/src/version.ts`
-9. `app/src/simulation/share.ts`
+2. `docs/MODEL_NOTES.md`
+3. `app/src/model04/contracts.ts`
+4. `app/src/model04/canonicalDraft.ts`
+5. `app/src/model04/abilityKernel.ts`
+6. `app/src/model04/engineV4.ts`
+7. `app/src/model04/runtime.ts`
+8. `app/src/model04/persistence.ts`
+9. `app/src/model04/migrateV3.ts`
 10. `app/src/App.tsx`
-11. `app/src/customCreatures.ts`
-12. `data/DATA_DICTIONARY.md`
-13. `data/mechanics-vocabulary.json`
-14. `data/test_scenarios.json`
-15. `app/src/test/engine.test.ts`
-16. `app/src/test/dataContracts.test.ts`
-17. `app/src/test/semanticCreatureData.test.ts`
-18. `app/src/test/share.test.ts`
-19. `app/src/test/history.test.ts`
-20. `app/e2e/app.spec.ts`
-21. `app/e2e/accessibility.spec.ts`
+11. `app/src/test/model04*.test.ts`
+12. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
+13. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
+14. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
 
 ## Product invariants
 
-- The versioned numerical engine chooses the winner; explanatory text follows the calculation.
-- The built-in baseline represents a high-end healthy adult and says so.
-- Physical fields, 0–100 authored scores and fantasy assumptions remain distinguishable.
-- Built-in mechanics tags use the controlled vocabulary; private custom-profile strings remain schema-valid and user-controlled.
-- Fantasy profiles remain labelled `modelled`.
+- The versioned numerical engine is authoritative; prose explains its result.
+- The same model/data/scenario/seed reproduces the same result.
+- Built-ins represent disclosed high-end healthy adults; physical values, authored scores and fantasy assumptions stay distinguishable.
+- Structured abilities must expose delivery, access, supply, conditions and counters rather than hiding them in prose or a combined multiplier.
+- Inactive and rejected abilities remain inspectable in technical output.
 - Extreme quantities never cause per-member allocation.
-- Every new formula coefficient or material data-contract change requires explanation, regression coverage, a version decision and a changelog entry.
+- Built-in mechanics use controlled contracts; private custom content remains user-controlled and browser-local unless exported/shared.
+- Every material formula, ability-contract or data change needs rationale, regression/migration coverage, a version decision and changelog entry.
 - Violence remains abstract, textual and non-graphic.
 - Built-ins exclude named living people, children and unlicensed modern franchise characters.
-- Static hosting remains possible without accounts, a database or a server-side simulation dependency.
+- Static, private-by-default hosting remains possible without a remote AI or simulation dependency.
 
 ## Engine overview
 
-`simulate()` performs:
+The active runtime:
 
-1. parse quantity and classify ordinary/conceptual scale;
-2. resolve creature records, stat overrides and size declarations;
-3. calculate target mass, linear scale, body geometry, reach, movement and structural integrity;
-4. evaluate environment and water access using resolved geometry and explicit mobility traits;
-5. calculate single-profile deterministic log power;
-6. apply bilateral stopping, flight/medium/range access and bounded pre-battle/methodology adjustments;
-7. cap usable quantity by bounded-arena occupancy, then estimate active frontage, logarithmic reserve weight, effective group quantity, access pressure and area control;
-8. calculate deterministic solo and group log power and record every material applied factor;
-9. run seeded Monte Carlo trials around those fixed values;
-10. apply continuous confidence-based epistemic compression and a model-sensitivity band;
-11. calculate crossover quantity and, only at non-conceptual scale, heuristic duration/loss metrics;
-12. build the verdict, factor-linked explanatory phases, assumptions, warnings and technical record.
+1. decodes/migrates the scenario and resolves canonical or custom `CreatureV4` records;
+2. parses logarithmic quantity and resolves overrides, target size and scaled geometry;
+3. runs the audited model-0.3 physical aggregate calculation without its legacy combined special multiplier;
+4. evaluates environment, stopping, access, occupancy, frontage, reserves and effective group pressure;
+5. resolves structured abilities bilaterally through access, conditions, counters, resources and channel modifiers;
+6. records stable physical and `ability:*` factors, including inactive/rejected reasons;
+7. runs seeded Monte Carlo variation around the deterministic solo/group state;
+8. applies uncertainty compression, crossover and ordinary-only duration/loss heuristics;
+9. calculates deterministic sensitivity points for selected scenario perturbations; and
+10. builds the verdict, assumptions, warnings, technical report and factor-backed explanation.
 
-The ordinary seven-phase sequence is a deterministic explanation of this state, not a sampled trial-by-trial event timeline or anatomy simulation. The three-phase conceptual sequence deliberately avoids literal staging.
-
-Do not replace the engine with a single LLM prompt. An AI layer may propose structured inputs or restyle an already-calculated explanation later, but calculated fields must remain authoritative, versioned and reproducible.
+The explanation and sensitivity panel cannot independently change the winner. Do not replace the engine with a single LLM prompt. AI may propose structured inputs or restyle already-calculated prose later, but calculated fields must remain authoritative, versioned and reproducible.
 
 ## Known limitations
 
-- Per-field licensing provenance covers all 134 profiles. Real and extinct physical inputs still need stronger primary sourcing and expert review.
-- Strict scaling, group exponent, frontage, logarithmic reserve weighting and stopping use global heuristics rather than archetype-specific empirical fits. Positive water depth overrides a nominally land terrain label at half-body immersion; this threshold is also a heuristic.
-- Approximate bounded-arena occupancy is a coarse single-layer cap with fixed flight and deep-water multipliers; reinforcement paths, vertical packing and logistics are not simulated.
-- Schema-valid shares with an unknown non-custom creature ID fall back to the relevant default profile with an explicit visible warning.
-- Ordinary duration and loss estimates are heuristic. Conceptual values are withheld, but the aggregate calculation still omits logistics, heat, food, travel time and planetary constraints.
-- Reaction, acceleration, turning, senses, vulnerable anatomy, phased incapacitation and delayed injury/venom timing remain coarse or disclosed limitations.
-- Model 0.3 uses one combined contact-or-built-in `effective_reach_m` value and one scenario-level resource percentage; separate reach types and side-specific supplies remain future data-contract work.
-- The explanatory sequence is template-driven from the factor ledger; it does not reconstruct individual Monte Carlo trajectories.
-- Thunderbird and Bunyip are labelled fictional cryptozoological composites and still require cultural-sensitivity review; Charybdis is a combatant-shaped environmental-hazard abstraction.
-- Custom profiles are browser-local and require explicit JSON export for backup or transfer outside a share link.
-- Real NVDA/VoiceOver, physical Safari/iOS and deployed-subpath testing remain manual gaps.
+- The model-0.3 physical foundation uses global calibrated heuristics for scaling, stopping, group exponent, frontage, reserves and occupancy rather than archetype-specific empirical fits.
+- Structured ability resolution is aggregate and conditional; it does not simulate individual projectiles, targets, anatomy, wound channels or delayed-effect timelines.
+- Current sensitivity points are selected deterministic variants, not field-level uncertainty distributions or global sensitivity analysis.
+- Real/extinct inputs need stronger primary sourcing and expert review; migrated legacy abilities also need broad manual review.
+- Conceptual results omit logistics, heat, food, travel and planetary constraints.
+- Thunderbird and Bunyip remain fictional cryptozoological composites pending cultural-sensitivity review; Charybdis is an explicitly modelled environmental-hazard abstraction.
+- Custom profiles are browser-local and need explicit JSON export or a share link for backup/transfer.
+- Physical Safari/iOS, real NVDA/VoiceOver and deployed-host checks have not been evidenced for the model-0.4 candidate.
+- Automated browser coverage is complete for the exact candidate artifact (93 passed, 3 expected project-scope skips); this is not evidence of physical-device or real screen-reader behaviour.
 
 ## Recommended next tasks
 
-Prepare a user-test candidate without silently retuning model 0.3:
+Prepare and verify a model-0.4 user-test candidate without silently retuning it:
 
-1. run manual exploratory, assistive-technology and physical-device passes, prioritising model-0.2 migration, custom-profile backup and conceptual-result interpretation;
-2. validate the built app from the intended `samfa12.com` subpath and automate PNG-download coverage;
-3. independently review scientific sourcing for the most-used real-animal profiles;
-4. preserve the MIT / CC BY-SA / protected-brand licence split, manually classify any new external source and complete cultural-sensitivity review;
-5. collect structured user feedback and record any proposed calibration change against the full 16-fixture suite;
-6. begin sensitivity analysis before adding more coefficients or anatomy controls.
+1. run exploratory physical-device and real NVDA/VoiceOver checks;
+2. validate the exact tested `app/dist/` artifact at the intended `samfa12.com/apps/what-would-win/` path;
+3. exercise v4 sharing, v2 custom/history recovery and supported legacy migrations on representative physical devices;
+4. independently review high-use profile data and migrated structured abilities, including cultural-sensitivity cases;
+5. test PNG/JSON downloads on representative devices; and
+6. collect structured feedback before changing coefficients or ability magnitudes.
 
 ## Verification commands
 
 ```bash
+npm run audit:release
+npm run audit:model04-contract
 npm run test
-npm run audit:semantics
 npm run typecheck
 npm run test:simulation-budget
 npm run build
 node scripts/check-build-budgets.mjs
-npm run test:e2e
+node scripts/check-static-subpath.mjs
+npm run test:e2e -- --workers=2
 ```
 
-For every engine change, print all 16 fixture probabilities locally and review direction as well as acceptance bands. The bands are calibration guardrails, not ground truth. Record final command counts and build sizes in `docs/QA_REPORT.md` only after the complete run.
+Run commands from `app/`. Record exact current counts and build sizes in `docs/QA_REPORT.md` only after the commands complete. A timed-out or interrupted browser run is not a pass. The 16 fixture bands are behavioural guardrails, not biological truth.
 
 ## Handoff prompt for Codex
 
-> Continue the What Would Win React/TypeScript project from model 0.3.0, data 0.3.1 and share format v3. Read the Markdown product plan, model 0.3 audit, semantic data audit and engine before editing. Preserve the static-first architecture, one-versus-X scope, deterministic-plus-Monte-Carlo authority, logarithmic quantity handling, selectable scaling assumptions, abstract violence and transparent uncertainty. Treat the factor-backed encounter sequence as an explanation, not a generated or sampled winner. Preserve the controlled built-in mechanics vocabulary without narrowing private custom-profile tags. Begin with staging-subpath/manual accessibility QA, provenance expansion, PNG-download automation or sensitivity analysis. Run semantic, unit/calibration, typecheck, simulation/build budget, production-build and browser-matrix checks. Update documentation and explain every coefficient, data-contract or version change.
+> Continue What Would Win from app/model/data 0.4.0, share format v4 and custom/history storage v2. Read the product plan, model notes and `app/src/model04/` contracts, engine, runtime and persistence before editing; treat the model-0.3 and data-0.3.1 audits as historical foundation records. Preserve static-first hosting, deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, selectable scaling, abstract violence and transparent uncertainty. Keep contact reach separate from structured ability range/area; preserve physiology, senses, locomotion, bilateral conditions/counters, side-specific and per-ability resources, stable technical factor IDs and honest inactive/rejection reasons. Do not let generated text or sensitivity variants choose a competing winner. Complete unit/audit/typecheck/simulation-budget/build-budget/static-subpath and production-browser gates, then run physical-device, real screen-reader and deployed-path checks before claiming them. Explain and regression-test every coefficient, ability-contract, persistence or version change.

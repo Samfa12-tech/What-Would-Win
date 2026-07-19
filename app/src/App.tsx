@@ -17,9 +17,9 @@ import { defaultScenario, simulate, TRIALS_BY_DEPTH } from './simulation/engine'
 import { buildShareUrl, decodeScenarioPayload } from './simulation/share'
 import type { Creature, HistoryItem, HistoryStore, Scenario, SimulationResult, StatOverrides } from './types'
 import { validateScenario } from './validation'
-import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
+import { DATA_VERSION, LEGACY_DATA_VERSION, LEGACY_MODEL_VERSION, MODEL_VERSION } from './version'
 import { withMethodologyDefaults } from './scenarioDefaults'
-import type { Model04Runtime, Model04RuntimeResources } from './model04/runtime'
+import type { Model04Runtime, Model04RuntimeResources, Model04RuntimeResult } from './model04/runtime'
 import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
 import type { Model04SensitivityPoint } from './model04/engineV4'
 
@@ -166,7 +166,7 @@ function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
   const previousVersion = isPreviousHistoryVersionPair(value)
   if (!legacy && (
     value.formatVersion !== HISTORY_ITEM_FORMAT_VERSION
-    || (!previousVersion && (value.modelVersion !== MODEL_VERSION || value.dataVersion !== DATA_VERSION))
+    || (!previousVersion && (value.modelVersion !== LEGACY_MODEL_VERSION || value.dataVersion !== LEGACY_DATA_VERSION))
   )) return null
   const migratedScenario = withMethodologyDefaults(value.scenario) as Scenario
   if (
@@ -209,8 +209,8 @@ function recalculateHistoryItem(item: HistoryItem, creatures: Creature[]): Histo
     const result = simulate(creatures, item.scenario)
     return {
       ...item,
-      modelVersion: MODEL_VERSION,
-      dataVersion: DATA_VERSION,
+      modelVersion: LEGACY_MODEL_VERSION,
+      dataVersion: LEGACY_DATA_VERSION,
       winnerName: result.winnerName,
       soloName: solo.name,
       groupName: group.name,
@@ -219,6 +219,10 @@ function recalculateHistoryItem(item: HistoryItem, creatures: Creature[]): Histo
   } catch {
     return null
   }
+}
+
+function legacyHistoryItemNeedsRecalculation(item: HistoryItem): boolean {
+  return item.modelVersion !== LEGACY_MODEL_VERSION || item.dataVersion !== LEGACY_DATA_VERSION
 }
 
 function historyItemNeedsRecalculation(item: HistoryItem): boolean {
@@ -259,7 +263,7 @@ export function loadHistory(storage: Storage, creatures: Creature[]): HistoryLoa
         continue
       }
       ids.add(item.id)
-      if (historyItemNeedsRecalculation(item)) {
+      if (legacyHistoryItemNeedsRecalculation(item)) {
         const recalculated = recalculateHistoryItem(item, creatures)
         if (recalculated) {
           items.push(recalculated)
@@ -309,16 +313,19 @@ function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]):
   return [...new Set([item.scenario.soloId, item.scenario.groupId].filter((id) => !availableIds.has(id)))]
 }
 
-function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04Runtime): InitialAppState {
-  const defaultResources = (scenario: Scenario): Model04RuntimeResources => ({
+function defaultModel04Resources(scenario: Scenario): Model04RuntimeResources {
+  return {
     solo: { defaultPercent: scenario.resourcesPercent, abilityPercent: {} },
     group: { defaultPercent: scenario.resourcesPercent, abilityPercent: {} },
-  })
+  }
+}
+
+function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04Runtime): InitialAppState {
   if (typeof window === 'undefined') {
     const scenario = defaultScenario(builtInCreatures)
     return {
       scenario,
-      resources: defaultResources(scenario),
+      resources: defaultModel04Resources(scenario),
       savedCustoms: [],
       sharedCustoms: [],
       warning: '',
@@ -326,7 +333,7 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04R
       historyWarning: '',
     }
   }
-  const loaded = loadCustomCreatures(window.localStorage)
+  const loaded = model04Runtime ? model04Runtime.loadCustoms(window.localStorage) : loadCustomCreatures(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
   const decodedV4 = encoded && model04Runtime ? model04Runtime.decodeForUi(encoded) : null
   const decoded = encoded ? decodeScenarioPayload(encoded) : null
@@ -344,7 +351,7 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04R
   const unavailableSharedIds = decodedScenario
     ? [...new Set([decodedScenario.soloId, decodedScenario.groupId].filter((id) => !availableIds.has(id)))]
     : []
-  const loadedHistory = loadHistory(window.localStorage, creatures)
+  const loadedHistory = model04Runtime ? model04Runtime.loadHistory(window.localStorage, creatures) : loadHistory(window.localStorage, creatures)
   const shareWarning = decodedV4 && decodedV4.status !== 'current'
     ? 'This earlier share was migrated and will be recalculated under model 0.4.'
     : decoded && !decoded.ok
@@ -370,7 +377,7 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04R
     : ''
   return {
     scenario: mergeScenario(decodedScenario, creatures),
-    resources: decodedV4?.resources ?? defaultResources(decodedScenario ?? defaultScenario(creatures)),
+    resources: decodedV4?.resources ?? defaultModel04Resources(decodedScenario ?? defaultScenario(creatures)),
     savedCustoms: loaded.items,
     sharedCustoms,
     warning: [loaded.warning, shareWarning, collisionWarning, unavailableShareWarning].filter(Boolean).join(' '),
@@ -490,6 +497,8 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const group = creatures.find((item) => item.id === scenario.groupId) ?? creatures[1]
   const simulatedSolo = creatures.find((item) => item.id === simulatedScenario.soloId) ?? creatures[0]
   const simulatedGroup = creatures.find((item) => item.id === simulatedScenario.groupId) ?? creatures[1]
+  const soloResourceAbilities = model04Runtime.resourceAbilities(scenario.soloId)
+  const groupResourceAbilities = model04Runtime.resourceAbilities(scenario.groupId)
   const isDirty = JSON.stringify(scenario) !== JSON.stringify(simulatedScenario) || JSON.stringify(resources) !== JSON.stringify(simulatedResources)
 
   function update<K extends keyof Scenario>(key: K, value: Scenario[K]) {
@@ -525,7 +534,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       ? savedCustoms.map((saved, itemIndex) => itemIndex === index ? item : saved)
       : [...savedCustoms, item]
     try {
-      saveCustomCreatures(window.localStorage, nextItems)
+      model04Runtime.saveCustoms(window.localStorage, nextItems)
       setSavedCustoms(nextItems)
       if (editingCustom) selectCreature(editingCustom.side, item.creature.id)
       setEditingCustom(null)
@@ -540,7 +549,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     if (!window.confirm(`Delete the local custom profile “${creature.name}”? This cannot be recovered unless it was exported.`)) return
     const nextItems = savedCustoms.filter((item) => item.creature.id !== creature.id)
     try {
-      saveCustomCreatures(window.localStorage, nextItems)
+      model04Runtime.saveCustoms(window.localStorage, nextItems)
       setSavedCustoms(nextItems)
       setEditingCustom((current) => current?.item.creature.id === creature.id ? null : current)
       const defaults = defaultScenario(builtInCreatures)
@@ -571,7 +580,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
 
   function downloadCustom(creature: Creature) {
     try {
-      const payload = exportCustomCreature(customItemForExport(creature))
+      const payload = model04Runtime.exportCustom(customItemForExport(creature))
       const safeName = creature.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom-creature'
       downloadBlob(`${safeName}.what-would-win.json`, new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
       setCustomError('')
@@ -584,12 +593,12 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   async function importCustomFile(file: File) {
     try {
       if (file.size > 1_000_000) throw new Error('Custom profile imports must be smaller than 1 MB.')
-      const imported = importCustomCreature(await file.text())
+      const imported = model04Runtime.importCustom(await file.text())
       if (savedCustoms.some((item) => item.creature.id === imported.creature.id) || sharedCustoms.some((creature) => creature.id === imported.creature.id)) {
         throw new Error('A custom profile with this ID is already available. Delete it or import a differently identified export.')
       }
       const nextItems = [...savedCustoms, imported]
-      saveCustomCreatures(window.localStorage, nextItems)
+      model04Runtime.saveCustoms(window.localStorage, nextItems)
       setSavedCustoms(nextItems)
       selectCreature('solo', imported.creature.id)
       setCustomError('')
@@ -615,14 +624,14 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     const nextHistory = [nextItem, ...history].slice(0, MAX_HISTORY_ITEMS)
     setHistory(nextHistory)
     try {
-      saveHistoryStore(localStorage, nextHistory)
+      model04Runtime.saveHistory(localStorage, nextHistory, resources)
       setHistoryWarning('')
     } catch {
       setHistoryWarning('The simulation ran, but recent history could not be saved in this browser.')
     }
   }
 
-  function run(nextScenario = scenario, recordHistory = true, nextResources = resources): boolean {
+  function run(nextScenario = scenario, recordHistory = true, nextResources = resources): Model04RuntimeResult | null {
     try {
       const simulated = model04Runtime.simulate(nextScenario, nextResources, creatures)
       const nextResult = simulated.result
@@ -635,10 +644,10 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       setError('')
       setShareStatus('')
       if (recordHistory) saveHistory(nextScenario, nextResult)
-      return true
+      return simulated
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The simulation could not be completed.')
-      return false
+      return null
     }
   }
 
@@ -668,18 +677,26 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       setHistoryWarning('This history entry cannot be restored because a referenced profile is no longer available. Import the missing custom profile and try again.')
       return
     }
-    const restoredScenario = mergeScenario(item.scenario, creatures)
-    if (!run(restoredScenario, false)) return
+    const storedInputs = model04Runtime.historyInputs(localStorage, item.id)
+    const restoredScenario = mergeScenario(storedInputs?.scenario ?? item.scenario, creatures)
+    const restoredResources = storedInputs?.resources ?? defaultModel04Resources(restoredScenario)
+    const restoredRun = run(restoredScenario, false, restoredResources)
+    if (!restoredRun) return
     if (historyItemNeedsRecalculation(item)) {
-      const recalculated = recalculateHistoryItem({ ...item, scenario: restoredScenario }, creatures)
-      if (!recalculated) {
-        setHistoryWarning('The scenario was restored, but this history entry could not be refreshed under the current model.')
-        return
+      const recalculated: HistoryItem = {
+        ...item,
+        scenario: restoredScenario,
+        modelVersion: MODEL_VERSION,
+        dataVersion: DATA_VERSION,
+        winnerName: restoredRun.result.winnerName,
+        soloName: creatures.find((creature) => creature.id === restoredScenario.soloId)?.name ?? restoredScenario.soloId,
+        groupName: creatures.find((creature) => creature.id === restoredScenario.groupId)?.name ?? restoredScenario.groupId,
+        soloWinProbability: restoredRun.result.soloWinProbability,
       }
       const nextHistory = history.map((candidate) => candidate.id === item.id ? recalculated : candidate)
       setHistory(nextHistory)
       try {
-        saveHistoryStore(localStorage, nextHistory)
+        model04Runtime.saveHistory(localStorage, nextHistory, restoredResources)
         setHistoryWarning('This history entry was recalculated and saved under the current model and data versions.')
       } catch {
         setHistoryWarning('The scenario was recalculated, but the refreshed history entry could not be saved in this browser.')
@@ -1028,6 +1045,24 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                   <label className="field-stack"><span>Water depth (m)</span><input type="number" min="0" max="10000" step="0.1" value={scenario.waterDepthM} onChange={(event) => update('waterDepthM', Math.max(0, Number(event.target.value) || 0))} /></label>
                   <label className="field-stack"><span>Solo resources</span><input type="range" min="0" max="100" value={resources.solo.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, solo: { ...current.solo, defaultPercent: Number(event.target.value) } }))} /><small>{resources.solo.defaultPercent}% available; per-ability overrides inherit this value</small></label>
                   <label className="field-stack"><span>Group resources</span><input type="range" min="0" max="100" value={resources.group.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, group: { ...current.group, defaultPercent: Number(event.target.value) } }))} /><small>{resources.group.defaultPercent}% available; per-ability overrides inherit this value</small></label>
+                  {(soloResourceAbilities.length > 0 || groupResourceAbilities.length > 0) && (
+                    <details className="field-stack">
+                      <summary>Per-ability resource overrides</summary>
+                      <small>Only selected abilities are overridden; all others inherit their side default.</small>
+                      {soloResourceAbilities.map((ability) => (
+                        <label key={`solo-${ability.id}`} className="field-stack">
+                          <span>Solo · {ability.name}</span>
+                          <input type="range" min="0" max="100" value={resources.solo.abilityPercent[ability.id] ?? resources.solo.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, solo: { ...current.solo, abilityPercent: { ...current.solo.abilityPercent, [ability.id]: Number(event.target.value) } } }))} />
+                        </label>
+                      ))}
+                      {groupResourceAbilities.map((ability) => (
+                        <label key={`group-${ability.id}`} className="field-stack">
+                          <span>Group · {ability.name}</span>
+                          <input type="range" min="0" max="100" value={resources.group.abilityPercent[ability.id] ?? resources.group.defaultPercent} onChange={(event) => setResources((current) => ({ ...current, group: { ...current.group, abilityPercent: { ...current.group.abilityPercent, [ability.id]: Number(event.target.value) } } }))} />
+                        </label>
+                      ))}
+                    </details>
+                  )}
                   <label className="toggle-field"><input type="checkbox" checked={scenario.escapeAllowed} onChange={(event) => update('escapeAllowed', event.target.checked)} /><span><strong>Escape allowed</strong><small>Mobility can secure a retreat and expected losses fall.</small></span></label>
                 </div>
               </section>
@@ -1113,7 +1148,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
               className="text-button"
               onClick={() => {
                 try {
-                  localStorage.removeItem(HISTORY_KEY)
+                  model04Runtime.clearHistory(localStorage)
                   setHistory([])
                   setHistoryWarning('')
                 } catch {

@@ -260,24 +260,24 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.3.0, data 0.3.1 and share format v3**; the application version is **0.3.1**. Supported data-0.3.0/model-0.3.0 and model/data-0.2.0 shares and history preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result.
+The current reproducibility identity is **model 0.4.0, data 0.4.0 and share format v4**; the application version is **0.4.0**. Custom-creature and history storage use format **v2**. Supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result. `app/src/version.ts` exposes the active identity plus separately named frozen `LEGACY_*` constants; `app/src/model04/contracts.ts` independently locks the active model-0.4 contract.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
 ### 10.2 Pipeline
 
-1. Parse quantity, convert it to `log10(N)` and classify ordinary versus conceptual scale.
-2. Resolve each selected creature, user overrides and size declaration.
-3. Resolve target mass, linear scale, body length, height, reach, movement and structural integrity.
-4. Evaluate environment and water access using the resolved geometry and explicit amphibious/land-capable traits.
-5. Convert physical and normalized inputs into single-combatant log power.
-6. Apply bilateral stopping, attack access, distance and bounded pre-battle/methodology adjustments.
-7. Apply bounded-arena occupancy, then estimate active frontage, logarithmic reserve weight, effective group quantity, access pressure and bounded area control.
-8. Calculate deterministic solo/group log power and record each material adjustment in the applied-factor ledger.
+1. Decode or migrate the scenario, then resolve canonical/custom `CreatureV4` records and overrides.
+2. Parse quantity, convert it to `log10(N)` and classify ordinary versus conceptual scale.
+3. Resolve target mass, linear scale, body geometry, contact reach, movement and structural integrity.
+4. Evaluate environment and water access using resolved geometry and explicit locomotion profiles.
+5. Run the audited model-0.3 physical aggregate foundation without its legacy combined special multiplier.
+6. Apply bilateral stopping/access, bounded-arena occupancy, frontage, reserves and bounded area control.
+7. Resolve structured abilities bilaterally through delivery, range/area, conditions, counters, resources and channel modifiers.
+8. Calculate deterministic solo/group log power and record stable physical and `ability:*` factors, including inactive/rejected reasons.
 9. Run seeded Monte Carlo trials around those deterministic values.
 10. Reserve explicit probability weight for unmodelled uncertainty without a conceptual-threshold certainty jump.
-11. Calculate crossover quantity and ordinary-scale heuristic metrics; withhold physical duration/losses at conceptual scale.
-12. Generate the verdict and a factor-linked deterministic explanation.
+11. Calculate crossover quantity, selected deterministic sensitivity points and ordinary-scale heuristic metrics; withhold physical duration/losses at conceptual scale.
+12. Generate the verdict, technical record and factor-linked deterministic explanation. Neither prose nor sensitivity variants choose a competing winner.
 
 ### 10.3 Quantity representation
 
@@ -300,7 +300,7 @@ The resolved linear scale is:
 
 `L = cube_root(M / M0)`
 
-Body length, body height and reach scale approximately with `L`. Speed and structural integrity depend on the selected law. Model 0.3 resolves this geometry before terrain fit, water immersion, frontage and arena-occupancy checks, preventing a resized profile from retaining its baseline spatial treatment.
+Body length, body height and contact reach scale approximately with `L`. Ability range and area remain explicit ability properties rather than being folded into contact reach. Speed and structural integrity depend on the selected law. The active model retains model-0.3's geometry-before-environment/frontage/occupancy ordering.
 
 ### 10.5 Structural integrity
 
@@ -334,9 +334,9 @@ The current core terms are:
 
 `quality_term = log10(0.42 + 2.2 × attack_quality) + 0.7 × log10(0.5 + 1.75 × defence_quality)`
 
-`single_log_power = mass_term + quality_term + log10(environment) + log10(integrity) + log10(special)`
+`single_log_power = physical_mass_and_quality + environment + integrity + bounded physical matchup adjustments + structured ability log deltas`
 
-The `special` factor covers venom, regeneration, area effects, armour, construct/undead resistance and other declared capabilities. Range, resources and access also receive explicit matchup handling. All such contributions are deliberately bounded. The former `+0.02 kg` mass offset was removed in model 0.3 because it disproportionately strengthened micro-scale profiles.
+Model 0.4 removes the legacy combined `special` multiplier from the active path. Venom, regeneration, area effects, gaze/auditory/environmental delivery and other declared capabilities resolve as structured abilities with stable factor IDs, explicit access, conditions, counters, resource supply and attack/defence channels. All contributions remain bounded. The model-0.3 removal of the former `+0.02 kg` mass offset remains part of the physical foundation.
 
 ### 10.8 Group aggregation
 
@@ -357,11 +357,12 @@ Active frontage and reserve weighting make contact saturation inspectable while 
 The deterministic layer also applies:
 
 - **Bilateral stopping:** both sides must overcome protection and a separately bounded body-mass stopping barrier; relevant delivery mechanisms can bypass part, but not all, of that resistance.
-- **Attack access:** flight, medium mismatch, starting distance, range and resources change each side's opportunity to deliver an effective attack.
+- **Attack access:** locomotion/medium mismatch, starting distance, contact reach and each ability's delivery/range/area change opportunity to deliver an effective attack.
 - **Access ceiling:** where a group lacks credible access, additional reserves do not create new attack opportunities by themselves.
 - **Solo area control:** multi-target score, mass ratio and area-effect traits add bounded resistance to effective group pressure.
 - **Frontage and reserves:** contact geometry limits the active front, while coordination, doctrine and casualty tolerance affect the rate at which reserves sustain pressure.
-- **Range and closing:** ranged contribution and remaining-resource effects are continuous; slow melee profiles pay a bounded closing cost.
+- **Resources and channels:** solo/group resource defaults and per-ability overrides scale supply; conditions, counters and physiology/sense/channel modifiers can activate, reduce or reject an ability.
+- **Range and closing:** contact reach is separate from ability range/area; slow contact profiles pay a bounded closing cost.
 - **Environment:** habitat match, explicit land/amphibious capability, resized geometry, terrain, weather and time of day affect each side separately.
 - **Preparation, ambush and defence:** intelligent profiles convert preparation into a capped advantage.
 - **Escape:** a small advantage goes to the more mobile side and expected losses decline in open arenas.
@@ -386,7 +387,7 @@ where `C` is:
 - `0.86` for other non-fantasy pairings;
 - `0.88` when fantasy is present.
 
-Crossing the conceptual-quantity threshold does not change `C`; model 0.3 removes the former discontinuous jump toward certainty. Conceptual results instead use a wider model-sensitivity floor and an applicability warning. This “epistemic compression” is visible in the assumptions and technical record. Future versions should replace fixed values with uncertainty distributions tied to each field and archetype.
+Crossing the conceptual-quantity threshold does not change `C`; the active model retains model-0.3's removal of the former discontinuous jump toward certainty. Conceptual results instead use a wider model-sensitivity floor and an applicability warning. This “epistemic compression” is visible in the assumptions and technical record. Future versions should replace fixed values with uncertainty distributions tied to each field and archetype.
 
 ### 10.11 Probability band
 
@@ -406,6 +407,10 @@ Every material deterministic adjustment is recorded with a stable factor ID, pha
 
 This sequence is a deterministic explanation of the calculated state. It is not a sampled Monte Carlo event timeline, a frame-by-frame battle simulation or an anatomy model, and it cannot change the winner independently.
 
+### 10.15 Deterministic sensitivity points
+
+Model 0.4 reports selected deterministic perturbations, including resource and distance cases, to show how assumptions influence the same authoritative calculation. A sensitivity point records the varied input and numerical movement but deliberately does not publish a second winner. This is focused scenario analysis, not a global field-level uncertainty distribution.
+
 ## 11. Data strategy
 
 ### 11.1 Prototype database composition
@@ -417,7 +422,7 @@ The 134-profile roster is selected for **scenario value**, not taxonomic complet
 - 37 generic or public-domain fantasy/mythology profiles, including 8 fixed cryptid interpretations, covering giants, dragons, regeneration, constructs, undead, magic and colossal aquatic profiles;
 - 4 generic humans covering unarmed, trained, armoured melee and ranged archetypes.
 
-The selection intentionally maximizes mechanics coverage: body mass, armour, speed, reach, flight, aquatic movement, range, venom, regeneration, coordination, area control and unusual scale. Data 0.3 adds explicit `amphibious` and `land-capable` traits for profiles whose dry-land access cannot be inferred safely from the broad aquatic capability flag. Positive water depth can flood nominally land terrain; access is derived from depth relative to each resized body rather than the terrain label alone.
+The selection intentionally maximizes mechanics coverage: body mass, armour, speed, contact reach, locomotion, ability delivery/range/area, senses, venom, regeneration, coordination, area control and unusual scale. Data 0.4 is the canonical structured migration of all 134 profiles. It gives each profile explicit physiology, senses, locomotion, channel modifiers and abilities while retaining traceable migration artifacts from the audited data-0.3.1 records.
 
 ### 11.2 Peak-adult convention
 
@@ -425,7 +430,7 @@ Each real profile represents a large, healthy, combat-capable adult. It is not t
 
 ### 11.3 Physical fields versus model scores
 
-**Physical or semi-physical fields:** representative peak mass, body length, body/shoulder height, burst speed and effective reach.
+**Physical or semi-physical fields:** representative peak mass, body length, body/shoulder height, burst speed and contact reach. Ability range and area are separate declared capability inputs.
 
 **Normalized model scores:** attack, defence, durability, agility, stamina, intelligence, aggression, coordination, morale, armour and multi-target capability.
 
@@ -469,7 +474,7 @@ Fantasy profiles use `data_confidence: modelled` and must expose their design as
 | `body_length_m` | number | Approximate body length |
 | `shoulder_or_body_height_m` | number | Approximate principal height |
 | `burst_speed_kph` | number | Short-duration movement speed |
-| `effective_reach_m` | number | Contact or built-in ranged reach abstraction |
+| `contact_reach_m` | number | Physical contact reach; kept separate from ability range |
 | `attack` | 0–100 | Ability to inflict decisive harm per opportunity |
 | `defense` | 0–100 | Avoidance, blocking and positional defence |
 | `durability` | 0–100 | Ability to continue after adverse contact |
@@ -482,15 +487,19 @@ Fantasy profiles use `data_confidence: modelled` and must expose their design as
 | `armor` | 0–100 | Passive physical protection |
 | `multi_target` | 0–100 | Ability to control or affect multiple opponents |
 | `habitats` | string array | Environment matching tags |
-| `attack_modes` | string array | Mechanically relevant attacks |
-| `traits` | string array | Capabilities and archetype tags |
-| capability booleans | boolean | Flight, aquatic, venom, range, regeneration and construct/undead |
+| `attack_modes` | string array | Legacy/audit attack classification retained for migration and description |
+| `traits` | string array | Legacy/audit archetype tags retained for migration and description |
+| `physiology` | enum | Living, undead, construct, spirit, environmental hazard or migrated legacy nonliving |
+| `senses` | object | Vision, hearing, smell, echolocation and supernatural-perception profile |
+| `locomotion` | object | Land, flight, aquatic and amphibious access profile |
+| `channelModifiers` | object | Explicit attack/defence channel adjustments |
+| `abilities` | array | Structured delivery, effects, range/area, activation, conditions, counters and resource contract |
 | `data_confidence` | enum | `high`, `medium`, `low`, `modelled` |
 | `source_label` | string | Provenance warning or source description |
 | `source_url` | URL | Orientation reference |
 | `model_notes` | string | Assumptions and cautions |
 
-Machine-readable constraints are provided in `data/creature.schema.json` and `data/scenario.schema.json`.
+Legacy machine-readable constraints remain in `data/creature.schema.json` and `data/scenario.schema.json`; the active model-0.4 TypeScript contracts and canonical migration live under `app/src/model04/`. A `ScenarioV4` additionally carries `soloResources` and `groupResources`, each with a default percentage and optional per-ability overrides.
 
 ## 13. Content, safety and trust boundaries
 
@@ -540,6 +549,7 @@ what-would-win-handoff/
 │   ├── src/
 │   │   ├── components/          UI panels and result report
 │   │   ├── data/                bundled creature and test JSON
+│   │   ├── model04/             active contracts, migration, ability kernel, engine and persistence
 │   │   ├── simulation/          quantity, PRNG, engine and share codec
 │   │   ├── test/                Vitest regression tests
 │   │   ├── App.tsx
@@ -557,8 +567,12 @@ what-would-win-handoff/
 
 - `simulation/quantity.ts` parses arbitrary quantities and formats log quantities.
 - `simulation/random.ts` supplies deterministic hashing, seeded PRNG and normal sampling.
-- `simulation/engine.ts` resolves profiles, calculates deterministic power, runs trials and builds reports.
-- `simulation/share.ts` serializes and restores scenarios in URLs.
+- `model04/contracts.ts` declares the active versioned creature, scenario, ability and storage contracts.
+- `model04/abilityKernel.ts` resolves bilateral ability access, conditions, counters, resources and channels.
+- `model04/engineV4.ts` combines the retained physical aggregate foundation with structured ability factors and sensitivity points.
+- `model04/runtime.ts` bridges model 0.4 into the application and legacy result presentation.
+- `model04/persistence.ts` owns v4 sharing and v2 custom/history storage and recovery.
+- `simulation/engine.ts`, `simulation/share.ts` and `version.ts` remain the audited model-0.3 foundation and migration path; they are not the active release identity.
 - `components/CreaturePanel.tsx` handles profile, size and simple controls.
 - `components/StatControls.tsx` renders normalized stat inputs.
 - `components/ResultPanel.tsx` renders depth-sensitive output.
@@ -571,7 +585,7 @@ A backend becomes justified when the product adds public galleries, moderated up
 
 ### 14.5 Performance targets
 
-- Initial compressed JavaScript under 150 kB where practical, with raw CI ceilings of 580 kB JavaScript and 700 kB total deployable content. Record observed model-0.3 build sizes in `docs/QA_REPORT.md` after the final production build.
+- Initial compressed JavaScript under 150 kB where practical. Model-0.4 CI uses component budgets for entry, optional UI and model runtime plus total JavaScript, roster, CSS, total payload and social image; record exact current ceilings and observations in `docs/QA_REPORT.md` after the final production build.
 - First result interaction under 100 ms on a recent desktop and under 300 ms on a typical mobile device for 15,000 trials.
 - No main-thread allocation proportional to group quantity.
 - Largest Contentful Paint under 2.5 seconds on a normal 4G connection after hosting compression and cache headers.
@@ -585,7 +599,10 @@ cd app
 npm ci
 npm run test
 npm run typecheck
+npm run test:simulation-budget
 npm run build
+node scripts/check-build-budgets.mjs
+node scripts/check-static-subpath.mjs
 ```
 
 Upload the contents of `app/dist/` to the intended document root or subdirectory. The Vite configuration uses relative asset paths, so the build works in a subdirectory as well as the domain root.
@@ -646,6 +663,12 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 - technical trial-count selection;
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
+- model-0.4 migration artifacts for all 134 canonical profiles;
+- structured bilateral ability access, delivery, conditions, counters, physiology/senses, resources and channel modifiers;
+- stable applied/rejected ability factors, regeneration/revival and environmental-hazard cases;
+- deterministic sensitivity points that do not publish a competing winner;
+- v4 share migration plus v2 custom/history persistence and corrupt/incompatible recovery;
+- component build budgets and static `/apps/what-would-win/` reference validation.
 
 The fixtures are behavioural calibration bands, not assertions of objective biological truth.
 
@@ -655,6 +678,7 @@ The fixtures are behavioural calibration bands, not assertions of objective biol
 - property-based scenario/share-codec tests across valid field combinations;
 - broader property-based sensitivity and metamorphic tests across valid field combinations and archetypes;
 - migration fixtures for every future model/data/share version change;
+- a completed model-0.4 production browser matrix; historical model-0.3 browser results are not current release evidence;
 - manual NVDA/VoiceOver and physical Safari/iOS checks;
 - deployment smoke tests from the intended `samfa12.com` subpath.
 
@@ -708,7 +732,17 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 - 16 calibration fixtures plus extreme-scale and metamorphic invariants;
 - model-0.2 share/history input migration with visible recalculation under model 0.3 and honest pending states for unavailable custom references.
 
-### Phase 1C — trustworthy beta (next)
+### Phase 1C — model 0.4 structured abilities (delivered)
+
+- canonical `CreatureV4` and `ScenarioV4` contracts for all 134 profiles;
+- contact reach separated from ability range and area;
+- explicit physiology, senses, locomotion, channel modifiers and structured abilities;
+- bilateral ability access, conditions, counters and stable applied/rejected technical factors;
+- separate solo/group resource defaults with per-ability overrides;
+- deterministic sensitivity points without a competing winner;
+- v4 share codec and v2 custom/history persistence with supported legacy migrations and recovery.
+
+### Phase 1D — trustworthy beta (next)
 
 - complete expert-reviewed per-field provenance, licences and cultural-sensitivity review;
 - improve archetype-specific allometry, contact saturation and group exponents;
@@ -755,6 +789,10 @@ The engine/data audit, resized environment geometry, explicit land/amphibious tr
 
 The Stage A semantic cleanup defines a controlled built-in mechanics vocabulary, distinguishes mechanical and descriptive tags, gates releases with stable semantic diagnostics, corrects the ranged classification of Stegosaurus, Cyclops, Hill giant and Phoenix, and preserves earlier v3, v2, v1 and unversioned migration paths. All 16 calibration fixtures are exactly unchanged. The decision record is `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`.
 
+### Delivered in model/data 0.4
+
+The active release migrates all 134 profiles into explicit physiology, senses, locomotion, contact reach, channel modifiers and structured abilities. It replaces the legacy combined special multiplier and shared resource input with bilateral ability resolution and side/per-ability resources, adds stable technical factors and deterministic sensitivity points, and versions sharing/custom/history as v4/v2/v2. The model-0.3 physical audit and data-0.3.1 semantic audit remain historical foundation records.
+
 ### P0 — user-test and deployment preparation
 
 1. Run manual exploratory tests, NVDA/VoiceOver checks and physical Safari/iOS tests.
@@ -778,7 +816,7 @@ The Stage A semantic cleanup defines a controlled built-in mechanics vocabulary,
 2. Replace global strict-scaling logic with locomotor archetype functions.
 3. Replace the current single-front heuristic with archetype-specific, multi-front and three-dimensional contact models.
 4. Model incapacitation thresholds and rate limits separately from aggregate power.
-5. Add global sensitivity analysis and display the top uncertain inputs.
+5. Extend the delivered selected deterministic sensitivity points into field-level uncertainty and global sensitivity analysis.
 6. Evaluate whether probability compression should emerge from field-level distributions rather than fixed coefficients.
 
 ## 21. Risks and mitigations
@@ -824,14 +862,14 @@ These references justify the use of size-aware modelling, structured trait data 
 
 ## 24. Definition of done for the next Codex session
 
-The next session should begin by running the existing tests and reading `docs/CODEX_HANDOFF.md`. A successful user-test preparation iteration should:
+The next session should begin by running the model-0.4 verification gates and reading `docs/CODEX_HANDOFF.md`. A successful user-test preparation iteration should:
 
-1. preserve all current passing tests;
-2. run manual exploratory, NVDA/VoiceOver and physical Safari/iOS checks;
-3. expand expert-reviewed scientific provenance while preserving the completed data/licence audit;
-4. complete cultural-sensitivity review for living-tradition cryptid composites;
-5. validate the production build from the intended `samfa12.com` subpath;
-6. collect structured feedback before changing calibration coefficients.
+1. preserve the 166-test unit/audit baseline, typecheck, simulation budget, build budgets and static-subpath check;
+2. complete and record the model-0.4 production browser matrix;
+3. run manual exploratory, real NVDA/VoiceOver and physical Safari/iOS checks;
+4. validate the exact tested production build from the intended `samfa12.com/apps/what-would-win/` subpath;
+5. review structured-ability migrations and expand expert scientific/cultural provenance; and
+6. collect structured feedback before changing calibration coefficients or ability magnitudes.
 
 ## Appendix A. Delivered artifact inventory
 
@@ -845,12 +883,14 @@ The next session should begin by running the existing tests and reading `docs/CO
 | Calibration fixtures | `data/test_scenarios.json` / `.csv` | Behavioural acceptance bands |
 | Full product plan | `docs/What_Would_Win_Product_Plan.md` | Canonical product, model, data and roadmap specification |
 | Model 0.3 audit | `docs/MODEL_AUDIT_0.3.md` | Audit findings, corrections, calibration coverage and remaining risks |
+| Active model 0.4 contract | `app/src/model04/` | Structured contracts, canonical migration, ability kernel, engine, runtime and persistence |
+| Model 0.4 tests | `app/src/test/model04*.test.ts` | Migration, abilities, resources, persistence, sensitivity and recovery coverage |
 | Codex handoff | `docs/CODEX_HANDOFF.md` | Continuation instructions and paste-ready prompt |
 | Data dictionary | `data/DATA_DICTIONARY.md` | Field semantics and editing rules |
 | QA report | `docs/QA_REPORT.md` | Build, test and visual-check status |
 | Maintenance scripts | `scripts/` | Data generation and Git-index checksum utilities |
 
-## Appendix B. Model 0.3 calibration guardrails
+## Appendix B. Historical model 0.3 calibration guardrails retained by model 0.4
 
 The canonical suite contains 16 deterministic seeded scenarios. Acceptance bands and purposes live in `data/test_scenarios.json` and are summarized in `docs/MODEL_AUDIT_0.3.md`; final command counts and aggregate calibration status belong in `docs/QA_REPORT.md`.
 
@@ -862,8 +902,9 @@ These are regression observations and behavioural guardrails, not declarations o
 
 - [x] Confirm code and data licences.
 - [x] Add model and data version constants.
-- [x] Run schema validation, tests, typecheck and production build.
-- Complete keyboard, axe, VoiceOver/NVDA, Safari iOS and Firefox checks.
+- [x] Run schema/model-0.4 contract validation, unit tests, typecheck, simulation budget and production build.
+- [x] Run model-0.4 build-budget and static-subpath artifact checks.
+- Complete the current production browser matrix; then complete real VoiceOver/NVDA and physical Safari/iOS checks.
 - Replace or strengthen provenance for the most frequently used profiles.
 - Add privacy, methodology and contact/reporting pages.
 - Add Open Graph metadata and a default social preview.

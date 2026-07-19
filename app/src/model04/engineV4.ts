@@ -216,7 +216,7 @@ export function resolveModel04Deterministic(creatures: CreatureV4Draft[], scenar
   const groupProfile = profileMap.get(scenario.groupId)
   if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown model 0.4 profile.')
   const quantity = parseQuantity(scenario.groupQuantity)
-  if (!quantity.valid) throw new Error('Enter a valid whole-number quantity.')
+  if (!quantity.valid) throw new Error('Enter a whole-number quantity, scientific notation such as 1e100, or 10^100.')
 
   const physicalScenario = toPhysicalScenarioV3(scenario)
   const physicalCreatures = creatures.map(toPhysicalV3)
@@ -321,6 +321,7 @@ function simulateCore(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): 
       probabilityStandardError: sampled.probabilityStandardError,
       rawSoloTrialRate: sampled.rawSoloTrialRate,
       epistemicCompression: sampled.epistemicCompression,
+      trialCount: TRIALS_BY_DEPTH[scenario.reportDepth],
     },
   }
   return { result, abilityResolutions: deterministic.abilityKernel.resolutions }

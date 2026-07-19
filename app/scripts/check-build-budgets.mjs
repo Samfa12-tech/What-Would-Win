@@ -10,11 +10,12 @@ const budgets = {
   // A split must reduce the eager path; moving bytes between chunks cannot conceal
   // growth in total JavaScript or in the complete published artifact.
   entryJavascript: 455_000,
-  lazyJavascript: 15_000,
-  javascript: 480_000,
+  optionalUiJavascript: 15_000,
+  model04RuntimeJavascript: 52_000,
+  javascript: 525_000,
   creatureRoster: 125_000,
-  css: 25_000,
-  total: 715_000,
+  css: 25_100,
+  total: 772_000,
   socialImage: 300_000,
 }
 
@@ -51,6 +52,10 @@ const entryJavascript = sizes
   .filter((file) => entryFiles.has(relative(distRoot, file.path).replaceAll('\\', '/')))
   .reduce((sum, file) => sum + file.bytes, 0)
 const lazyJavascript = javascript - entryJavascript
+const model04RuntimeFiles = sizes.filter((file) => /dist[\\/]assets[\\/]runtime-[^\\/]+\.js$/.test(relative(appRoot, file.path)))
+if (model04RuntimeFiles.length !== 1) throw new Error(`Expected one lazy model 0.4 runtime chunk, found ${model04RuntimeFiles.length}.`)
+const model04RuntimeJavascript = model04RuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
+const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript
 const rosterFiles = sizes.filter((file) => /dist[\\/]assets[\\/]creatures-[^\\/]+\.json$/.test(relative(appRoot, file.path)))
 const creatureRoster = rosterFiles.reduce((sum, file) => sum + file.bytes, 0)
 const css = sizes.filter((file) => file.path.endsWith('.css')).reduce((sum, file) => sum + file.bytes, 0)
@@ -69,7 +74,7 @@ if (entrySources.some((source) => source.includes('African bush elephant'))) {
   throw new Error('The built-in creature payload was found inside the entry JavaScript bundle.')
 }
 
-const measurements = { entryJavascript, lazyJavascript, javascript, creatureRoster, css, total, socialImage }
+const measurements = { entryJavascript, optionalUiJavascript, model04RuntimeJavascript, javascript, creatureRoster, css, total, socialImage }
 let failed = false
 for (const [name, bytes] of Object.entries(measurements)) {
   const limit = budgets[name]

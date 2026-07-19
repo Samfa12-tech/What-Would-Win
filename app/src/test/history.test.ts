@@ -8,7 +8,7 @@ import {
 } from '../App'
 import { defaultScenario, simulate } from '../simulation/engine'
 import type { Creature } from '../types'
-import { DATA_VERSION, MODEL_VERSION } from '../version'
+import { LEGACY_DATA_VERSION as DATA_VERSION, LEGACY_MODEL_VERSION as MODEL_VERSION } from '../version'
 
 const creatures = creaturesJson as Creature[]
 

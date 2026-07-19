@@ -118,6 +118,22 @@ describe('parallel model 0.4 persistence and codecs', () => {
     expect(decodeModel04Scenario('5.e30')).toMatchObject({ ok: false, reason: 'incompatible' })
   })
 
+  test('rejects unsupported ability kinds and unknown structured fields', () => {
+    const saved = cloneAsCustom(creatures[0], 'custom:invalid-v4')
+    const profile = migrateCreatureV3ToV4Draft(saved.creature, 'custom-v1')
+    const payload = payloadV4()
+    payload.scenario.soloId = profile.id
+    payload.customCreatures = [profile]
+
+    const unsupportedKind = structuredClone(payload) as unknown as { customCreatures: Array<{ abilities: Array<{ kind: string }> }> }
+    unsupportedKind.customCreatures[0].abilities[0].kind = 'teleport-strike'
+    expect(() => encodeModel04Scenario(unsupportedKind as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete model 0.4 custom profiles')
+
+    const unknownField = structuredClone(payload) as unknown as { customCreatures: Array<Record<string, unknown>> }
+    unknownField.customCreatures[0].unreviewedPower = 100
+    expect(() => encodeModel04Scenario(unknownField as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete model 0.4 custom profiles')
+  })
+
   test('writes a v2 custom recovery copy without changing v1 bytes', () => {
     const storage = new MemoryStorage()
     const saved = cloneAsCustom(creatures[1], 'custom:stored-v1', '2026-07-19T00:00:00.000Z')

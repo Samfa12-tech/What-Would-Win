@@ -83,3 +83,40 @@ test('technical ledger and conceptual results have no serious axe violations', a
   await expect(page.getByRole('heading', { name: 'Conceptual briefing' })).toBeVisible()
   await expectNoSeriousAxeViolations(page)
 })
+
+test('reflow and user text spacing keep controls readable without horizontal page overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 })
+  await page.addStyleTag({ content: `
+    * { letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
+    p, li, label, button, input, select, textarea { line-height: 1.5 !important; }
+    p { margin-bottom: 2em !important; }
+  ` })
+
+  await expect(page.getByRole('button', { name: 'Run simulation' })).toBeVisible()
+  await expect(page.getByTestId('solo-creature-select')).toBeVisible()
+  const overflow = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    pageWidth: document.documentElement.scrollWidth,
+  }))
+  expect(overflow.pageWidth).toBeLessThanOrEqual(overflow.viewportWidth + 1)
+  await expectNoSeriousAxeViolations(page)
+})
+
+test('forced-colour mode and the accessibility tree retain the core workflow', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' })
+  const runButton = page.getByRole('button', { name: 'Run simulation' })
+  await expect(runButton).toBeVisible()
+  await expect(runButton).toBeEnabled()
+  await runButton.focus()
+  const focus = await runButton.evaluate((button) => {
+    const style = getComputedStyle(button)
+    return `${style.outlineStyle} ${style.outlineWidth}`
+  })
+  expect(focus).not.toMatch(/^none\s+0px$/)
+
+  const aria = await page.locator('main').ariaSnapshot()
+  expect(aria).toContain('heading "The one"')
+  expect(aria).toContain('heading "The many"')
+  expect(aria).toContain('button "Run simulation"')
+  await expectNoSeriousAxeViolations(page)
+})

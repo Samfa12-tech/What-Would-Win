@@ -18,6 +18,7 @@
     "test:simulation-budget": "vitest run src/test/performance.test.ts",
     "test:e2e": "npm run build && playwright test",
     "test:e2e:headed": "npm run build && playwright test --headed",
+    "test:static-subpath": "npm run build && node scripts/check-static-subpath.mjs",
     "test:all": "npm run test && npm run test:e2e",
     "typecheck": "tsc -b --pretty false"
   },

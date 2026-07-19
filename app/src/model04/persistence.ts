@@ -6,7 +6,7 @@ import {
 } from '../customCreatures'
 import { decodeScenarioPayload, MAX_ENCODED_SCENARIO_LENGTH } from '../simulation/share'
 import type { CustomCreature } from '../types'
-import { validateScenario } from '../validation'
+import { validateCreature, validateScenario } from '../validation'
 import {
   MODEL_04_CUSTOM_STORAGE_VERSION,
   MODEL_04_DATA_VERSION,
@@ -79,6 +79,86 @@ function validSideResources(value: unknown): boolean {
   ))
 }
 
+const abilityKinds = new Set(['attack', 'restraint', 'regeneration', 'resurrection', 'healing', 'mobility', 'aura', 'hazard', 'summon'])
+const deliveries = new Set(['contact', 'ranged', 'area', 'gaze', 'auditory', 'self', 'environmental'])
+const effectKinds = new Set(['harm', 'restraint', 'healing', 'regeneration', 'revival', 'mobility', 'morale'])
+const channels = new Set([
+  'physical', 'physical-blunt', 'physical-piercing', 'physical-slashing', 'physical-crushing',
+  'fire', 'cold', 'electric', 'venom', 'disease', 'petrification', 'hypnosis', 'fear',
+  'psychic', 'sonic', 'magic', 'incorporeal', 'restraint', 'healing', 'regeneration',
+  'revival', 'mobility',
+])
+const physiologies = new Set(['living', 'undead', 'construct', 'spirit', 'environmental-hazard', 'legacy-nonliving'])
+const senseKeys = ['vision', 'hearing', 'smell', 'echolocation', 'supernaturalPerception'] as const
+
+function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const allowed = new Set(keys)
+  return Object.keys(value).every((key) => allowed.has(key))
+}
+
+function finiteRange(value: unknown, minimum: number, maximum: number, exclusiveMinimum = false): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && (exclusiveMinimum ? value > minimum : value >= minimum) && value <= maximum
+}
+
+function uniqueStrings(value: unknown, allowed?: ReadonlySet<string>, minimum = 0): value is string[] {
+  return Array.isArray(value) && value.length >= minimum
+    && value.every((item) => typeof item === 'string' && item.length > 0 && item.length <= 80 && (!allowed || allowed.has(item)))
+    && new Set(value).size === value.length
+}
+
+function validAbilityCondition(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyKeys(value, [
+    'requiresLineOfSight', 'requiresFacing', 'minimumDistanceM', 'maximumDistanceM',
+    'minimumTargetMassKg', 'maximumTargetMassKg', 'terrains', 'forbiddenWeather',
+    'timeOfDay', 'targetPhysiology', 'requiredTargetSenses',
+  ])) return false
+  if ('requiresLineOfSight' in value && typeof value.requiresLineOfSight !== 'boolean') return false
+  if ('requiresFacing' in value && typeof value.requiresFacing !== 'boolean') return false
+  for (const key of ['minimumDistanceM', 'maximumDistanceM'] as const) {
+    if (key in value && !finiteRange(value[key], 0, 1e7)) return false
+  }
+  for (const key of ['minimumTargetMassKg', 'maximumTargetMassKg'] as const) {
+    if (key in value && !finiteRange(value[key], 0, 1e12, true)) return false
+  }
+  if ('terrains' in value && !uniqueStrings(value.terrains)) return false
+  if ('forbiddenWeather' in value && !uniqueStrings(value.forbiddenWeather)) return false
+  if ('timeOfDay' in value && !uniqueStrings(value.timeOfDay, new Set(['day', 'night']), 1)) return false
+  if ('targetPhysiology' in value && !uniqueStrings(value.targetPhysiology, physiologies)) return false
+  if ('requiredTargetSenses' in value && !uniqueStrings(value.requiredTargetSenses, new Set(senseKeys))) return false
+  return true
+}
+
+function validAbility(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyKeys(value, [
+    'id', 'name', 'kind', 'delivery', 'effects', 'rangeM', 'areaRadiusM', 'targetLimit',
+    'activationRate', 'conditions', 'counteredBy', 'resource', 'notes', 'legacyGenerated',
+  ])) return false
+  if (typeof value.id !== 'string' || value.id.length > 80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.id)) return false
+  if (typeof value.name !== 'string' || value.name.length < 1 || value.name.length > 100) return false
+  if (typeof value.kind !== 'string' || !abilityKinds.has(value.kind)) return false
+  if (typeof value.delivery !== 'string' || !deliveries.has(value.delivery)) return false
+  if (!Array.isArray(value.effects) || value.effects.length < 1 || value.effects.length > 8 || !value.effects.every((effect) => {
+    if (!isRecord(effect) || !hasOnlyKeys(effect, ['kind', 'channel', 'potency', 'targetModifier'])) return false
+    return typeof effect.kind === 'string' && effectKinds.has(effect.kind)
+      && typeof effect.channel === 'string' && channels.has(effect.channel)
+      && finiteRange(effect.potency, 0, 100)
+      && (!('targetModifier' in effect) || finiteRange(effect.targetModifier, 0, 4))
+  })) return false
+  if ('rangeM' in value && !finiteRange(value.rangeM, 0, 1e7)) return false
+  if ('areaRadiusM' in value && !finiteRange(value.areaRadiusM, 0, 1e7, true)) return false
+  if ('targetLimit' in value && !['single', 'frontage', 'area'].includes(String(value.targetLimit))) return false
+  if (!finiteRange(value.activationRate, 0, 1)) return false
+  if ('conditions' in value && !validAbilityCondition(value.conditions)) return false
+  if ('counteredBy' in value && !uniqueStrings(value.counteredBy, channels)) return false
+  if (!isRecord(value.resource) || !hasOnlyKeys(value.resource, ['pool', 'capacity', 'rechargeSeconds'])) return false
+  if (!['none', 'side-default', 'ability'].includes(String(value.resource.pool))) return false
+  if ('capacity' in value.resource && !finiteRange(value.resource.capacity, 0, 1e12, true)) return false
+  if ('rechargeSeconds' in value.resource && !finiteRange(value.resource.rechargeSeconds, 0, 1e9)) return false
+  if (typeof value.notes !== 'string' || value.notes.length < 1 || value.notes.length > 2000) return false
+  if ('legacyGenerated' in value && typeof value.legacyGenerated !== 'boolean') return false
+  return true
+}
+
 export function isScenarioV4Draft(value: unknown): value is ScenarioV4Draft {
   if (!isRecord(value) || value.schemaVersion !== 4) return false
   if (!validSideResources(value.soloResources) || !validSideResources(value.groupResources)) return false
@@ -99,14 +179,41 @@ export function isCreatureV4Draft(value: unknown): value is CreatureV4Draft {
   if (!isRecord(value) || value.schemaVersion !== 4 || typeof value.id !== 'string') return false
   if ('effective_reach_m' in value || 'ranged' in value || 'undead_or_construct' in value) return false
   if (typeof value.contact_reach_m !== 'number' || !Number.isFinite(value.contact_reach_m) || value.contact_reach_m <= 0) return false
-  if (!Array.isArray(value.abilities) || !isRecord(value.senses) || !isRecord(value.locomotion) || !isRecord(value.migration)) return false
+  if (!Array.isArray(value.abilities) || value.abilities.length < 1 || value.abilities.length > 64 || !isRecord(value.senses) || !isRecord(value.locomotion) || !isRecord(value.migration)) return false
+  const senses = value.senses
+  const locomotion = value.locomotion
+  if (!physiologies.has(String(value.physiology))) return false
+  if (!hasOnlyKeys(senses, senseKeys) || !senseKeys.every((key) => typeof senses[key] === 'boolean')) return false
+  if (!hasOnlyKeys(locomotion, ['flight', 'aquatic', 'amphibious', 'land']) || !['flight', 'aquatic', 'amphibious', 'land'].every((key) => typeof locomotion[key] === 'boolean')) return false
+  if (!isRecord(value.channelModifiers) || !Object.entries(value.channelModifiers).every(([channel, modifier]) => channels.has(channel) && finiteRange(modifier, 0, 4))) return false
+  if (!hasOnlyKeys(value.migration, ['sourceModel', 'sourceData', 'reviewRequired', 'notes'])
+    || value.migration.sourceModel !== '0.3.0'
+    || !['0.3.0', '0.3.1', 'custom-v1'].includes(String(value.migration.sourceData))
+    || typeof value.migration.reviewRequired !== 'boolean'
+    || !Array.isArray(value.migration.notes)
+    || value.migration.notes.length < 1
+    || value.migration.notes.some((note) => typeof note !== 'string' || note.length < 1 || note.length > 500)
+    || new Set(value.migration.notes).size !== value.migration.notes.length) return false
   const abilityIds = new Set<string>()
   for (const ability of value.abilities) {
-    if (!isRecord(ability) || typeof ability.id !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ability.id) || abilityIds.has(ability.id)) return false
-    if (!Array.isArray(ability.effects) || !isRecord(ability.resource)) return false
+    if (!validAbility(ability) || abilityIds.has(ability.id)) return false
     abilityIds.add(ability.id)
   }
-  return true
+  const {
+    schemaVersion: _schema, contact_reach_m, physiology: _physiology, senses: _senses, locomotion: _locomotion,
+    channelModifiers: _modifiers, abilities, migration: _migration, ...legacyFields
+  } = value
+  const typedAbilities = abilities as CreatureV4Draft['abilities']
+  return validateCreature({
+    ...legacyFields,
+    effective_reach_m: contact_reach_m,
+    can_fly: locomotion.flight,
+    aquatic: locomotion.aquatic,
+    venomous: typedAbilities.some((ability) => ability.effects.some((effect) => effect.channel === 'venom')),
+    ranged: typedAbilities.some((ability) => ['ranged', 'area', 'gaze', 'auditory'].includes(ability.delivery)),
+    regenerates: typedAbilities.some((ability) => ability.effects.some((effect) => effect.kind === 'regeneration')),
+    undead_or_construct: value.physiology !== 'living',
+  }).valid
 }
 
 function validateSavedV2(value: unknown): SavedCustomCreatureV2 | null {

@@ -23,6 +23,7 @@ function side(creature: CreatureV4Draft, targetQuantityLog10 = 0): AbilityKernel
     creature,
     resolvedContactReachM: creature.contact_reach_m,
     resolvedBodyLengthM: creature.body_length_m,
+    resolvedMassKg: creature.representative_peak_mass_kg,
     targetQuantityLog10,
     frontageCapacity: 12,
   }

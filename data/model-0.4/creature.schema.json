@@ -263,6 +263,7 @@
           "physical",
           "physical-blunt",
           "physical-piercing",
+          "physical-slashing",
           "physical-crushing",
           "fire",
           "cold",
@@ -370,6 +371,7 @@
                     "physical",
                     "physical-blunt",
                     "physical-piercing",
+                    "physical-slashing",
                     "physical-crushing",
                     "fire",
                     "cold",
@@ -433,6 +435,7 @@
                 "physical",
                 "physical-blunt",
                 "physical-piercing",
+                "physical-slashing",
                 "physical-crushing",
                 "fire",
                 "cold",
@@ -474,6 +477,16 @@
                 "minimum": 0,
                 "maximum": 10000000
               },
+              "minimumTargetMassKg": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "maximumTargetMassKg": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
               "terrains": {
                 "type": "array",
                 "uniqueItems": true,
@@ -490,6 +503,17 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 80
+                }
+              },
+              "timeOfDay": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "day",
+                    "night"
+                  ]
                 }
               },
               "targetPhysiology": {

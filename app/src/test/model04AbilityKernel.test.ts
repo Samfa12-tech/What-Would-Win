@@ -38,6 +38,7 @@ function side(profile: CreatureV4Draft, overrides: Partial<AbilityKernelSide> = 
     creature: profile,
     resolvedContactReachM: profile.contact_reach_m,
     resolvedBodyLengthM: profile.body_length_m,
+    resolvedMassKg: profile.representative_peak_mass_kg,
     targetQuantityLog10: 0,
     frontageCapacity: 10,
     ...overrides,

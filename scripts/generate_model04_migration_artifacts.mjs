@@ -12,7 +12,7 @@ const physiologyValues = ['living', 'undead', 'construct', 'spirit', 'environmen
 const abilityKinds = ['attack', 'restraint', 'regeneration', 'resurrection', 'healing', 'mobility', 'aura', 'hazard', 'summon']
 const abilityDeliveries = ['contact', 'ranged', 'area', 'gaze', 'auditory', 'self', 'environmental']
 const abilityEffectKinds = ['harm', 'restraint', 'healing', 'regeneration', 'revival', 'mobility', 'morale']
-const abilityChannels = ['physical', 'physical-blunt', 'physical-piercing', 'physical-crushing', 'fire', 'cold', 'electric', 'venom', 'disease', 'petrification', 'hypnosis', 'fear', 'psychic', 'sonic', 'magic', 'incorporeal', 'restraint', 'healing', 'regeneration', 'revival', 'mobility']
+const abilityChannels = ['physical', 'physical-blunt', 'physical-piercing', 'physical-slashing', 'physical-crushing', 'fire', 'cold', 'electric', 'venom', 'disease', 'petrification', 'hypnosis', 'fear', 'psychic', 'sonic', 'magic', 'incorporeal', 'restraint', 'healing', 'regeneration', 'revival', 'mobility']
 
 const booleanProfile = {
   type: 'object', additionalProperties: false,
@@ -52,8 +52,11 @@ const abilitySchema = {
         requiresFacing: { type: 'boolean' },
         minimumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         maximumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
+        minimumTargetMassKg: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
+        maximumTargetMassKg: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
         terrains: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 80 } },
         forbiddenWeather: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 80 } },
+        timeOfDay: { type: 'array', minItems: 1, uniqueItems: true, items: { enum: ['day', 'night'] } },
         targetPhysiology: { type: 'array', uniqueItems: true, items: { enum: physiologyValues } },
         requiredTargetSenses: { type: 'array', uniqueItems: true, items: { enum: ['vision', 'hearing', 'smell', 'echolocation', 'supernaturalPerception'] } },
       },
@@ -124,6 +127,42 @@ function scenarioV4Schema() {
   return schema
 }
 
+function complexOverridesSchema() {
+  return {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'https://samfa12.com/what-would-win/schemas/model-0.4/complex-profile-overrides.schema.json',
+    title: 'What Would Win model 0.4 complex profile overrides',
+    type: 'object', additionalProperties: false, required: ['schemaVersion', 'targetModel', 'profiles'],
+    properties: {
+      schemaVersion: { const: 1 }, targetModel: { const: '0.4.0-draft.1' },
+      profiles: {
+        type: 'array', minItems: 1, uniqueItems: true,
+        items: {
+          type: 'object', additionalProperties: false,
+          required: ['id', 'contact_reach_m', 'physiology', 'channelModifiers', 'abilities', 'review'],
+          properties: {
+            id: { type: 'string', pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', maxLength: 80 },
+            contact_reach_m: { type: 'number', exclusiveMinimum: 0, maximum: 10000000 },
+            physiology: { enum: physiologyValues },
+            senses: booleanProfile,
+            locomotion: locomotionProfile,
+            channelModifiers: { type: 'object', propertyNames: { enum: abilityChannels }, additionalProperties: { type: 'number', minimum: 0, maximum: 4 } },
+            abilities: { type: 'array', minItems: 1, maxItems: 64, items: abilitySchema },
+            review: {
+              type: 'object', additionalProperties: false, required: ['status', 'interpretation', 'note'],
+              properties: {
+                status: { const: 'reviewed-draft' },
+                interpretation: { type: 'string', minLength: 1, maxLength: 200 },
+                note: { type: 'string', minLength: 1, maxLength: 500 },
+              },
+            },
+          },
+        },
+      },
+    },
+  }
+}
+
 const reachMigration = {
   schemaVersion: 1,
   targetModel: '0.4.0-draft.1',
@@ -161,6 +200,7 @@ const resourceMigration = {
 }
 
 const artifacts = new Map([
+  [join(outputDirectory, 'complex-profile-overrides.schema.json'), `${JSON.stringify(complexOverridesSchema(), null, 2)}\n`],
   [join(outputDirectory, 'creature.schema.json'), `${JSON.stringify(creatureV4Schema(), null, 2)}\n`],
   [join(outputDirectory, 'scenario.schema.json'), `${JSON.stringify(scenarioV4Schema(), null, 2)}\n`],
   [join(outputDirectory, 'reach-migration.json'), `${JSON.stringify(reachMigration, null, 2)}\n`],

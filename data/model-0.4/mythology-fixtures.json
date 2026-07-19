@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "targetModel": "0.4.0-draft.1",
+  "fixtures": [
+    {
+      "id": "medusa-eyeless-construct",
+      "title": "Medusa versus an eyeless construct",
+      "soloId": "medusa",
+      "groupId": "stone-golem",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 20, "terrain": "ruin", "groupResources": { "defaultPercent": 100, "abilityPercent": {} } },
+      "expectations": { "rejectedSoloAbilities": ["petrifying-gaze"], "reason": "A non-visual construct is not an eligible gaze target." }
+    },
+    {
+      "id": "medusa-informed-shielded-humans",
+      "title": "Medusa versus informed shielded humans",
+      "soloId": "medusa",
+      "groupId": "armoured-spear-carrier",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "startingDistanceM": 25, "terrain": "ruin", "priorKnowledge": "group", "coordinationDoctrine": "disciplined", "defensivePosition": "group" },
+      "expectations": { "direction": "gaze contribution below an uninformed instinctive group", "reason": "Prepared disciplined opposition reduces speculative gaze access without deleting contact fallback." }
+    },
+    {
+      "id": "phoenix-incapacitation",
+      "title": "Phoenix versus ordinary attackers under incapacitation",
+      "soloId": "phoenix",
+      "groupId": "unarmed-peak-adult-human",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "winCondition": "incapacitation", "startingDistanceM": 20 },
+      "expectations": { "rejectedSoloAbilities": ["rebirth"], "reason": "Incapacitation can end the contest before a death-triggered revival." }
+    },
+    {
+      "id": "phoenix-one-revival-death",
+      "title": "Phoenix under death condition with one revival",
+      "soloId": "phoenix",
+      "groupId": "unarmed-peak-adult-human",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "winCondition": "death", "startingDistanceM": 20 },
+      "expectations": { "activeSoloAbilities": ["rebirth"], "reason": "The reviewed profile permits one resource-bounded revival." }
+    },
+    {
+      "id": "troll-fire-counter",
+      "title": "Troll versus a fire-capable opponent",
+      "soloId": "troll",
+      "groupId": "western-dragon",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 15, "groupResources": { "defaultPercent": 100, "abilityPercent": {} } },
+      "expectations": { "rejectedSoloAbilities": ["troll-regeneration"], "reason": "Regeneration is countered only after an opposing fire channel applies." }
+    },
+    {
+      "id": "nemean-lion-arrows",
+      "title": "Nemean lion versus arrows",
+      "soloId": "nemean-lion",
+      "groupId": "prepared-archer",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "startingDistanceM": 40, "groupResources": { "defaultPercent": 100, "abilityPercent": {} } },
+      "expectations": { "immuneChannels": ["physical-piercing"], "reason": "Ordinary piercing is explicitly immune rather than folded into generic armour." }
+    },
+    {
+      "id": "nemean-lion-crushing-restraint",
+      "title": "Nemean lion versus crushing and restraint",
+      "soloId": "nemean-lion",
+      "groupId": "green-anaconda",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 2, "terrain": "forest" },
+      "expectations": { "vulnerableChannels": ["physical-crushing", "restraint"], "reason": "The fixed hide interpretation does not grant blanket immunity." }
+    },
+    {
+      "id": "siren-hearing-humans",
+      "title": "Siren versus hearing living humans",
+      "soloId": "siren",
+      "groupId": "unarmed-peak-adult-human",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "startingDistanceM": 35, "terrain": "coast" },
+      "expectations": { "activeSoloAbilities": ["compelling-song"], "reason": "Living hearing targets are eligible for the reviewed song interpretation." }
+    },
+    {
+      "id": "siren-construct-counter",
+      "title": "Siren versus a construct",
+      "soloId": "siren",
+      "groupId": "stone-golem",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 35, "terrain": "coast" },
+      "expectations": { "rejectedSoloAbilities": ["compelling-song"], "reason": "Construct physiology is not an eligible hypnosis target." }
+    },
+    {
+      "id": "giant-spider-large-target",
+      "title": "Giant spider versus one large target",
+      "soloId": "giant-spider",
+      "groupId": "white-rhinoceros",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 12, "terrain": "forest" },
+      "expectations": { "activeSoloAbilities": ["web-restraint"], "reason": "The single target remains below the reviewed web mass ceiling." }
+    },
+    {
+      "id": "giant-spider-many-tiny-targets",
+      "title": "Giant spider versus many tiny targets",
+      "soloId": "giant-spider",
+      "groupId": "house-mouse",
+      "groupQuantity": "1000",
+      "scenarioOverrides": { "startingDistanceM": 12, "terrain": "forest" },
+      "expectations": { "direction": "web restraint does not scale as an area effect", "reason": "A single-target web cannot bind an arbitrary swarm." }
+    },
+    {
+      "id": "charybdis-hazard-edge",
+      "title": "Charybdis at the edge of its hazard radius",
+      "soloId": "charybdis",
+      "groupId": "orca",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 40, "terrain": "ocean", "waterDepthM": 100 },
+      "expectations": { "activeSoloAbilities": ["maelstrom"], "reason": "The target begins on the reviewed 40 m environmental-hazard boundary." }
+    },
+    {
+      "id": "vampire-day-night",
+      "title": "Vampire by day versus night",
+      "soloId": "vampire",
+      "groupId": "unarmed-peak-adult-human",
+      "groupQuantity": "5",
+      "scenarioOverrides": { "startingDistanceM": 8, "timeOfDay": "day" },
+      "variants": [{ "id": "day", "timeOfDay": "day" }, { "id": "night", "timeOfDay": "night" }],
+      "expectations": { "direction": "night regeneration contributes more than day", "reason": "The fixed profile explicitly limits regeneration to night." }
+    },
+    {
+      "id": "hydra-regeneration-counter",
+      "title": "Hydra with and without its regeneration counter",
+      "soloId": "hydra",
+      "groupId": "prepared-archer",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "startingDistanceM": 20 },
+      "variants": [{ "id": "ordinary-arrows", "opposingAppliedChannels": ["physical-piercing"] }, { "id": "fire-arrows", "opposingAppliedChannels": ["physical-piercing", "fire"] }],
+      "expectations": { "direction": "head regrowth contributes only without applied fire", "reason": "The counter is a resolved channel, not a creature or tag name." }
+    },
+    {
+      "id": "stone-golem-poison-hypnosis",
+      "title": "Stone golem versus poison and hypnosis",
+      "soloId": "stone-golem",
+      "groupId": "giant-spider",
+      "groupQuantity": "1",
+      "scenarioOverrides": { "startingDistanceM": 10, "terrain": "ruin" },
+      "expectations": { "immuneChannels": ["venom", "disease", "hypnosis"], "reason": "Construct immunities are explicit bilateral channel modifiers." }
+    },
+    {
+      "id": "ordinary-animal-non-regression",
+      "title": "Ordinary animal matchup non-regression",
+      "soloId": "african-bush-elephant",
+      "groupId": "gray-wolf",
+      "groupQuantity": "20",
+      "scenarioOverrides": { "startingDistanceM": 30, "terrain": "open" },
+      "expectations": { "direction": "remain within the existing model 0.3 calibration band", "reason": "Structured fantasy mechanics must not silently perturb ordinary animals." }
+    }
+  ]
+}

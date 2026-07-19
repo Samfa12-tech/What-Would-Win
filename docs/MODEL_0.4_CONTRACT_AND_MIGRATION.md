@@ -1,7 +1,9 @@
 # What Would Win — model 0.4 contract and migration spine
 
-**Status:** parallel draft; not active runtime authority  
-**Draft contract:** `0.4.0-draft.1`  
+**Status:** parallel draft; not active runtime authority
+
+**Draft contract:** `0.4.0-draft.1`
+
 **Active public identity remains:** app 0.3.1, model 0.3.0, data 0.3.1, share v3
 
 ## Decision

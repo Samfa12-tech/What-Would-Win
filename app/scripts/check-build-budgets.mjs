@@ -37,11 +37,16 @@ const sizes = await Promise.all(files.map(async (path) => ({
 
 const javascript = sizes.filter((file) => file.path.endsWith('.js')).reduce((sum, file) => sum + file.bytes, 0)
 const manifest = JSON.parse(await readFile(join(distRoot, '.vite', 'manifest.json'), 'utf8'))
-const entryFiles = new Set(
-  Object.values(manifest)
-    .filter((item) => item.isEntry)
-    .map((item) => item.file),
-)
+const entryFiles = new Set()
+function collectEagerFiles(manifestKey) {
+  const item = manifest[manifestKey]
+  if (!item || entryFiles.has(item.file)) return
+  entryFiles.add(item.file)
+  for (const importedKey of item.imports ?? []) collectEagerFiles(importedKey)
+}
+for (const [key, item] of Object.entries(manifest)) {
+  if (item.isEntry) collectEagerFiles(key)
+}
 const entryJavascript = sizes
   .filter((file) => entryFiles.has(relative(distRoot, file.path).replaceAll('\\', '/')))
   .reduce((sum, file) => sum + file.bytes, 0)

@@ -102,6 +102,39 @@ describe('model 0.4 structured ability kernel', () => {
     expect(empty.factors).toEqual(full.factors)
   })
 
+  test('keeps inactive per-ability overrides mechanically identical and ignores overrides for resource-free abilities', () => {
+    const outOfRange = creature(0, { abilities: [ability({ rangeM: 2 })] })
+    const target = creature(1)
+    const variants = [undefined, 0, 100].map((override) => resolveAbilityKernel(
+      side(outOfRange),
+      side(target),
+      scenario({
+        soloResources: {
+          defaultPercent: 50,
+          abilityPercent: override === undefined ? {} : { 'test-strike': override },
+        },
+      }),
+    ))
+    const mechanicalIdentity = (result: ReturnType<typeof resolveAbilityKernel>) => ({
+      rejectionReason: result.resolutions[0].rejectionReason,
+      accessFactor: result.resolutions[0].accessFactor,
+      logDelta: result.resolutions[0].logDelta,
+      factors: result.factors,
+      soloLogDelta: result.soloLogDelta,
+      groupLogDelta: result.groupLogDelta,
+    })
+    expect(variants.map(mechanicalIdentity)).toEqual(Array(3).fill(mechanicalIdentity(variants[0])))
+
+    const free = creature(0, { abilities: [ability({ resource: { pool: 'none' } })] })
+    const freeAbsent = resolveAbilityKernel(side(free), side(target), scenario())
+    const freeDepletedOverride = resolveAbilityKernel(
+      side(free),
+      side(target),
+      scenario({ soloResources: { defaultPercent: 100, abilityPercent: { 'test-strike': 0 } } }),
+    )
+    expect(freeDepletedOverride).toEqual(freeAbsent)
+  })
+
   test('applies immunity, resistance and vulnerability through target channels', () => {
     const attacker = creature(0, { abilities: [ability({ effects: [{ kind: 'harm', channel: 'fire', potency: 80 }] })] })
     const immune = creature(1, { channelModifiers: { fire: 0 } })

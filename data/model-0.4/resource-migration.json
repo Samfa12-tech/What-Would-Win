@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "targetModel": "0.4.0-draft.1",
+  "sourceField": "resourcesPercent",
+  "targetFields": [
+    "soloResources.defaultPercent",
+    "groupResources.defaultPercent"
+  ],
+  "policy": {
+    "defaults": "Copy the old scenario percentage identically to both sides.",
+    "perAbility": "Initialize both abilityPercent maps as empty so each ability inherits its side default.",
+    "seedStability": "Inherited or inactive ability controls must not change deterministic powers or the Monte Carlo random stream.",
+    "activation": "The v4 resource shape is parallel-only until share v4 and the model 0.4 engine activate atomically."
+  },
+  "examples": [
+    {
+      "resourcesPercent": 0,
+      "soloResources": {
+        "defaultPercent": 0,
+        "abilityPercent": {}
+      },
+      "groupResources": {
+        "defaultPercent": 0,
+        "abilityPercent": {}
+      }
+    },
+    {
+      "resourcesPercent": 1,
+      "soloResources": {
+        "defaultPercent": 1,
+        "abilityPercent": {}
+      },
+      "groupResources": {
+        "defaultPercent": 1,
+        "abilityPercent": {}
+      }
+    },
+    {
+      "resourcesPercent": 50,
+      "soloResources": {
+        "defaultPercent": 50,
+        "abilityPercent": {}
+      },
+      "groupResources": {
+        "defaultPercent": 50,
+        "abilityPercent": {}
+      }
+    },
+    {
+      "resourcesPercent": 100,
+      "soloResources": {
+        "defaultPercent": 100,
+        "abilityPercent": {}
+      },
+      "groupResources": {
+        "defaultPercent": 100,
+        "abilityPercent": {}
+      }
+    }
+  ]
+}

@@ -37,6 +37,73 @@ const CONFIDENCE_NOISE: Record<Creature['data_confidence'], number> = {
   modelled: 0.165,
 }
 
+export interface OutcomeSamplingInput {
+  soloId: string
+  groupId: string
+  soloLogPower: number
+  groupLogPower: number
+  soloConfidence: Creature['data_confidence']
+  groupConfidence: Creature['data_confidence']
+  soloKind: Creature['kind']
+  groupKind: Creature['kind']
+  scenarioSeed: number
+  trials: number
+  conceptual: boolean
+}
+
+export interface OutcomeSamplingResult {
+  resolvedSeed: number
+  rawSoloTrialRate: number
+  epistemicCompression: number
+  soloProbability: number
+  groupProbability: number
+  probabilityStandardError: number
+  probabilityRange: [number, number]
+}
+
+export function sampleOutcomeFromPowers(input: OutcomeSamplingInput): OutcomeSamplingResult {
+  const resolvedInputs = {
+    soloId: input.soloId,
+    groupId: input.groupId,
+    soloLogPower: input.soloLogPower,
+    groupLogPower: input.groupLogPower,
+    soloConfidence: input.soloConfidence,
+    groupConfidence: input.groupConfidence,
+  }
+  const resolvedSeed = (hashString(JSON.stringify(resolvedInputs)) ^ input.scenarioSeed) >>> 0
+  const random = mulberry32(resolvedSeed)
+  const soloNoise = CONFIDENCE_NOISE[input.soloConfidence] + 0.035
+  const groupNoise = CONFIDENCE_NOISE[input.groupConfidence] + 0.035
+  let soloWins = 0
+  for (let trial = 0; trial < input.trials; trial += 1) {
+    const tacticalSwing = normalSample(random) * 0.035
+    const soloTrial = input.soloLogPower + normalSample(random) * soloNoise + tacticalSwing
+    const groupTrial = input.groupLogPower + normalSample(random) * groupNoise - tacticalSwing
+    if (soloTrial >= groupTrial) soloWins += 1
+  }
+  const rawSoloTrialRate = (soloWins + 0.5) / (input.trials + 1)
+  const includesFantasy = input.soloKind === 'fantasy' || input.groupKind === 'fantasy'
+  const bothHighConfidence = input.soloConfidence === 'high' && input.groupConfidence === 'high'
+  const epistemicCompression = includesFantasy ? 0.88 : bothHighConfidence ? 0.92 : 0.86
+  const soloProbability = clamp(0.5 + (rawSoloTrialRate - 0.5) * epistemicCompression, 0.001, 0.999)
+  const groupProbability = 1 - soloProbability
+  const probabilityStandardError = epistemicCompression * Math.sqrt((rawSoloTrialRate * (1 - rawSoloTrialRate)) / input.trials)
+  const modelFloor = input.conceptual ? 0.1 : (bothHighConfidence ? 0.035 : 0.07)
+  const intervalWidth = 1.96 * probabilityStandardError + modelFloor
+  return {
+    resolvedSeed,
+    rawSoloTrialRate,
+    epistemicCompression,
+    soloProbability,
+    groupProbability,
+    probabilityStandardError,
+    probabilityRange: [
+      clamp(soloProbability - intervalWidth, 0, 1),
+      clamp(soloProbability + intervalWidth, 0, 1),
+    ],
+  }
+}
+
 const DEFAULT_STATS: Required<StatOverrides> = {
   attack: 50,
   defense: 50,
@@ -316,7 +383,9 @@ function resolveCombatant(
   // Mass is already clamped to a positive model floor. Avoiding the former +20 g
   // offset prevents micro-scale profiles from receiving a disproportionate mass gift.
   const massTerm = 0.61 * Math.log10(Math.max(targetMassKg, 0.000001))
-  const qualityTerm = Math.log10(0.42 + attackQuality * 2.2) + 0.7 * Math.log10(0.5 + defenseQuality * 1.75)
+  const offenseQualityLogPower = Math.log10(0.42 + attackQuality * 2.2)
+  const defenseQualityLogPower = 0.7 * Math.log10(0.5 + defenseQuality * 1.75)
+  const qualityTerm = offenseQualityLogPower + defenseQualityLogPower
   const singleLogPower = massTerm + qualityTerm + Math.log10(environment) + Math.log10(integrity) + Math.log10(special)
 
   const advantages: string[] = []
@@ -348,6 +417,8 @@ function resolveCombatant(
     scaleIntegrity: integrity,
     specialFactor: special,
     massLogPower: massTerm,
+    offenseQualityLogPower,
+    defenseQualityLogPower,
     qualityLogPower: qualityTerm,
     singleLogPower,
     advantages,
@@ -745,6 +816,59 @@ function deterministicState(creatures: Creature[], scenario: Scenario, quantityL
   }
 }
 
+export interface Model03DeterministicSnapshot {
+  solo: ResolvedCombatant
+  group: ResolvedCombatant
+  soloLogPower: number
+  groupLogPower: number
+  groupExponent: number
+  quantityLog10: number
+  groupFrontageCapacity: number
+  groupEffectiveQuantityLog10: number
+  groupUsableQuantityLog10: number
+  groupReservePressureRate: number
+  soloStoppingPenalty: number
+  groupStoppingPenalty: number
+  soloAttackAccess: number
+  groupAttackAccess: number
+  soloAreaControlBonus: number
+  arenaCapacityLog10: number | null
+  soloFitsArena: boolean
+  groupFitsArena: boolean
+  factors: AppliedModelFactor[]
+  matchupNotes: string[]
+}
+
+export function resolveModel03Deterministic(
+  creatures: Creature[],
+  scenario: Scenario,
+  quantityLog10: number,
+): Model03DeterministicSnapshot {
+  const state = deterministicState(creatures, scenario, quantityLog10)
+  return {
+    solo: state.solo,
+    group: state.group,
+    soloLogPower: state.soloLogPower,
+    groupLogPower: state.groupLogPower,
+    groupExponent: state.groupExponent,
+    quantityLog10: state.quantityLog10,
+    groupFrontageCapacity: state.engagement.frontlineCapacity,
+    groupEffectiveQuantityLog10: state.engagement.effectiveQuantityLog10,
+    groupUsableQuantityLog10: state.engagement.usableQuantityLog10,
+    groupReservePressureRate: state.engagement.reservePressureRate,
+    soloStoppingPenalty: state.soloStopping.totalPenalty,
+    groupStoppingPenalty: state.groupStopping.totalPenalty,
+    soloAttackAccess: state.soloAttackAccess,
+    groupAttackAccess: state.groupAttackAccess,
+    soloAreaControlBonus: state.soloAreaControlBonus,
+    arenaCapacityLog10: state.arenaCapacityLog10,
+    soloFitsArena: state.soloFitsArena,
+    groupFitsArena: state.groupFitsArena,
+    factors: structuredClone(state.factors),
+    matchupNotes: [...state.matchupNotes],
+  }
+}
+
 function scenarioSeed(state: DeterministicState, scenario: Scenario): number {
   // Monte Carlo noise depends on deterministic side powers and confidence classes.
   // Hashing those resolved inputs gives common random numbers to scenarios whose
@@ -1052,34 +1176,28 @@ export function simulate(creatures: Creature[], scenario: Scenario): SimulationR
 
   const state = deterministicState(creatures, scenario, quantity.log10)
   const trials = TRIALS_BY_DEPTH[scenario.reportDepth]
-  const resolvedSeed = scenarioSeed(state, scenario)
-  const random = mulberry32(resolvedSeed)
-  const soloNoise = CONFIDENCE_NOISE[state.solo.creature.data_confidence] + 0.035
-  const groupNoise = CONFIDENCE_NOISE[state.group.creature.data_confidence] + 0.035
-  let soloWins = 0
-
-  for (let trial = 0; trial < trials; trial += 1) {
-    const tacticalSwing = normalSample(random) * 0.035
-    const soloTrial = state.soloLogPower + normalSample(random) * soloNoise + tacticalSwing
-    const groupTrial = state.groupLogPower + normalSample(random) * groupNoise - tacticalSwing
-    if (soloTrial >= groupTrial) soloWins += 1
-  }
-
-  const rawSoloTrialRate = (soloWins + 0.5) / (trials + 1)
-  const includesFantasy = state.solo.creature.kind === 'fantasy' || state.group.creature.kind === 'fantasy'
-  const bothHighConfidence = state.solo.creature.data_confidence === 'high' && state.group.creature.data_confidence === 'high'
-  // Crossing the conceptual-quantity threshold must not create a discontinuous jump
-  // toward certainty. Applicability is communicated separately through warnings.
-  const epistemicCompression = includesFantasy ? 0.88 : bothHighConfidence ? 0.92 : 0.86
-  const soloProbability = clamp(0.5 + (rawSoloTrialRate - 0.5) * epistemicCompression, 0.001, 0.999)
-  const groupProbability = 1 - soloProbability
-  const standardError = epistemicCompression * Math.sqrt((rawSoloTrialRate * (1 - rawSoloTrialRate)) / trials)
-  const modelFloor = quantity.conceptual ? 0.1 : (state.solo.creature.data_confidence === 'high' && state.group.creature.data_confidence === 'high' ? 0.035 : 0.07)
-  const intervalWidth = 1.96 * standardError + modelFloor
-  const probabilityRange: [number, number] = [
-    clamp(soloProbability - intervalWidth, 0, 1),
-    clamp(soloProbability + intervalWidth, 0, 1),
-  ]
+  const sampled = sampleOutcomeFromPowers({
+    soloId: state.solo.creature.id,
+    groupId: state.group.creature.id,
+    soloLogPower: state.soloLogPower,
+    groupLogPower: state.groupLogPower,
+    soloConfidence: state.solo.creature.data_confidence,
+    groupConfidence: state.group.creature.data_confidence,
+    soloKind: state.solo.creature.kind,
+    groupKind: state.group.creature.kind,
+    scenarioSeed: scenario.seed,
+    trials,
+    conceptual: quantity.conceptual,
+  })
+  const {
+    resolvedSeed,
+    rawSoloTrialRate,
+    epistemicCompression,
+    soloProbability,
+    groupProbability,
+    probabilityStandardError: standardError,
+    probabilityRange,
+  } = sampled
 
   const quantityDisplay = formatLogQuantity(quantity.log10)
   const soloWinsOverall = soloProbability >= 0.5

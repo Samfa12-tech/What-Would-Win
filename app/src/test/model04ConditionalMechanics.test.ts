@@ -109,7 +109,7 @@ describe('model 0.4 conditional mechanics', () => {
     expect(uninjured.resolutions[0].rejectionReason).toBe('condition-unmet')
     expect(short.soloLogDelta).toBeGreaterThan(0)
     expect(long.soloLogDelta).toBeGreaterThan(short.soloLogDelta)
-    expect(resolveAbilityKernel(side(hydra), side(opponent), scenario(), context({ groupAppliedChannels: ['fire'] })).resolutions[0].rejectionReason).toBe('condition-unmet')
+    expect(resolveAbilityKernel(side(hydra), side(opponent), scenario(), context({ groupAppliedChannels: ['fire'] })).resolutions[0]).toMatchObject({ rejectionReason: 'countered', counterChannel: 'fire' })
 
     const noHealingNeed = resolveAbilityKernel(side(vampire), side(opponent), scenario(), context({ soloInjuryPressure: 0 }))
     const healingNeed = resolveAbilityKernel(side(vampire), side(opponent), scenario(), context({ soloInjuryPressure: 0.8 }))

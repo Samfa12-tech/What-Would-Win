@@ -20,6 +20,10 @@ const DEFAULT_CONTEXT: AbilityKernelContext = {
   groupInjuryPressure: 0.5,
   soloDefeatPressure: 0.25,
   groupDefeatPressure: 0.25,
+  soloLineOfSight: true,
+  groupLineOfSight: true,
+  soloFacesTarget: true,
+  groupFacesTarget: true,
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -54,12 +58,22 @@ function resourcePercent(ability: Ability, resources: SideResources): number {
   return resources.abilityPercent[ability.id] ?? resources.defaultPercent
 }
 
-function conditionsMet(ability: Ability, target: AbilityKernelSide, terrain: string, distanceM: number): boolean {
+function conditionsMet(
+  side: 'solo' | 'group',
+  ability: Ability,
+  target: AbilityKernelSide,
+  scenario: ScenarioV4Draft,
+  context: AbilityKernelContext,
+  distanceM: number,
+): boolean {
   const conditions = ability.conditions
   if (!conditions) return true
+  if (conditions.requiresLineOfSight && !(side === 'solo' ? context.soloLineOfSight : context.groupLineOfSight)) return false
+  if (conditions.requiresFacing && !(side === 'solo' ? context.soloFacesTarget : context.groupFacesTarget)) return false
   if (conditions.minimumDistanceM !== undefined && distanceM < conditions.minimumDistanceM) return false
   if (conditions.maximumDistanceM !== undefined && distanceM > conditions.maximumDistanceM) return false
-  if (conditions.terrains && !conditions.terrains.includes(terrain)) return false
+  if (conditions.terrains && !conditions.terrains.includes(scenario.terrain)) return false
+  if (conditions.forbiddenWeather?.includes(scenario.weather)) return false
   if (conditions.targetPhysiology && !conditions.targetPhysiology.includes(target.creature.physiology)) return false
   if (conditions.requiredTargetSenses?.some((sense) => !target.creature.senses[sense])) return false
   return true
@@ -120,7 +134,7 @@ function resolveAbility(
   const beneficial = SELF_ABILITY_KINDS.has(ability.kind) || ability.effects.every((effect) => SELF_EFFECT_KINDS.has(effect.kind))
   const conditionTarget = beneficial ? attacker : target
 
-  if (!conditionsMet(ability, conditionTarget, scenario.terrain, distanceM) || ability.activationRate <= 0) {
+  if (!conditionsMet(side, ability, conditionTarget, scenario, context, distanceM) || ability.activationRate <= 0) {
     return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0)
   }
 

@@ -12,7 +12,7 @@ const physiologyValues = ['living', 'undead', 'construct', 'spirit', 'environmen
 const abilityKinds = ['attack', 'restraint', 'regeneration', 'resurrection', 'healing', 'mobility', 'aura', 'hazard', 'summon']
 const abilityDeliveries = ['contact', 'ranged', 'area', 'gaze', 'auditory', 'self', 'environmental']
 const abilityEffectKinds = ['harm', 'restraint', 'healing', 'regeneration', 'revival', 'mobility', 'morale']
-const abilityChannels = ['physical-blunt', 'physical-piercing', 'physical-crushing', 'fire', 'cold', 'electric', 'venom', 'petrification', 'psychic', 'sonic', 'restraint', 'healing', 'regeneration', 'revival', 'mobility']
+const abilityChannels = ['physical', 'physical-blunt', 'physical-piercing', 'physical-crushing', 'fire', 'cold', 'electric', 'venom', 'disease', 'petrification', 'hypnosis', 'fear', 'psychic', 'sonic', 'magic', 'incorporeal', 'restraint', 'healing', 'regeneration', 'revival', 'mobility']
 
 const booleanProfile = {
   type: 'object', additionalProperties: false,
@@ -47,9 +47,12 @@ const abilitySchema = {
     conditions: {
       type: 'object', additionalProperties: false,
       properties: {
+        requiresLineOfSight: { type: 'boolean' },
+        requiresFacing: { type: 'boolean' },
         minimumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         maximumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         terrains: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 80 } },
+        forbiddenWeather: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 80 } },
         targetPhysiology: { type: 'array', uniqueItems: true, items: { enum: physiologyValues } },
         requiredTargetSenses: { type: 'array', uniqueItems: true, items: { enum: ['vision', 'hearing', 'smell', 'echolocation', 'supernaturalPerception'] } },
       },

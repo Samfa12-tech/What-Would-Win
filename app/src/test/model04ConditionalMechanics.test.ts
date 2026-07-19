@@ -47,6 +47,10 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
     groupInjuryPressure: 0.5,
     soloDefeatPressure: 0.25,
     groupDefeatPressure: 0.25,
+    soloLineOfSight: true,
+    groupLineOfSight: true,
+    soloFacesTarget: true,
+    groupFacesTarget: true,
     ...overrides,
   }
 }
@@ -61,7 +65,7 @@ describe('model 0.4 conditional mechanics', () => {
       id: 'petrifying-gaze', name: 'Petrifying gaze', kind: 'restraint', delivery: 'gaze',
       effects: [{ kind: 'restraint', channel: 'petrification', potency: 100 }], rangeM: 50,
       targetLimit: 'single', activationRate: 1,
-      conditions: { targetPhysiology: ['living'], requiredTargetSenses: ['vision'] },
+      conditions: { requiresLineOfSight: true, requiresFacing: true, targetPhysiology: ['living'], requiredTargetSenses: ['vision'] },
       resource: { pool: 'none' }, notes: 'Synthetic visual counter test.',
     })
     const siren = singleAbility(profile('siren'), {
@@ -76,6 +80,8 @@ describe('model 0.4 conditional mechanics', () => {
     const deaf = { ...listener, senses: { ...listener.senses, hearing: false } }
 
     expect(resolveAbilityKernel(side(medusa), side(listener), scenario()).resolutions[0].active).toBe(true)
+    expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ soloLineOfSight: false })).resolutions[0].rejectionReason).toBe('condition-unmet')
+    expect(resolveAbilityKernel(side(medusa), side(listener), scenario(), context({ soloFacesTarget: false })).resolutions[0].rejectionReason).toBe('condition-unmet')
     expect(resolveAbilityKernel(side(medusa), side(blind), scenario()).resolutions[0].rejectionReason).toBe('condition-unmet')
     expect(resolveAbilityKernel(side(siren), side(listener), scenario()).resolutions[0].active).toBe(true)
     expect(resolveAbilityKernel(side(siren), side(deaf), scenario()).resolutions[0].rejectionReason).toBe('condition-unmet')

@@ -137,7 +137,7 @@ describe('parallel model 0.4 canonical ability data', () => {
     const ordinary = resolveAbilityKernel(hydra, archer, scenario(), context())
     const fire = resolveAbilityKernel(hydra, archer, scenario(), context({ groupAppliedChannels: ['physical-piercing', 'fire'] }))
     expect(ordinary.resolutions.find((resolution) => resolution.abilityId === 'head-regrowth')?.active).toBe(true)
-    expect(fire.resolutions.find((resolution) => resolution.abilityId === 'head-regrowth')).toMatchObject({ active: false, rejectionReason: 'condition-unmet' })
+    expect(fire.resolutions.find((resolution) => resolution.abilityId === 'head-regrowth')).toMatchObject({ active: false, rejectionReason: 'countered', counterChannel: 'fire' })
 
     const arrows = resolveAbilityKernel(side(profile('nemean-lion')), archer, scenario({ startingDistanceM: 30 }))
     expect(arrows.resolutions.find((resolution) => resolution.side === 'group' && resolution.abilityId === 'legacy-ranged')).toMatchObject({ active: false, rejectionReason: 'target-immune' })

@@ -204,6 +204,7 @@ export type AbilityRejectionReason =
   | 'condition-unmet'
   | 'target-immune'
   | 'delivery-inaccessible'
+  | 'countered'
 
 export interface AbilityResolution {
   factorId: `ability:${string}:${string}:${string}`
@@ -212,6 +213,7 @@ export interface AbilityResolution {
   side: 'solo' | 'group'
   active: boolean
   rejectionReason?: AbilityRejectionReason
+  counterChannel?: AbilityChannel
   resourcePercent: number
   accessFactor: number
   channelFactor: number
@@ -227,6 +229,7 @@ export interface AbilityEffectResolution {
   potency: number
   channelFactor: number
   logDelta: number
+  recipient: 'self' | 'opponent'
 }
 
 export interface Model04AbilityFactor {
@@ -259,6 +262,7 @@ export interface AbilityKernelContext {
   groupFacesTarget: boolean
   soloAppliedChannels: AbilityChannel[]
   groupAppliedChannels: AbilityChannel[]
+  ignoreCounters?: boolean
 }
 
 export interface AbilityKernelResult {

@@ -160,6 +160,8 @@ export interface ResolvedCombatant {
   scaleIntegrity: number
   specialFactor: number
   massLogPower: number
+  offenseQualityLogPower: number
+  defenseQualityLogPower: number
   qualityLogPower: number
   singleLogPower: number
   advantages: string[]

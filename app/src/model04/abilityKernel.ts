@@ -39,6 +39,7 @@ function rejection(
   reason: AbilityRejectionReason,
   resourcePercent: number,
   accessFactor: number,
+  counterChannel?: Ability['effects'][number]['channel'],
 ): AbilityResolution {
   return {
     factorId: `ability:${creatureId}:${ability.id}:rejected`,
@@ -52,6 +53,7 @@ function rejection(
     channelFactor: 0,
     logDelta: 0,
     effects: [],
+    ...(counterChannel ? { counterChannel } : {}),
   }
 }
 
@@ -110,6 +112,19 @@ function effectContextFactor(
   return 1
 }
 
+function targetPreparednessFactor(
+  channel: Ability['effects'][number]['channel'],
+  attackerSide: 'solo' | 'group',
+  scenario: ScenarioV4Draft,
+): number {
+  if (!['petrification', 'hypnosis', 'fear'].includes(channel)) return 1
+  const targetSide = attackerSide === 'solo' ? 'group' : 'solo'
+  const knows = scenario.priorKnowledge === 'both' || scenario.priorKnowledge === targetSide
+  const defended = scenario.defensivePosition === targetSide
+  const disciplinedGroup = targetSide === 'group' && scenario.coordinationDoctrine === 'disciplined'
+  return (knows ? 0.7 : 1) * (defended ? 0.82 : 1) * (disciplinedGroup ? 0.88 : 1)
+}
+
 function targetCoverage(ability: Ability, attacker: AbilityKernelSide, target: AbilityKernelSide): number {
   if (target.targetQuantityLog10 <= 0) return 1
   const limit = ability.targetLimit ?? 'single'
@@ -143,10 +158,14 @@ function resolveAbility(
   if (
     !conditionsMet(side, ability, conditionTarget, scenario, context, distanceM)
     || ability.activationRate <= 0
-    || ability.counteredBy?.some((channel) => opposingChannels.includes(channel))
   ) {
     return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0)
   }
+
+  const counterChannel = context.ignoreCounters
+    ? undefined
+    : ability.counteredBy?.find((channel) => opposingChannels.includes(channel))
+  if (counterChannel) return rejection(side, attacker.creature.id, ability, 'countered', suppliedPercent, 0, counterChannel)
 
   const accessFactor = deliveryAccess(ability, attacker, distanceM, beneficial)
   if (accessFactor <= EPSILON) {
@@ -164,7 +183,8 @@ function resolveAbility(
   }
   const effects: AbilityEffectResolution[] = ability.effects.map((effect, effectIndex) => {
     const recipient = ability.delivery === 'self' || SELF_EFFECT_KINDS.has(effect.kind) ? attacker : target
-    const channelFactor = recipient.creature.channelModifiers[effect.channel] ?? 1
+    const channelFactor = (recipient.creature.channelModifiers[effect.channel] ?? 1)
+      * (recipient === target ? targetPreparednessFactor(effect.channel, side, scenario) : 1)
     const targetModifier = effect.targetModifier ?? 1
     const magnitude = (effect.potency / 100) * ability.activationRate * resourceFactor * accessFactor * coverage * channelFactor * targetModifier * contextFactors[effectIndex]
     return {
@@ -175,6 +195,7 @@ function resolveAbility(
       potency: effect.potency,
       channelFactor,
       logDelta: magnitude > EPSILON ? Math.log10(1 + magnitude) : 0,
+      recipient: recipient === attacker ? 'self' : 'opponent',
     }
   })
   const logDelta = effects.reduce((sum, effect) => sum + effect.logDelta, 0)

@@ -42,7 +42,7 @@ describe('versioned local history', () => {
     const storage = new MemoryStorage()
     storage.setItem(HISTORY_KEY, JSON.stringify([legacyItem()]))
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     const stored = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
 
     expect(loaded.warning).toContain('migrated')
@@ -74,7 +74,7 @@ describe('versioned local history', () => {
     const raw = JSON.stringify(current)
     storage.setItem(HISTORY_KEY, raw)
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
 
     expect(loaded.warning).toBe('')
     expect(loaded.items).toEqual(current.items)
@@ -99,7 +99,7 @@ describe('versioned local history', () => {
       }],
     }))
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
     expect(loaded.warning).toContain('migrated')
     expect(loaded.items[0].scenario).toMatchObject({ winCondition: 'incapacitation', waterDepthM: 0 })
@@ -118,7 +118,7 @@ describe('versioned local history', () => {
       }],
     }))
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
     expect(loaded.warning).toContain('migrated')
     expect(loaded.warning).toContain('recalculated')
@@ -144,7 +144,7 @@ describe('versioned local history', () => {
       }],
     }))
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
     expect(loaded.warning).toContain('recalculated')
     expect(migrated.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
@@ -164,7 +164,7 @@ describe('versioned local history', () => {
       }],
     }))
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     const stored = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
     expect(loaded.warning).toContain('still needs recalculation')
     expect(loaded.items[0]).toMatchObject({ modelVersion: '0.2.0', dataVersion: '0.2.0', winnerName: 'Old result' })
@@ -174,13 +174,13 @@ describe('versioned local history', () => {
   test('leaves corrupt JSON and incompatible envelopes untouched', () => {
     const corruptStorage = new MemoryStorage()
     corruptStorage.setItem(HISTORY_KEY, '{bad json')
-    expect(loadHistory(corruptStorage)).toMatchObject({ items: [], warning: expect.stringContaining('invalid JSON') })
+    expect(loadHistory(corruptStorage, creatures)).toMatchObject({ items: [], warning: expect.stringContaining('invalid JSON') })
     expect(corruptStorage.getItem(HISTORY_KEY)).toBe('{bad json')
 
     const incompatibleStorage = new MemoryStorage()
     const incompatible = JSON.stringify({ storageVersion: 999, items: [] })
     incompatibleStorage.setItem(HISTORY_KEY, incompatible)
-    expect(loadHistory(incompatibleStorage)).toMatchObject({ items: [], warning: expect.stringContaining('incompatible') })
+    expect(loadHistory(incompatibleStorage, creatures)).toMatchObject({ items: [], warning: expect.stringContaining('incompatible') })
     expect(incompatibleStorage.getItem(HISTORY_KEY)).toBe(incompatible)
   })
 
@@ -200,7 +200,7 @@ describe('versioned local history', () => {
     })
     storage.setItem(HISTORY_KEY, raw)
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
     expect(loaded.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
     expect(loaded.warning).toContain('recalculation will repeat next time')
     expect(loaded.warning).toContain('1 invalid, incompatible or duplicate history entry was ignored')
@@ -227,7 +227,7 @@ describe('versioned local history', () => {
     })
     storage.setItem(HISTORY_KEY, raw)
 
-    const loaded = loadHistory(storage)
+    const loaded = loadHistory(storage, creatures)
 
     expect(loaded.items).toEqual([valid])
     expect(loaded.warning).toContain('4 invalid, incompatible or duplicate history entries were ignored')

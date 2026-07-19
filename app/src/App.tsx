@@ -1,9 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
-import creatureJson from './data/creatures.json'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { CreaturePanel } from './components/CreaturePanel'
 import { ResultPanel } from './components/ResultPanel'
 import { StatControls } from './components/StatControls'
-import { CustomCreatureEditor } from './components/CustomCreatureEditor'
 import { MethodologyPanel } from './components/MethodologyPanel'
 import {
   cloneAsCustom,
@@ -22,7 +20,11 @@ import { validateScenario } from './validation'
 import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
 import { withMethodologyDefaults } from './scenarioDefaults'
 
-const builtInCreatures = creatureJson as Creature[]
+const CustomCreatureEditor = lazy(async () => {
+  const module = await import('./components/CustomCreatureEditor')
+  return { default: module.CustomCreatureEditor }
+})
+
 export const HISTORY_KEY = 'what-would-win-history-v1'
 export const HISTORY_STORAGE_VERSION = 1
 export const HISTORY_ITEM_FORMAT_VERSION = 1
@@ -97,8 +99,8 @@ const fieldBriefs: Array<{
   },
 ]
 
-function mergeScenario(candidate: Scenario | null, creatures: Creature[] = builtInCreatures): Scenario {
-  const base = defaultScenario(builtInCreatures)
+function mergeScenario(candidate: Scenario | null, creatures: Creature[]): Scenario {
+  const base = defaultScenario(creatures)
   if (!candidate) return base
   const normalized = withMethodologyDefaults(candidate) as Scenario
   const validSolo = creatures.some((item) => item.id === normalized.soloId)
@@ -219,7 +221,7 @@ function historyItemNeedsRecalculation(item: HistoryItem): boolean {
   return item.modelVersion !== MODEL_VERSION || item.dataVersion !== DATA_VERSION
 }
 
-export function loadHistory(storage: Storage, creatures: Creature[] = builtInCreatures): HistoryLoadResult {
+export function loadHistory(storage: Storage, creatures: Creature[]): HistoryLoadResult {
   let raw: string | null
   try {
     raw = storage.getItem(HISTORY_KEY)
@@ -303,7 +305,7 @@ function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]):
   return [...new Set([item.scenario.soloId, item.scenario.groupId].filter((id) => !availableIds.has(id)))]
 }
 
-function initialAppState(): InitialAppState {
+function initialAppState(builtInCreatures: Creature[]): InitialAppState {
   if (typeof window === 'undefined') {
     return {
       scenario: defaultScenario(builtInCreatures),
@@ -434,8 +436,12 @@ function wrapCanvasText(context: CanvasRenderingContext2D, text: string, x: numb
   return y + (lineNumber + 1) * lineHeight
 }
 
-function App() {
-  const starting = useMemo(initialAppState, [])
+export interface AppProps {
+  builtInCreatures: Creature[]
+}
+
+function App({ builtInCreatures }: AppProps) {
+  const starting = useMemo(() => initialAppState(builtInCreatures), [builtInCreatures])
   const startingScenario = starting.scenario
   const [savedCustoms, setSavedCustoms] = useState<SavedCustomCreature[]>(starting.savedCustoms)
   const [sharedCustoms] = useState<Creature[]>(starting.sharedCustoms)
@@ -849,12 +855,14 @@ function App() {
         {customStatus && <div className="custom-status custom-message" role="status">{customStatus}</div>}
 
         {editingCustom && (
-          <CustomCreatureEditor
-            key={editingCustom.item.creature.id}
-            item={editingCustom.item}
-            onSave={saveEditedCustom}
-            onCancel={() => setEditingCustom(null)}
-          />
+          <Suspense fallback={<div className="method-banner" role="status">Opening the profile editor…</div>}>
+            <CustomCreatureEditor
+              key={editingCustom.item.creature.id}
+              item={editingCustom.item}
+              onSave={saveEditedCustom}
+              onCancel={() => setEditingCustom(null)}
+            />
+          </Suspense>
         )}
 
         <div className="method-banner">

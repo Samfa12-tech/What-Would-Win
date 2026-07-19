@@ -1,6 +1,7 @@
 import type {
   Ability,
   AbilityEffectResolution,
+  AbilityKernelContext,
   AbilityKernelResult,
   AbilityKernelSide,
   AbilityRejectionReason,
@@ -12,6 +13,14 @@ import type {
 
 const EPSILON = 1e-12
 const SELF_EFFECT_KINDS = new Set(['healing', 'regeneration', 'revival', 'mobility'])
+const SELF_ABILITY_KINDS = new Set(['healing', 'regeneration', 'resurrection', 'mobility'])
+const DEFAULT_CONTEXT: AbilityKernelContext = {
+  durationSeconds: 60,
+  soloInjuryPressure: 0.5,
+  groupInjuryPressure: 0.5,
+  soloDefeatPressure: 0.25,
+  groupDefeatPressure: 0.25,
+}
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value))
@@ -56,8 +65,8 @@ function conditionsMet(ability: Ability, target: AbilityKernelSide, terrain: str
   return true
 }
 
-function deliveryAccess(ability: Ability, attacker: AbilityKernelSide, distanceM: number): number {
-  if (ability.delivery === 'self' || ability.delivery === 'environmental') return 1
+function deliveryAccess(ability: Ability, attacker: AbilityKernelSide, distanceM: number, beneficial: boolean): number {
+  if (beneficial || ability.delivery === 'self' || ability.delivery === 'environmental') return 1
   if (ability.delivery === 'contact') {
     if (distanceM <= attacker.resolvedContactReachM) return 1
     return clamp(attacker.resolvedContactReachM / Math.max(distanceM, EPSILON), 0.05, 0.95)
@@ -65,6 +74,21 @@ function deliveryAccess(ability: Ability, attacker: AbilityKernelSide, distanceM
   const deliveryRange = (ability.rangeM ?? 0) + (ability.delivery === 'area' ? ability.areaRadiusM ?? 0 : 0)
   if (distanceM > deliveryRange + EPSILON) return 0
   return clamp(deliveryRange / Math.max(distanceM, deliveryRange, EPSILON), 0.2, 1)
+}
+
+function effectContextFactor(
+  effectKind: Ability['effects'][number]['kind'],
+  side: 'solo' | 'group',
+  scenario: ScenarioV4Draft,
+  context: AbilityKernelContext,
+): number {
+  const injuryPressure = side === 'solo' ? context.soloInjuryPressure : context.groupInjuryPressure
+  const defeatPressure = side === 'solo' ? context.soloDefeatPressure : context.groupDefeatPressure
+  const durationFactor = clamp(context.durationSeconds / 60, 0, 2)
+  if (effectKind === 'healing') return clamp(injuryPressure, 0, 1)
+  if (effectKind === 'regeneration') return clamp(injuryPressure, 0, 1) * durationFactor
+  if (effectKind === 'revival') return scenario.winCondition === 'death' ? clamp(defeatPressure, 0, 1) * durationFactor : 0
+  return 1
 }
 
 function targetCoverage(ability: Ability, attacker: AbilityKernelSide, target: AbilityKernelSide): number {
@@ -87,17 +111,20 @@ function resolveAbility(
   target: AbilityKernelSide,
   resources: SideResources,
   scenario: ScenarioV4Draft,
+  context: AbilityKernelContext,
 ): AbilityResolution {
   const distanceM = scenario.arenaBoundary === 'bounded'
     ? Math.min(scenario.startingDistanceM, scenario.arenaDiameterM)
     : scenario.startingDistanceM
   const suppliedPercent = resourcePercent(ability, resources)
+  const beneficial = SELF_ABILITY_KINDS.has(ability.kind) || ability.effects.every((effect) => SELF_EFFECT_KINDS.has(effect.kind))
+  const conditionTarget = beneficial ? attacker : target
 
-  if (!conditionsMet(ability, target, scenario.terrain, distanceM) || ability.activationRate <= 0) {
+  if (!conditionsMet(ability, conditionTarget, scenario.terrain, distanceM) || ability.activationRate <= 0) {
     return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0)
   }
 
-  const accessFactor = deliveryAccess(ability, attacker, distanceM)
+  const accessFactor = deliveryAccess(ability, attacker, distanceM, beneficial)
   if (accessFactor <= EPSILON) {
     return rejection(side, attacker.creature.id, ability, 'out-of-range', suppliedPercent, 0)
   }
@@ -105,13 +132,17 @@ function resolveAbility(
     return rejection(side, attacker.creature.id, ability, 'resource-depleted', suppliedPercent, accessFactor)
   }
 
-  const coverage = targetCoverage(ability, attacker, target)
+  const coverage = targetCoverage(ability, attacker, conditionTarget)
   const resourceFactor = suppliedPercent / 100
+  const contextFactors = ability.effects.map((effect) => effectContextFactor(effect.kind, side, scenario, context))
+  if (contextFactors.every((factor) => factor <= EPSILON)) {
+    return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, accessFactor)
+  }
   const effects: AbilityEffectResolution[] = ability.effects.map((effect, effectIndex) => {
     const recipient = ability.delivery === 'self' || SELF_EFFECT_KINDS.has(effect.kind) ? attacker : target
     const channelFactor = recipient.creature.channelModifiers[effect.channel] ?? 1
     const targetModifier = effect.targetModifier ?? 1
-    const magnitude = (effect.potency / 100) * ability.activationRate * resourceFactor * accessFactor * coverage * channelFactor * targetModifier
+    const magnitude = (effect.potency / 100) * ability.activationRate * resourceFactor * accessFactor * coverage * channelFactor * targetModifier * contextFactors[effectIndex]
     return {
       factorId: `ability:${attacker.creature.id}:${ability.id}:effect-${effectIndex}`,
       effectIndex,
@@ -146,10 +177,11 @@ export function resolveAbilityKernel(
   solo: AbilityKernelSide,
   group: AbilityKernelSide,
   scenario: ScenarioV4Draft,
+  context: AbilityKernelContext = DEFAULT_CONTEXT,
 ): AbilityKernelResult {
   const resolutions = [
-    ...solo.creature.abilities.map((ability) => resolveAbility('solo', ability, solo, group, scenario.soloResources, scenario)),
-    ...group.creature.abilities.map((ability) => resolveAbility('group', ability, group, solo, scenario.groupResources, scenario)),
+    ...solo.creature.abilities.map((ability) => resolveAbility('solo', ability, solo, group, scenario.soloResources, scenario, context)),
+    ...group.creature.abilities.map((ability) => resolveAbility('group', ability, group, solo, scenario.groupResources, scenario, context)),
   ]
   const factors: Model04AbilityFactor[] = resolutions.flatMap((resolution) => resolution.active
     ? resolution.effects

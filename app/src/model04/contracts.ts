@@ -197,6 +197,14 @@ export interface AbilityKernelSide {
   frontageCapacity: number
 }
 
+export interface AbilityKernelContext {
+  durationSeconds: number
+  soloInjuryPressure: number
+  groupInjuryPressure: number
+  soloDefeatPressure: number
+  groupDefeatPressure: number
+}
+
 export interface AbilityKernelResult {
   resolutions: AbilityResolution[]
   factors: Model04AbilityFactor[]

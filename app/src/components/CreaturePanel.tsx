@@ -3,6 +3,7 @@ import type { Creature, Scenario, SizeConfig, StatOverrides } from '../types'
 import { isCustomCreature } from '../customCreatures'
 import { SizeControl } from './SizeControl'
 import { StatControls } from './StatControls'
+import { profileTagStatus, type ProfileTagField } from '../mechanicsStatus'
 
 interface CreaturePanelProps {
   side: 'solo' | 'group'
@@ -32,6 +33,22 @@ const kindLabels: Record<Creature['kind'], string> = {
   extinct: 'Extinct animals',
   fantasy: 'Fantasy & mythology',
   human: 'Generic humans',
+}
+
+function ProfileTagList({ field, tokens, testId }: { field: ProfileTagField; tokens: string[]; testId: string }) {
+  if (tokens.length === 0) return <>none recorded</>
+  return (
+    <ul data-testid={testId}>
+      {tokens.map((token) => {
+        const classification = profileTagStatus(field, token)
+        return (
+          <li key={token}>
+            <strong>{token}</strong> — {classification.status === 'mechanical' ? 'Mechanical' : 'Descriptive only'}: {classification.explanation}
+          </li>
+        )
+      })}
+    </ul>
+  )
 }
 
 export function CreaturePanel(props: CreaturePanelProps) {
@@ -150,11 +167,13 @@ export function CreaturePanel(props: CreaturePanelProps) {
 
       <details className="creature-data">
         <summary>Baseline profile and source</summary>
+        <p><strong>Tag status:</strong> Mechanical tags affect at least one current model rule. Descriptive-only tags provide dossier context but do not change the result.</p>
         <dl>
           <div><dt>Burst speed</dt><dd>{props.creature.burst_speed_kph} km/h</dd></div>
           <div><dt>Reach</dt><dd>{props.creature.effective_reach_m} m</dd></div>
-          <div><dt>Attack modes</dt><dd>{props.creature.attack_modes.join(', ')}</dd></div>
-          <div><dt>Traits</dt><dd>{props.creature.traits.join(', ') || 'none recorded'}</dd></div>
+          <div><dt>Habitats</dt><dd><ProfileTagList field="habitats" tokens={props.creature.habitats} testId={`${sideId}-habitat-status`} /></dd></div>
+          <div><dt>Attack modes</dt><dd><ProfileTagList field="attack_modes" tokens={props.creature.attack_modes} testId={`${sideId}-attack-status`} /></dd></div>
+          <div><dt>Traits</dt><dd><ProfileTagList field="traits" tokens={props.creature.traits} testId={`${sideId}-trait-status`} /></dd></div>
         </dl>
         <p>{props.creature.model_notes}</p>
         {selectedIsCustom && <p className="user-authored-note">Private user-authored modelled profile. The reference below describes its original orientation source, not your edits.</p>}

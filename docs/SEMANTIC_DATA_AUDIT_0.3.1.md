@@ -40,6 +40,8 @@ Semantic creature audit: 134 profiles; 33 habitats, 58 attack modes, 68 traits; 
 PASS canonical creature semantics
 ```
 
+The contestant dossier renders each habitat, attack mode and trait with a status exhaustively tested against the same registry. “Mechanical” names the current rule families that consume the tag; “Descriptive only” makes clear that a tag is context and does not change the result. Schema-valid custom habitat strings remain mechanical because the engine can match them exactly to a custom scenario terrain, while custom attack/trait tags without a known mechanic are explicitly shown as having no current model rule.
+
 Canonical-data tests require an empty issue list. Invalid fixtures lock the public diagnostic fields so future linter changes cannot silently rename or weaken the release contract.
 
 ## Ranged-capability policy

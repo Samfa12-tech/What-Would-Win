@@ -130,6 +130,16 @@ test('searches the roster and loads a suggested field briefing', async ({ page }
   await expect(page.getByText('Unrun changes', { exact: true })).toHaveCount(1)
 })
 
+test('labels mechanical and descriptive-only profile tags in the dossier', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('stegosaurus')
+  await soloPanel(page).getByText('Baseline profile and source', { exact: true }).click()
+
+  await expect(page.getByTestId('solo-attack-status')).toContainText('tail-spike — Mechanical: contact piercing, conditional ranged delivery, area control')
+  await expect(page.getByTestId('solo-attack-status')).toContainText('stomp — Descriptive only: dossier context; no current model rule')
+  await expect(page.getByTestId('solo-trait-status')).toContainText('plates — Descriptive only: dossier context; no current model rule')
+  await expect(soloPanel(page).getByText(/Mechanical tags affect at least one current model rule/)).toBeVisible()
+})
+
 test('publishes branded install and social metadata', async ({ page, request }) => {
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://samfa12.com/apps/what-would-win/')
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://samfa12.com/apps/what-would-win/')

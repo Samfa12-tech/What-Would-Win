@@ -93,6 +93,24 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
+test('shows a durable roster error and retries without mutating stored data', async ({ page }) => {
+  const storedHistory = '{"sentinel":"leave untouched"}'
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: storedHistory })
+  await page.route('**/assets/creatures-*.json', (route) => route.abort())
+
+  await page.reload()
+
+  await expect(page.getByRole('heading', { name: 'Creature roster unavailable' })).toBeVisible()
+  await expect(page.getByRole('alert')).toContainText('The built-in creature roster could not be loaded.')
+  await expect(page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).resolves.toBe(storedHistory)
+
+  await page.unroute('**/assets/creatures-*.json')
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await expect(page.getByRole('heading', { name: 'What Would Win' })).toBeVisible()
+  await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged storage format')
+  await expect(page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).resolves.toBe(storedHistory)
+})
+
 test('searches the roster and loads a suggested field briefing', async ({ page }) => {
   const soloSearch = page.getByTestId('solo-creature-search')
   const soloSelect = page.getByTestId('solo-creature-select')

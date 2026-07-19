@@ -260,7 +260,7 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.3.0, data 0.3.0 and share format v3**. Supported model-0.2 shares and history preserve their structured inputs and are visibly recalculated under model 0.3 when referenced profiles are available. An unavailable custom reference stays marked pending rather than receiving current-version metadata beside an old numerical result.
+The current reproducibility identity is **model 0.3.0, data 0.3.1 and share format v3**; the application version is **0.3.1**. Supported data-0.3.0/model-0.3.0 and model/data-0.2.0 shares and history preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
@@ -642,6 +642,7 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 - 16 matchup acceptance bands spanning living, extinct, fantasy, cryptid, marine, extreme-resizing and conceptual cases;
 - focused directional tests for mindset, win condition, knowledge, awareness, facing, resized water geometry, group doctrine, casualty tolerance, arena escape and disclosure-only specimen metadata;
 - model-0.3 invariants for quantity-one role reversal, fixed-biomass fragmentation, bilateral stopping, access ceilings, conceptual confidence continuity, preparation caps and factor-ledger traceability;
+- canonical semantic-vocabulary validation, invalid diagnostic fixtures and focused resource-sensitivity coverage for the four data-0.3.1 ranged decisions;
 - technical trial-count selection;
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
@@ -750,6 +751,10 @@ Model/data/share versioning, integrated schemas, compact and migrated links, loc
 
 The engine/data audit, resized environment geometry, explicit land/amphibious traits, bilateral stopping/access, continuous ranged-resource handling, frontage/reserve weighting, access ceilings, bounded area control, conceptual safeguards, factor-backed encounter phases and 16-fixture calibration suite are implemented. The detailed rationale and remaining risks are recorded in `docs/MODEL_AUDIT_0.3.md`.
 
+### Delivered in data 0.3.1
+
+The Stage A semantic cleanup defines a controlled built-in mechanics vocabulary, distinguishes mechanical and descriptive tags, gates releases with stable semantic diagnostics, corrects the ranged classification of Stegosaurus, Cyclops, Hill giant and Phoenix, and preserves earlier v3, v2, v1 and unversioned migration paths. All 16 calibration fixtures are exactly unchanged. The decision record is `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`.
+
 ### P0 — user-test and deployment preparation
 
 1. Run manual exploratory tests, NVDA/VoiceOver checks and physical Safari/iOS tests.
@@ -763,10 +768,9 @@ The engine/data audit, resized environment geometry, explicit land/amphibious tr
 
 1. Replace broad orientation evidence with primary, expert-reviewed per-field scientific provenance.
 2. Add sex/age/subspecies and distribution fields.
-3. Build a script that reports missing values, outliers, duplicate IDs and unknown tags.
-4. Define a controlled vocabulary for habitats, attack modes and traits.
-5. Review the top 30 most-used profiles first.
-6. Preserve the completed licence classifications and reject restricted or unreviewed new source content.
+3. Extend the release data audit with explicit missing-value and numeric-outlier reports; duplicate IDs and unknown built-in tags are already gated.
+4. Review the top 30 most-used profiles first.
+5. Preserve the completed licence classifications and reject restricted or unreviewed new source content.
 
 ### P2 — modelling research
 

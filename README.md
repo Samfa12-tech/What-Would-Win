@@ -18,9 +18,9 @@ npm run typecheck
 npm run build
 ```
 
-`npm run audit:release` verifies that the committed 134-profile provenance
-audit and the public legal-notices file match their canonical sources. It also
-runs automatically before tests and production builds.
+`npm run audit:release` checks the controlled semantic vocabulary, verifies the committed
+134-profile provenance audit and confirms that the public legal-notices file matches its
+canonical sources. It runs automatically before tests and production builds.
 
 Install the supported test browsers once, then run the production-build browser suite:
 
@@ -39,6 +39,7 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 - `docs/What_Would_Win_Product_Plan.md` — canonical product and simulation specification.
 - `docs/MODEL_AUDIT_0.3.md` — model 0.3 audit, corrections, test coverage and remaining limitations.
+- `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — data 0.3.1 vocabulary policy, reviewed profile corrections, compatibility and calibration comparison.
 - `docs/CODEX_HANDOFF.md` — practical continuation guide and paste-ready Codex prompt.
 - `docs/MODEL_NOTES.md` — compact engine change discipline.
 - `docs/QA_REPORT.md` — tests and visual verification status.
@@ -50,17 +51,18 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 - `data/creatures.json` and `data/creatures.csv`
 - `data/creature.schema.json`
+- `data/mechanics-vocabulary.json`
 - `data/scenario.schema.json`
 - `data/field_provenance.json` and `data/field_provenance.schema.json`
 - `data/test_scenarios.json` and `.csv`
 
-The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. Data 0.3 distinguishes broad aquatic capability from explicit amphibious/land-capable traits for environment routing. This is an entertainment model, not a scientific prediction or animal-welfare guide.
+The prototype uses representative high-end adult profiles. Physical inputs are approximate; 0–100 combat scores are authored model inputs. Fantasy and fixed cryptid entries are explicit design assumptions. Data 0.3.1 retains the distinction between broad aquatic capability and explicit amphibious/land-capable traits for environment routing. This is an entertainment model, not a scientific prediction or animal-welfare guide.
 
-Canonical data and the app-bundled copies are checked for drift. Every creature is validated against the Draft 2020-12 schema and has a non-overlapping, complete field-provenance record. The repository-wide licensing review classifies all 134 external links as attributed Wikipedia orientation sources and separates them from original Samfa12-tech model assumptions. This clears redistribution licensing for the public beta; it does not turn approximate inputs into expert-reviewed zoological claims. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
+Canonical data and the app-bundled copies are checked for drift. Every built-in creature is validated against the Draft 2020-12 schema and the controlled mechanics vocabulary and has a non-overlapping, complete field-provenance record. The canonical linter distinguishes mechanically consumed tags from descriptive tags while leaving private custom-profile strings schema-valid. The repository-wide licensing review classifies all 134 external links as attributed Wikipedia orientation sources and separates them from original Samfa12-tech model assumptions. This clears redistribution licensing for the public beta; it does not turn approximate inputs into expert-reviewed zoological claims. Private custom profiles reuse the creature contract under a `custom:` ID and are stored only in the current browser unless the user explicitly exports or shares them.
 
 ## Versioning and compatibility
 
-The current reproducibility identity is **model 0.3.0, data 0.3.0 and share format v3**. Compact v3 share links include explicit debate-method inputs and embed referenced custom profiles. Model-0.2 shares and history preserve their structured inputs and are visibly recalculated under model 0.3 when referenced profiles are available; unavailable-profile history stays marked pending rather than relabelling an old result. Deployed v2, v1 and delivered unversioned scenarios retain documented migration paths. Unknown, corrupt and oversized payloads are rejected, and incompatible stored data is preserved for recovery.
+The current reproducibility identity is **model 0.3.0, data 0.3.1 and share format v3**; the application version is **0.3.1**. Compact v3 share links include explicit debate-method inputs and embed referenced custom profiles. Data-0.3.0/model-0.3.0 and model/data-0.2.0 shares and history preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available; unavailable-profile history stays pending rather than relabelling an old result. Deployed v2, v1 and delivered unversioned scenarios retain documented migration paths. Unknown, corrupt and oversized payloads are rejected, and incompatible stored data is preserved for recovery.
 
 Ordinary-scale results include a seven-phase deterministic explanatory sequence backed by the applied-factor ledger. Conceptual-scale results use a three-phase aggregate explanation and deliberately withhold physical duration and loss estimates. These sequences explain model factors; they are not sampled event timelines or anatomy simulations.
 

@@ -1,6 +1,6 @@
 # What Would Win — model notes for implementers
 
-This file is a compact companion to the canonical product plan. The executable source of truth is `app/src/simulation/engine.ts`; current reproducibility identity is **model 0.3.0, data 0.3.0, share format v3**.
+This file is a compact companion to the canonical product plan. The executable source of truth is `app/src/simulation/engine.ts`; current reproducibility identity is **model 0.3.0, data 0.3.1, share format v3**.
 
 ## Contract
 
@@ -71,6 +71,12 @@ Ordinary-scale duration uses effective starting distance, capped to arena diamet
 Every material adjustment is recorded in an applied-factor ledger with phase, side, log delta, explanation and optional caveat. Ordinary results use seven phases—briefing, deployment, access/approach, first contact, sustained pressure, likely resolution and alternate path. Conceptual results use three aggregate phases and do not invent literal staging.
 
 The narrative is derived from the deterministic state and displayed probability. It makes the calculation reconstructable for a reader; it does not feed back into the winner and is not a replay of individual Monte Carlo trials.
+
+## Data 0.3.1 semantic cleanup
+
+Data 0.3.1 does not change a model-0.3 formula. It adds a controlled built-in mechanics vocabulary, release-time semantic linting and reviewed ranged classification for Stegosaurus, Cyclops, Hill giant and Phoenix. The exact decisions, zero-delta 16-fixture comparison and share/history compatibility matrix are recorded in `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`.
+
+The `ranged` capability continues to feed model-0.3 access, resource and special-factor calculations. It now means intentional pre-contact delivery, not merely long anatomy or a contact sweep. The model still has one combined `effective_reach_m` value and one scenario-level resources input; this data pass does not introduce separate reach or side-specific supply fields.
 
 ## Remaining limitations
 

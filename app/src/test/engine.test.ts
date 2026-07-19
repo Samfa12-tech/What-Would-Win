@@ -129,6 +129,9 @@ describe('simulation engine', () => {
   for (const fixture of scenariosJson) {
     test(fixture.title, () => {
       const result = simulate(creatures, scenarioFromFixture(fixture))
+      if ((globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.PRINT_CALIBRATION === '1') {
+        console.log(`CALIBRATION ${fixture.id} ${result.soloWinProbability.toFixed(6)} ${result.winner}`)
+      }
       const parsedQuantity = parseQuantity(fixture.group_quantity)
       expect(result.soloWinProbability).toBeGreaterThanOrEqual(fixture.expected_solo_win_probability_min)
       expect(result.soloWinProbability).toBeLessThanOrEqual(fixture.expected_solo_win_probability_max)
@@ -245,6 +248,26 @@ describe('simulation engine', () => {
     expect(margin(suppliedAtRange)).toBeGreaterThan(0)
     expect(margin(depletedAtRange)).toBeLessThan(0)
     expect(suppliedAtRange.soloWinProbability).toBeGreaterThan(depletedAtRange.soloWinProbability)
+  })
+
+  test('reviewed range classifications control model-0.3 resource sensitivity', () => {
+    const base = {
+      ...defaultScenario(creatures),
+      groupId: 'house-mouse',
+      groupQuantity: '10',
+      startingDistanceM: 100,
+      seed: 20260718,
+    }
+    const soloPower = (soloId: string, resourcesPercent: number) => simulate(creatures, {
+      ...base,
+      soloId,
+      resourcesPercent,
+    }).technical.deterministicSoloLogPower
+
+    expect(soloPower('stegosaurus', 100)).toBeCloseTo(soloPower('stegosaurus', 0), 12)
+    for (const id of ['cyclops', 'hill-giant', 'phoenix']) {
+      expect(soloPower(id, 100), id).toBeGreaterThan(soloPower(id, 0))
+    }
   })
 
   test('partial ranged resources change access continuously and zero resources are narrated accurately', () => {

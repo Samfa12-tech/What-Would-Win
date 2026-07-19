@@ -17,7 +17,7 @@ Use `npm run dev` for local iteration. Upload the contents of `app/dist/` to the
 ## Current state
 
 - React/TypeScript/Vite static application.
-- Reproducibility identity: **model 0.3.0, data 0.3.0, share format v3**.
+- Reproducibility identity: **model 0.3.0, data 0.3.1, share format v3**; application version **0.3.1**.
 - 134 bundled profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic humans.
 - One-versus-X engine using deterministic log power plus seeded Monte Carlo trials; generated text never selects the winner.
 - Quantities such as `10^100` are handled in logarithmic space without per-member allocation.
@@ -25,39 +25,43 @@ Use `npm run dev` for local iteration. Upload the contents of `app/dist/` to the
 - Bilateral stopping and attack access, continuous ranged/resource effects, access ceilings, active frontage, logarithmic reserve weighting, bounded area control and bounded-arena occupancy caps with feasibility warnings.
 - Explicit win condition, side-specific mindset, knowledge, awareness, facing, arena/water geometry, group doctrine, casualty tolerance and structured specimen declarations.
 - Four report-depth modes, compact share URLs, PNG/JSON export and versioned local browser history.
-- Model-0.2 shares/history preserve structured inputs and are visibly recalculated under 0.3 when referenced profiles are available; unavailable-profile history remains marked pending. Deployed v2, v1 and delivered unversioned links retain migration coverage.
-- Draft 2020-12 validation for canonical data, custom imports and shared records. Data 0.3 adds explicit amphibious/land-capable traits.
+- Data-0.3.0/model-0.3.0 and model/data-0.2.0 shares/history preserve structured inputs and are visibly recalculated under the current identity when referenced profiles are available; unavailable-profile history remains marked pending. Deployed v2, v1 and delivered unversioned links retain migration coverage.
+- Draft 2020-12 validation for canonical data, custom imports and shared records. Data 0.3.1 adds a controlled built-in mechanics vocabulary, semantic release linter and four reviewed ranged-capability corrections.
 - Named private custom profiles can be cloned, edited, saved locally, imported/exported and embedded in reproducible shares.
 - Ordinary results provide seven deterministic explanatory phases backed by an applied-factor ledger; conceptual results provide three aggregate phases and withhold physical duration/loss estimates.
-- 16 calibration fixtures plus focused invariant/performance coverage; Playwright targets desktop/mobile Chromium, Firefox and WebKit against the production build.
+- 16 calibration fixtures plus focused semantic, invariant and performance coverage; Playwright targets desktop/mobile Chromium, Firefox and WebKit against the production build.
 - Automated axe and keyboard checks, a visible methodology/version panel, CI budgets and complete licensing provenance for all bundled profiles are in place.
 
 ## Read these files in order
 
 1. `docs/What_Would_Win_Product_Plan.md`
 2. `docs/MODEL_AUDIT_0.3.md`
-3. `docs/MODEL_NOTES.md`
-4. `app/src/types.ts`
-5. `app/src/simulation/quantity.ts`
-6. `app/src/simulation/engine.ts`
-7. `app/src/version.ts`
-8. `app/src/simulation/share.ts`
-9. `app/src/App.tsx`
-10. `app/src/customCreatures.ts`
-11. `data/DATA_DICTIONARY.md`
-12. `data/test_scenarios.json`
-13. `app/src/test/engine.test.ts`
-14. `app/src/test/dataContracts.test.ts`
-15. `app/src/test/share.test.ts`
-16. `app/src/test/history.test.ts`
-17. `app/e2e/app.spec.ts`
-18. `app/e2e/accessibility.spec.ts`
+3. `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`
+4. `docs/MODEL_NOTES.md`
+5. `app/src/types.ts`
+6. `app/src/simulation/quantity.ts`
+7. `app/src/simulation/engine.ts`
+8. `app/src/version.ts`
+9. `app/src/simulation/share.ts`
+10. `app/src/App.tsx`
+11. `app/src/customCreatures.ts`
+12. `data/DATA_DICTIONARY.md`
+13. `data/mechanics-vocabulary.json`
+14. `data/test_scenarios.json`
+15. `app/src/test/engine.test.ts`
+16. `app/src/test/dataContracts.test.ts`
+17. `app/src/test/semanticCreatureData.test.ts`
+18. `app/src/test/share.test.ts`
+19. `app/src/test/history.test.ts`
+20. `app/e2e/app.spec.ts`
+21. `app/e2e/accessibility.spec.ts`
 
 ## Product invariants
 
 - The versioned numerical engine chooses the winner; explanatory text follows the calculation.
 - The built-in baseline represents a high-end healthy adult and says so.
 - Physical fields, 0–100 authored scores and fantasy assumptions remain distinguishable.
+- Built-in mechanics tags use the controlled vocabulary; private custom-profile strings remain schema-valid and user-controlled.
 - Fantasy profiles remain labelled `modelled`.
 - Extreme quantities never cause per-member allocation.
 - Every new formula coefficient or material data-contract change requires explanation, regression coverage, a version decision and a changelog entry.
@@ -94,6 +98,7 @@ Do not replace the engine with a single LLM prompt. An AI layer may propose stru
 - Schema-valid shares with an unknown non-custom creature ID fall back to the relevant default profile with an explicit visible warning.
 - Ordinary duration and loss estimates are heuristic. Conceptual values are withheld, but the aggregate calculation still omits logistics, heat, food, travel time and planetary constraints.
 - Reaction, acceleration, turning, senses, vulnerable anatomy, phased incapacitation and delayed injury/venom timing remain coarse or disclosed limitations.
+- Model 0.3 uses one combined contact-or-built-in `effective_reach_m` value and one scenario-level resource percentage; separate reach types and side-specific supplies remain future data-contract work.
 - The explanatory sequence is template-driven from the factor ledger; it does not reconstruct individual Monte Carlo trajectories.
 - Thunderbird and Bunyip are labelled fictional cryptozoological composites and still require cultural-sensitivity review; Charybdis is a combatant-shaped environmental-hazard abstraction.
 - Custom profiles are browser-local and require explicit JSON export for backup or transfer outside a share link.
@@ -114,6 +119,7 @@ Prepare a user-test candidate without silently retuning model 0.3:
 
 ```bash
 npm run test
+npm run audit:semantics
 npm run typecheck
 npm run test:simulation-budget
 npm run build
@@ -125,4 +131,4 @@ For every engine change, print all 16 fixture probabilities locally and review d
 
 ## Handoff prompt for Codex
 
-> Continue the What Would Win React/TypeScript project. Read the Markdown product plan, model 0.3 audit and engine before editing. Preserve the static-first architecture, one-versus-X scope, deterministic-plus-Monte-Carlo authority, logarithmic quantity handling, selectable scaling assumptions, abstract violence and transparent uncertainty. Treat the factor-backed encounter sequence as an explanation, not a generated or sampled winner. Begin with staging-subpath/manual accessibility QA, provenance expansion, PNG-download automation or sensitivity analysis. Run unit/calibration tests, typecheck, simulation/build budgets, the production build and the browser matrix. Update documentation and explain every coefficient, data-contract or version change.
+> Continue the What Would Win React/TypeScript project from model 0.3.0, data 0.3.1 and share format v3. Read the Markdown product plan, model 0.3 audit, semantic data audit and engine before editing. Preserve the static-first architecture, one-versus-X scope, deterministic-plus-Monte-Carlo authority, logarithmic quantity handling, selectable scaling assumptions, abstract violence and transparent uncertainty. Treat the factor-backed encounter sequence as an explanation, not a generated or sampled winner. Preserve the controlled built-in mechanics vocabulary without narrowing private custom-profile tags. Begin with staging-subpath/manual accessibility QA, provenance expansion, PNG-download automation or sensitivity analysis. Run semantic, unit/calibration, typecheck, simulation/build budget, production-build and browser-matrix checks. Update documentation and explain every coefficient, data-contract or version change.

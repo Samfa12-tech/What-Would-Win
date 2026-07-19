@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a controlled built-in mechanics vocabulary and stable semantic creature-data linter, wired into the release audit used by tests, builds and CI.
+- Corrected ranged classification for Stegosaurus, Cyclops, Hill giant and Phoenix; advanced the application and bundled data to 0.3.1 while retaining model 0.3.0 and share format v3.
+- Preserved migration for data-0.3.0/model-0.3.0 and model/data-0.2.0 v3 links alongside deployed v2, v1 and unversioned scenarios.
+- Recorded an exact zero-delta comparison across all 16 model-0.3 calibration fixtures plus focused resource-sensitivity coverage for the four reviewed profiles.
 - Added a scoped MIT code licence, CC BY-SA 4.0 data licence and explicit brand/artwork reservation.
 - Completed generated licensing provenance for all 134 built-in profiles while retaining the scientific-review caveat.
 - Added redistributed runtime notices and shipped them with the static application build.

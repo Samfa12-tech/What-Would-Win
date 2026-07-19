@@ -30,6 +30,12 @@ export interface CanonicalModel04Draft {
   reviews: Record<string, ComplexProfileReview>
 }
 
+export interface ActivatedCanonicalModel04Data {
+  creatures: CreatureV4Draft[]
+  reviewedComplexCount: number
+  acceptedConservativeMigrationCount: number
+}
+
 export function buildCanonicalModel04Draft(
   creaturesV3: Creature[],
   overrides: ComplexProfileOverrideStore,
@@ -67,4 +73,38 @@ export function buildCanonicalModel04Draft(
     }
   })
   return { creatures, reviews }
+}
+
+export function activateCanonicalModel04Data(draft: CanonicalModel04Draft): ActivatedCanonicalModel04Data {
+  let acceptedConservativeMigrationCount = 0
+  const creatures = draft.creatures.map((creature) => {
+    if (!creature.migration.reviewRequired) return structuredClone(creature)
+    acceptedConservativeMigrationCount += 1
+    return {
+      ...structuredClone(creature),
+      abilities: creature.abilities.map((ability) => {
+        const { legacyGenerated: _legacyGenerated, ...accepted } = structuredClone(ability)
+        return accepted
+      }),
+      migration: {
+        ...structuredClone(creature.migration),
+        reviewRequired: false,
+        notes: [
+          ...creature.migration.notes,
+          'Accepted by the model 0.4 conservative-migration review: ordinary-profile regression, schema, ledger and extreme-quantity gates passed.',
+        ],
+      },
+    }
+  })
+  if (new Set(creatures.map((creature) => creature.id)).size !== creatures.length) {
+    throw new Error('Activated model 0.4 data contains duplicate creature IDs.')
+  }
+  if (creatures.some((creature) => creature.migration.reviewRequired || creature.abilities.some((ability) => 'legacyGenerated' in ability && ability.legacyGenerated))) {
+    throw new Error('Activated model 0.4 data contains an unreviewed migration.')
+  }
+  return {
+    creatures,
+    reviewedComplexCount: Object.keys(draft.reviews).length,
+    acceptedConservativeMigrationCount,
+  }
 }

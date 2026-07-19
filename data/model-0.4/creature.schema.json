@@ -260,6 +260,7 @@
       "type": "object",
       "propertyNames": {
         "enum": [
+          "physical",
           "physical-blunt",
           "physical-piercing",
           "physical-crushing",
@@ -267,9 +268,14 @@
           "cold",
           "electric",
           "venom",
+          "disease",
           "petrification",
+          "hypnosis",
+          "fear",
           "psychic",
           "sonic",
+          "magic",
+          "incorporeal",
           "restraint",
           "healing",
           "regeneration",
@@ -361,6 +367,7 @@
                 },
                 "channel": {
                   "enum": [
+                    "physical",
                     "physical-blunt",
                     "physical-piercing",
                     "physical-crushing",
@@ -368,9 +375,14 @@
                     "cold",
                     "electric",
                     "venom",
+                    "disease",
                     "petrification",
+                    "hypnosis",
+                    "fear",
                     "psychic",
                     "sonic",
+                    "magic",
+                    "incorporeal",
                     "restraint",
                     "healing",
                     "regeneration",
@@ -413,10 +425,45 @@
             "minimum": 0,
             "maximum": 1
           },
+          "counteredBy": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "physical",
+                "physical-blunt",
+                "physical-piercing",
+                "physical-crushing",
+                "fire",
+                "cold",
+                "electric",
+                "venom",
+                "disease",
+                "petrification",
+                "hypnosis",
+                "fear",
+                "psychic",
+                "sonic",
+                "magic",
+                "incorporeal",
+                "restraint",
+                "healing",
+                "regeneration",
+                "revival",
+                "mobility"
+              ]
+            }
+          },
           "conditions": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
+              "requiresLineOfSight": {
+                "type": "boolean"
+              },
+              "requiresFacing": {
+                "type": "boolean"
+              },
               "minimumDistanceM": {
                 "type": "number",
                 "minimum": 0,
@@ -428,6 +475,15 @@
                 "maximum": 10000000
               },
               "terrains": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                }
+              },
+              "forbiddenWeather": {
                 "type": "array",
                 "uniqueItems": true,
                 "items": {

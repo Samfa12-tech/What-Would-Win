@@ -58,6 +58,7 @@ export type AbilityEffectKind =
   | 'morale'
 
 export type AbilityChannel =
+  | 'physical'
   | 'physical-blunt'
   | 'physical-piercing'
   | 'physical-crushing'
@@ -65,9 +66,14 @@ export type AbilityChannel =
   | 'cold'
   | 'electric'
   | 'venom'
+  | 'disease'
   | 'petrification'
+  | 'hypnosis'
+  | 'fear'
   | 'psychic'
   | 'sonic'
+  | 'magic'
+  | 'incorporeal'
   | 'restraint'
   | 'healing'
   | 'regeneration'
@@ -82,9 +88,12 @@ export interface AbilityEffect {
 }
 
 export interface AbilityCondition {
+  requiresLineOfSight?: boolean
+  requiresFacing?: boolean
   minimumDistanceM?: number
   maximumDistanceM?: number
   terrains?: string[]
+  forbiddenWeather?: string[]
   targetPhysiology?: Physiology[]
   requiredTargetSenses?: Array<keyof SenseProfile>
 }
@@ -106,6 +115,7 @@ export interface Ability {
   targetLimit?: 'single' | 'frontage' | 'area'
   activationRate: number
   conditions?: AbilityCondition
+  counteredBy?: AbilityChannel[]
   resource: AbilityResource
   notes: string
   legacyGenerated?: boolean
@@ -195,6 +205,20 @@ export interface AbilityKernelSide {
   resolvedBodyLengthM: number
   targetQuantityLog10: number
   frontageCapacity: number
+}
+
+export interface AbilityKernelContext {
+  durationSeconds: number
+  soloInjuryPressure: number
+  groupInjuryPressure: number
+  soloDefeatPressure: number
+  groupDefeatPressure: number
+  soloLineOfSight: boolean
+  groupLineOfSight: boolean
+  soloFacesTarget: boolean
+  groupFacesTarget: boolean
+  soloAppliedChannels: AbilityChannel[]
+  groupAppliedChannels: AbilityChannel[]
 }
 
 export interface AbilityKernelResult {

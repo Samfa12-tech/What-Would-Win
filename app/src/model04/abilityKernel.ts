@@ -74,8 +74,11 @@ function conditionsMet(
   if (conditions.requiresFacing && !(side === 'solo' ? context.soloFacesTarget : context.groupFacesTarget)) return false
   if (conditions.minimumDistanceM !== undefined && distanceM < conditions.minimumDistanceM) return false
   if (conditions.maximumDistanceM !== undefined && distanceM > conditions.maximumDistanceM) return false
+  if (conditions.minimumTargetMassKg !== undefined && target.resolvedMassKg < conditions.minimumTargetMassKg) return false
+  if (conditions.maximumTargetMassKg !== undefined && target.resolvedMassKg > conditions.maximumTargetMassKg) return false
   if (conditions.terrains && !conditions.terrains.includes(scenario.terrain)) return false
   if (conditions.forbiddenWeather?.includes(scenario.weather)) return false
+  if (conditions.timeOfDay && !conditions.timeOfDay.includes(scenario.timeOfDay)) return false
   if (conditions.targetPhysiology && !conditions.targetPhysiology.includes(target.creature.physiology)) return false
   if (conditions.requiredTargetSenses?.some((sense) => !target.creature.senses[sense])) return false
   return true

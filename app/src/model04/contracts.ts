@@ -61,6 +61,7 @@ export type AbilityChannel =
   | 'physical'
   | 'physical-blunt'
   | 'physical-piercing'
+  | 'physical-slashing'
   | 'physical-crushing'
   | 'fire'
   | 'cold'
@@ -92,8 +93,11 @@ export interface AbilityCondition {
   requiresFacing?: boolean
   minimumDistanceM?: number
   maximumDistanceM?: number
+  minimumTargetMassKg?: number
+  maximumTargetMassKg?: number
   terrains?: string[]
   forbiddenWeather?: string[]
+  timeOfDay?: Array<'day' | 'night'>
   targetPhysiology?: Physiology[]
   requiredTargetSenses?: Array<keyof SenseProfile>
 }
@@ -203,6 +207,7 @@ export interface AbilityKernelSide {
   creature: CreatureV4Draft
   resolvedContactReachM: number
   resolvedBodyLengthM: number
+  resolvedMassKg: number
   targetQuantityLog10: number
   frontageCapacity: number
 }

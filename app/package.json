@@ -1,7 +1,7 @@
 {
   "name": "what-would-win-demo",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "test": "npm run audit:release && vitest run",
     "audit:provenance": "node ../scripts/generate_provenance_audit.mjs",
     "audit:legal": "node ../scripts/generate_public_legal.mjs && node ../scripts/verify_runtime_notices.mjs",
-    "audit:release": "npm run audit:provenance && npm run audit:legal",
+    "audit:semantics": "node ../scripts/verify_creature_semantics.mjs",
+    "audit:release": "npm run audit:semantics && npm run audit:provenance && npm run audit:legal",
     "test:simulation-budget": "vitest run src/test/performance.test.ts",
     "test:e2e": "npm run build && playwright test",
     "test:e2e:headed": "npm run build && playwright test --headed",

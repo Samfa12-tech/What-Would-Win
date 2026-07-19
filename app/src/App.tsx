@@ -144,6 +144,8 @@ function validHistoryText(value: unknown): value is string {
 
 function isPreviousHistoryVersionPair(value: Record<string, unknown>): boolean {
   return (
+    value.modelVersion === '0.3.0' && value.dataVersion === '0.3.0'
+  ) || (
     value.modelVersion === '0.2.0' && value.dataVersion === '0.2.0'
   ) || (
     value.modelVersion === '0.1.0' && value.dataVersion === '0.1.0'

@@ -132,6 +132,25 @@ describe('versioned local history', () => {
     expect(migrated.items[0].soloWinProbability).not.toBe(0.75)
   })
 
+  test('recalculates model 0.3 history created with data 0.3.0', () => {
+    const storage = new MemoryStorage()
+    storage.setItem(HISTORY_KEY, JSON.stringify({
+      storageVersion: HISTORY_STORAGE_VERSION,
+      items: [{
+        formatVersion: HISTORY_ITEM_FORMAT_VERSION,
+        modelVersion: '0.3.0',
+        dataVersion: '0.3.0',
+        ...legacyItem({ id: 'data-0.3.0-history-item' }),
+      }],
+    }))
+
+    const loaded = loadHistory(storage)
+    const migrated = JSON.parse(storage.getItem(HISTORY_KEY) ?? '{}')
+    expect(loaded.warning).toContain('recalculated')
+    expect(migrated.items[0]).toMatchObject({ modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION })
+    expect(migrated.items[0].soloWinProbability).not.toBe(0.75)
+  })
+
   test('keeps unavailable previous-version history visibly pending instead of relabelling a stale outcome', () => {
     const storage = new MemoryStorage()
     const missingScenario = { ...defaultScenario(creatures), soloId: 'custom:missing-profile' }

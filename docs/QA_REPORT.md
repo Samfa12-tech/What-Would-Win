@@ -1,11 +1,12 @@
-# What Would Win — model 0.3 QA report
+# What Would Win — model 0.3 / data 0.3.1 QA report
 
 **QA date:** 18 July 2026
 
 ## Automated checks
 
 - `npm run typecheck`: passing.
-- `npm test`: 80 tests passing across engine, calibration, custom-profile, data-contract, history, share-codec and performance suites.
+- `npm test`: 95 tests passing across engine, calibration, semantic-data, custom-profile, data-contract, history, share-codec and performance suites.
+- `npm run audit:semantics`: 134 profiles, 33 habitats, 58 attack modes and 68 traits checked with 0 errors and 0 warnings; controlled invalid fixtures cover unknown/wrong-field tags, malformed tag lists and values, capability contradictions and advisory diagnostics.
 - Calibration: all 16 behavioural fixtures remain inside their documented model-0.3 acceptance bands.
 - `npm run test:simulation-budget`: 1/1 passing; the complete technical-depth calibration run remains below the 2-second CI ceiling.
 - `npm run test:e2e -- --workers=2`: production build plus 76 Playwright checks across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit; 73 passed and 3 desktop-only skips for the mobile overflow contract.
@@ -19,9 +20,9 @@ Browser flows cover searchable roster filtering, suggested briefs, invalid and c
 
 ## Production build snapshot
 
-- JavaScript: 577,385 bytes (147.98 kB gzip) against a 580,000-byte budget.
+- JavaScript: 577,543 bytes (148.02 kB gzip) against a 580,000-byte budget.
 - CSS: 24,911 bytes (5.73 kB gzip) against a 25,000-byte budget.
-- Runtime payload excluding the crawler-only social image: 705,697 bytes against a 715,000-byte budget; this includes the complete public legal notices.
+- Runtime payload excluding the crawler-only social image: 705,855 bytes against a 715,000-byte budget; this includes the complete public legal notices.
 - Social preview: 238,563 bytes against a separate 300,000-byte budget.
 - Vite reports a large single JavaScript chunk; it is within the locked budget but has very little remaining headroom.
 

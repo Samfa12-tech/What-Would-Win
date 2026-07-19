@@ -34,7 +34,7 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit and calibration tests
+      - name: Release audits, unit and calibration tests
         run: npm test
 
       - name: Simulation duration budget

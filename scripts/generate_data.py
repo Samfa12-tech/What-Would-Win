@@ -7,6 +7,11 @@ from pathlib import Path
 from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
+VOCABULARY = json.loads((ROOT / 'data' / 'mechanics-vocabulary.json').read_text(encoding='utf-8'))
+RANGED_UNAMBIGUOUS = set(VOCABULARY['attack_modes']['mechanical']['ranged-unambiguous'])
+RANGED_WHEN_DECLARED = set(VOCABULARY['attack_modes']['mechanical']['ranged-when-declared'])
+VENOM_DELIVERY = set(VOCABULARY['attack_modes']['mechanical']['venom-delivery'])
+AQUATIC_INFERENCE = set(VOCABULARY['habitats']['mechanical']['aquatic-inference'])
 
 
 def slug(name: str) -> str:
@@ -242,9 +247,9 @@ for e in entries:
     habitats = set(e['habitats'])
     modes = set(e['attack_modes'])
     e['can_fly'] = 'flight' in traits
-    e['aquatic'] = 'aquatic' in traits or habitats <= {'ocean','coast','river','swamp','reef','deep-ocean','prehistoric-ocean'}
-    e['venomous'] = 'venom' in traits or any('venom' in m for m in modes)
-    e['ranged'] = 'ranged' in traits or any(m in modes for m in ('bow','fire-breath','tail-spike','gaze','web','electric-shock'))
+    e['aquatic'] = 'aquatic' in traits or (bool(habitats) and habitats <= AQUATIC_INFERENCE)
+    e['venomous'] = 'venom' in traits or bool(modes & VENOM_DELIVERY)
+    e['ranged'] = bool(modes & RANGED_UNAMBIGUOUS) or ('ranged' in traits and bool(modes & RANGED_WHEN_DECLARED))
     e['regenerates'] = 'regeneration' in traits
     e['undead_or_construct'] = bool({'undead','construct'} & traits)
 

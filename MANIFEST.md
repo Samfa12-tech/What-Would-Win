@@ -12,10 +12,12 @@
 - `assets/brand/what-would-win-icon-master.png` — full-resolution generated source for the one-versus-many application mark.
 - `app/public/icons/` and `app/public/site.webmanifest` — optimized deployed icon and install metadata.
 - `data/creatures.json` and `data/creatures.csv` — 134-profile creature database.
+- `data/mechanics-vocabulary.json` and `scripts/verify_creature_semantics.mjs` — controlled built-in mechanics registry and deterministic semantic release gate.
 - `data/*.schema.json` — creature and scenario data contracts.
 - `data/field_provenance.json` — complete licensing provenance/authorship records for all 134 profiles.
 - `data/test_scenarios.json` and `.csv` — 16 behavioural calibration fixtures.
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
+- `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — reviewed profile decisions, exact calibration comparison, versioning and compatibility evidence.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
 - `SHA256SUMS.txt` and `scripts/generate_sha256s.py` — deterministic checksums of the exact Git-index file bytes.
 
@@ -29,12 +31,13 @@
 - Vite production build passing.
 - Creature JSON validated against the supplied Draft 2020-12 schema.
 - CSV and JSON profile IDs/order match.
-- Model 0.3.0, data 0.3.0 and share format v3 are explicit; model-0.2 share/history recalculation, unavailable-profile pending states and incompatible-share rejection are covered.
+- Model 0.3.0, data 0.3.1, application 0.3.1 and share format v3 are explicit; data-0.3.0 and model/data-0.2.0 share/history recalculation, unavailable-profile pending states and incompatible-share rejection are covered.
 - Named private custom profiles validated, saved locally, imported/exported and embedded in clean-browser reproducible shares.
 - Compact v3 shares retain deployed v2, v1 and delivered unversioned-link migration coverage.
 - Versioned, validated recent history preserves corrupt/incompatible input and unavailable custom references for recovery.
 - Automated axe and keyboard-operability coverage runs on all four browser projects.
-- CI enforces typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
+- CI enforces semantic/provenance/legal audits, typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
+- Canonical semantic audit covers 33 habitats, 58 attack modes and 68 traits across all 134 profiles with stable invalid-fixture diagnostics.
 - Complete field provenance distinguishes attributed external orientation from authored model and metadata inputs for all profiles.
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).

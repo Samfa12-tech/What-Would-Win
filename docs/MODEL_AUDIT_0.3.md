@@ -4,6 +4,8 @@
 **Reproducibility identity:** model 0.3.0 · data 0.3.0 · share format v3<br>
 **Scope:** scaling, environment, effect delivery, group aggregation, uncertainty, derived metrics, explanation output and regression coverage
 
+> **Data follow-up:** The engine remains model 0.3.0. The later data 0.3.1 controlled-vocabulary audit, four ranged-capability corrections, exact calibration comparison and compatibility decision are recorded in `docs/SEMANTIC_DATA_AUDIT_0.3.1.md`.
+
 ## Executive conclusion
 
 Model 0.3 corrects the largest general failure modes found in the 0.2 engine without changing the locked product direction. The numerical winner still comes from deterministic log power plus seeded Monte Carlo variation. The app still supports one profile versus effectively unlimited copies of another, selectable scaling assumptions, static hosting and abstract non-graphic reporting.

@@ -130,6 +130,21 @@ describe('versioned scenario sharing', () => {
     })
   })
 
+  test('migrates a compact v3 link from model 0.3 with data 0.3.0', () => {
+    const scenario = defaultScenario(creatures)
+    const previousPayload: ScenarioSharePayload = {
+      ...createScenarioPayload(scenario),
+      modelVersion: '0.3.0',
+      dataVersion: '0.3.0',
+    }
+    const decoded = decodeScenarioPayload(encodeScenarioPayload(previousPayload))
+    expect(decoded).toMatchObject({
+      ok: true,
+      status: 'migrated-version',
+      payload: { modelVersion: MODEL_VERSION, dataVersion: DATA_VERSION, scenario },
+    })
+  })
+
   test('explicitly migrates the delivered unversioned scenario format', () => {
     const scenario = defaultScenario(creatures)
     const legacyScenario = Object.fromEntries(Object.entries(scenario).filter(([key]) => ![

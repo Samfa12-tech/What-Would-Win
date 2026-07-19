@@ -12,8 +12,10 @@ export const MAX_ENCODED_SCENARIO_LENGTH = 64_000
 export const MAX_SHARED_CUSTOM_CREATURES = 2
 
 const LEGACY_SHARE_FORMAT_VERSIONS = [1, 2] as const
-const PREVIOUS_MODEL_VERSION = '0.2.0'
-const PREVIOUS_DATA_VERSION = '0.2.0'
+const PREVIOUS_V3_VERSION_PAIRS = [
+  ['0.3.0', '0.3.0'],
+  ['0.2.0', '0.2.0'],
+] as const
 const DEPLOYED_V2_MODEL_VERSION = '0.1.0'
 const DEPLOYED_V2_DATA_VERSION = '0.1.0'
 const COMPACT_SEPARATOR = '.'
@@ -55,8 +57,12 @@ function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
 
 function isSupportedVersionPair(modelVersion: unknown, dataVersion: unknown): boolean {
   return (modelVersion === MODEL_VERSION && dataVersion === DATA_VERSION)
-    || (modelVersion === PREVIOUS_MODEL_VERSION && dataVersion === PREVIOUS_DATA_VERSION)
+    || PREVIOUS_V3_VERSION_PAIRS.some(([model, data]) => modelVersion === model && dataVersion === data)
     || (modelVersion === DEPLOYED_V2_MODEL_VERSION && dataVersion === DEPLOYED_V2_DATA_VERSION)
+}
+
+function isPreviousV3VersionPair(modelVersion: unknown, dataVersion: unknown): boolean {
+  return PREVIOUS_V3_VERSION_PAIRS.some(([model, data]) => modelVersion === model && dataVersion === data)
 }
 
 function compactSize(size: Scenario['soloSize']): unknown[] {
@@ -313,7 +319,7 @@ function decodeVersionedPayload(value: Record<string, unknown>): ScenarioDecodeR
       ? 'migrated-v1'
       : value.formatVersion === 2
         ? 'migrated-v2'
-        : value.modelVersion === MODEL_VERSION
+        : value.modelVersion === MODEL_VERSION && value.dataVersion === DATA_VERSION
           ? 'current'
           : 'migrated-version',
     payload: currentPayload(scenario, customCreatures),
@@ -325,7 +331,7 @@ function decodeCompactPayload(value: unknown, formatVersion: number): ScenarioDe
     return { ok: false, reason: 'corrupt', message: 'The compact shared scenario has an invalid envelope.' }
   }
   const supportedVersions = (value[0] === MODEL_VERSION && value[1] === DATA_VERSION)
-    || (formatVersion === SHARE_FORMAT_VERSION && value[0] === PREVIOUS_MODEL_VERSION && value[1] === PREVIOUS_DATA_VERSION)
+    || (formatVersion === SHARE_FORMAT_VERSION && isPreviousV3VersionPair(value[0], value[1]))
     || (formatVersion === 2 && value[0] === DEPLOYED_V2_MODEL_VERSION && value[1] === DEPLOYED_V2_DATA_VERSION)
   if (!supportedVersions) {
     return {

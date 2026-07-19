@@ -3139,7 +3139,7 @@
     "can_fly": false,
     "aquatic": false,
     "venomous": false,
-    "ranged": true,
+    "ranged": false,
     "regenerates": false,
     "undead_or_construct": false
   },
@@ -3799,7 +3799,7 @@
     "can_fly": true,
     "aquatic": false,
     "venomous": false,
-    "ranged": false,
+    "ranged": true,
     "regenerates": true,
     "undead_or_construct": false
   },
@@ -3894,7 +3894,7 @@
     "can_fly": false,
     "aquatic": false,
     "venomous": false,
-    "ranged": false,
+    "ranged": true,
     "regenerates": false,
     "undead_or_construct": false
   },
@@ -3989,7 +3989,7 @@
     "can_fly": false,
     "aquatic": false,
     "venomous": false,
-    "ranged": false,
+    "ranged": true,
     "regenerates": false,
     "undead_or_construct": false
   },

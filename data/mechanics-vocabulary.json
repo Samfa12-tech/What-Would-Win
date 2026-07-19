@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "canonical_scope": "Built-in profiles must use this vocabulary. Imported custom profiles remain schema-valid with their own descriptive tags.",
+    "ranged": "Ranged means the baseline profile has an intentional, combat-relevant delivery mode that can produce a decisive effect before physical contact at full declared resources. Extended anatomy and contact sweeps do not qualify.",
+    "adjudications": {
+      "stegosaurus": "Tail spikes are contact anatomy, so tail-spike alone is not ranged.",
+      "cyclops": "Throw represents deliberate pre-contact object delivery and is ranged.",
+      "hill-giant": "Throw represents deliberate pre-contact object delivery and is ranged.",
+      "phoenix": "Fire-burst represents deliberate pre-contact fire delivery and is ranged."
+    }
+  },
+  "capabilities": {
+    "can_fly": { "mechanical": true, "derived_from": "trait:flight" },
+    "aquatic": { "mechanical": true, "derived_from": "trait:aquatic or exclusively aquatic-inference habitats" },
+    "venomous": { "mechanical": true, "derived_from": "trait:venom or venom-delivery attack" },
+    "ranged": { "mechanical": true, "derived_from": "unambiguous ranged attack or ranged trait plus a declared-ranged attack" },
+    "regenerates": { "mechanical": true, "derived_from": "trait:regeneration" },
+    "undead_or_construct": { "mechanical": true, "derived_from": "trait:undead or trait:construct" }
+  },
+  "habitats": {
+    "mechanical": {
+      "terrain-affinity": ["bridge", "castle", "cave", "cliff", "coast", "deep-ocean", "desert", "farm", "forest", "fortification", "ice", "island", "jungle", "labyrinth", "mountain", "night", "ocean", "open", "prehistoric-ocean", "prehistoric-open", "reef", "river", "rocky", "ruin", "savanna", "scrub", "sewer", "sky", "snow", "steppe", "swamp", "underworld", "urban"],
+      "dry-land-evidence": ["cave", "desert", "farm", "forest", "fortification", "mountain", "open", "rocky", "ruin", "savanna", "scrub", "snow"],
+      "aquatic-inference": ["coast", "deep-ocean", "ocean", "prehistoric-ocean", "reef", "river", "swamp"]
+    },
+    "descriptive": []
+  },
+  "attack_modes": {
+    "mechanical": {
+      "contact-piercing": ["claw", "horn", "saber-bite", "spear", "spur", "sting", "tail-spike", "tail-sting", "talon", "tusk", "venomous-bite"],
+      "ranged-unambiguous": ["bow", "electric-shock", "fire-breath", "fire-burst", "gaze", "throw", "web"],
+      "ranged-when-declared": ["song", "tail-spike", "whirlpool"],
+      "venom-delivery": ["venom", "venomous-bite"],
+      "stopping-bypass": ["electric-shock", "whirlpool"],
+      "area-control": ["tail-club", "tail-spike"]
+    },
+    "descriptive": ["antler", "axe", "beak", "bite", "body-slam", "charge", "club", "club-strike", "constrict", "crush", "death-roll", "devour", "dive", "drag", "drop", "fist", "grapple", "hair-defense", "hoof-strike", "kick", "knife", "many-bites", "neck-swing", "peck", "pounce", "quill-contact", "ram", "shield", "stomp", "strike", "suction", "tail", "tail-strike", "tentacle", "trample", "wing-strike"]
+  },
+  "traits": {
+    "mechanical": {
+      "capability-source": ["aquatic", "construct", "flight", "ranged", "regeneration", "undead", "venom"],
+      "environment": ["ambush", "amphibious", "climber", "cold-adapted", "echolocation", "fire", "formation", "heat-adapted", "land-capable", "night-vision", "runner", "semi-aquatic", "sprinter", "thick-fur"],
+      "group-aggregation": ["eusocial", "formation", "pack-hunter", "swarm"],
+      "special-factor": ["armored", "electric", "fire", "heavy-armor", "many-heads", "many-limbs", "petrification"],
+      "stopping-bypass": ["cavitation-strike", "electric", "petrification"]
+    },
+    "descriptive": ["apex-predator", "armored-skull", "burrower", "camouflage", "colossal", "deep-diver", "domestic", "electroreception", "endurance", "equipment", "extinct", "extreme-speed", "fearless", "feathered", "flock", "giant", "hands", "healing", "height", "herd", "hooks", "hypnosis", "impenetrable-hide", "limited-ammunition", "magic", "pack-compatible", "pack-possible", "plates", "quills", "silent-flight", "swimmer", "tail-balance", "thick-hide", "tool-potential", "tool-use", "trained", "troop"]
+  }
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "name": "unknown canonical trait",
+    "patch": { "traits": ["thick-hide", "herd", "laser-eyes"] },
+    "expected": [{ "severity": "error", "code": "TAG_UNKNOWN", "field": "traits", "value": "laser-eyes" }]
+  },
+  {
+    "name": "known tag in the wrong field",
+    "patch": { "attack_modes": ["tusk", "flight"] },
+    "expected": [{ "severity": "error", "code": "TAG_WRONG_FIELD", "field": "attack_modes", "value": "flight" }]
+  },
+  {
+    "name": "flight capability contradicts its trait",
+    "patch": { "traits": ["thick-hide", "herd", "flight"] },
+    "expected": [{ "severity": "error", "code": "CAPABILITY_MISMATCH", "field": "can_fly" }]
+  },
+  {
+    "name": "ranged capability without delivery",
+    "patch": { "ranged": true },
+    "expected": [{ "severity": "error", "code": "CAPABILITY_MISMATCH", "field": "ranged" }]
+  },
+  {
+    "name": "ranged delivery with capability disabled",
+    "patch": { "attack_modes": ["tusk", "bow"] },
+    "expected": [{ "severity": "error", "code": "CAPABILITY_MISMATCH", "field": "ranged" }]
+  },
+  {
+    "name": "moving stationary hazard is advisory",
+    "patch": { "category": "mythic-hazard", "burst_speed_kph": 1 },
+    "expected": [{ "severity": "warning", "code": "STATIONARY_HAZARD_SPEED", "field": "burst_speed_kph" }]
+  },
+  {
+    "name": "non-array tag list",
+    "patch": { "traits": null },
+    "expected": [{ "severity": "error", "code": "TAG_LIST_INVALID", "field": "traits" }]
+  },
+  {
+    "name": "empty tag list",
+    "patch": { "habitats": [] },
+    "expected": [{ "severity": "error", "code": "TAG_LIST_EMPTY", "field": "habitats" }]
+  },
+  {
+    "name": "non-string tag value",
+    "patch": { "attack_modes": ["tusk", 7] },
+    "expected": [{ "severity": "error", "code": "TAG_VALUE_INVALID", "field": "attack_modes", "value": "7" }]
+  }
+]

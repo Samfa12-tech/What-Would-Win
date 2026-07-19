@@ -14,7 +14,7 @@
       "const": 1
     },
     "targetModel": {
-      "const": "0.4.0-draft.1"
+      "const": "0.4.1"
     },
     "profiles": {
       "type": "array",
@@ -263,6 +263,15 @@
                   "exclusiveMinimum": 0,
                   "maximum": 10000000
                 },
+                "geometryScaling": {
+                  "enum": [
+                    "fixed",
+                    "linear",
+                    "functional",
+                    "magical",
+                    "environmental-fixed"
+                  ]
+                },
                 "targetLimit": {
                   "enum": [
                     "single",
@@ -313,6 +322,15 @@
                       "type": "boolean"
                     },
                     "requiresFacing": {
+                      "type": "boolean"
+                    },
+                    "requiresAttackerFacing": {
+                      "type": "boolean"
+                    },
+                    "requiresTargetFacing": {
+                      "type": "boolean"
+                    },
+                    "requiresMutualFacing": {
                       "type": "boolean"
                     },
                     "minimumDistanceM": {
@@ -417,7 +435,27 @@
                       "minimum": 0,
                       "maximum": 1000000000
                     }
-                  }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": {
+                          "rechargeSeconds": {}
+                        },
+                        "required": [
+                          "rechargeSeconds"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "capacity": {}
+                        },
+                        "required": [
+                          "capacity"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 "notes": {
                   "type": "string",
@@ -440,7 +478,7 @@
             ],
             "properties": {
               "status": {
-                "const": "reviewed-draft"
+                "const": "reviewed"
               },
               "interpretation": {
                 "type": "string",

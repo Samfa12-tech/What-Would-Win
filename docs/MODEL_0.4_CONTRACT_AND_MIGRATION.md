@@ -2,9 +2,9 @@
 
 **Status:** active public contract and retained migration record
 
-**Active contract:** `0.4.0`
+**Active contract:** `0.4.1`
 
-**Active public identity:** app/model/data 0.4.0, share v4, custom/history v2
+**Active public identity:** app/model/data 0.4.1, share v4, custom/history v2
 
 ## Decision
 
@@ -20,16 +20,16 @@ The identities advanced together at activation:
 
 | Contract | Before cutover | Active release |
 |---|---:|---:|
-| Application | 0.3.1 | 0.4.0 |
-| Model | 0.3.0 | 0.4.0 |
-| Bundled data | 0.3.1 | 0.4.0 |
+| Application | 0.3.1 | 0.4.1 |
+| Model | 0.3.0 | 0.4.1 |
+| Bundled data | 0.3.1 | 0.4.1 |
 | Share envelope | v3 | v4 |
 | Custom storage/export | v1 | v2 |
 | History storage/item | v1 | v2 |
 
 The v3 creature and scenario schemas remain hash-locked compatibility inputs. The active v4 schemas live under `data/model-0.4/`.
 
-The migration-evidence artifacts retain `targetModel: 0.4.0-draft.1` as their frozen pre-cutover schema identity. That internal evidence label is distinct from the active public model identity `0.4.0`; changing it would require an explicit artifact-schema migration rather than a cosmetic relabel.
+The migration-evidence artifacts now use active `targetModel: 0.4.1` and `reviewed` status. Draft labels are not accepted as current review evidence.
 
 ## Reach migration
 
@@ -101,7 +101,8 @@ The v4 decoder uses a migration registry keyed by share format, model version an
 
 | Input | Required result after activation |
 |---|---|
-| v4 · model/data 0.4.0 | Current |
+| v4 · model/data 0.4.1 | Current |
+| v4 · model/data 0.4.0 | Compatible v4 migration; visible recalculation |
 | v3 · model 0.3.0 · data 0.3.1 | Pure v3→v4 migration; visible recalculation |
 | v3 · model 0.3.0 · data 0.3.0 | Existing data migration, then v3→v4 |
 | v3 · model/data 0.2.0 | Existing methodology migration, then v3→v4 |

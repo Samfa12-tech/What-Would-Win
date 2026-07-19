@@ -49,6 +49,17 @@ function payloadV4(): ScenarioSharePayloadV4 {
   }
 }
 
+function rewriteV4Wire(encoded: string, mutate: (wire: unknown[]) => void): string {
+  const [version, body] = encoded.split('.', 2)
+  const json = new TextDecoder().decode(Uint8Array.from(atob(body.replace(/-/g, '+').replace(/_/g, '/')), (character) => character.charCodeAt(0)))
+  const wire = JSON.parse(json) as unknown[]
+  mutate(wire)
+  const bytes = new TextEncoder().encode(JSON.stringify(wire))
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return `${version}.${btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')}`
+}
+
 function legacyHistoryItem(overrides: Record<string, unknown> = {}) {
   const scenario = defaultScenario(creatures)
   return {
@@ -81,6 +92,62 @@ describe('active model 0.4 persistence and codecs', () => {
     const second = payloadV4()
     second.scenario.soloResources.abilityPercent = { 'a-first': 80, 'z-last': 20 }
     expect(encodeModel04Scenario(first)).toBe(encodeModel04Scenario(second))
+  })
+
+  test('migrates the released model/data 0.4.0 v4 identity without changing its scenario inputs', () => {
+    const current = encodeModel04Scenario(payloadV4())
+    const released = rewriteV4Wire(current, (wire) => {
+      wire[0] = '0.4.0'
+      wire[1] = '0.4.0'
+    })
+    expect(decodeModel04Scenario(released)).toMatchObject({
+      ok: true,
+      status: 'migrated-v4',
+      payload: {
+        modelVersion: MODEL_04_VERSION,
+        dataVersion: MODEL_04_DATA_VERSION,
+        scenario: payloadV4().scenario,
+      },
+    })
+  })
+
+  test('uses the same exact referenced-custom validation for v4 encoding and decoding', () => {
+    const first = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[0], 'custom:first').creature, 'custom-v1')
+    const second = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[1], 'custom:second').creature, 'custom-v1')
+    const valid = payloadV4()
+    valid.scenario.soloId = first.id
+    valid.customCreatures = [first]
+    const encoded = encodeModel04Scenario(valid)
+
+    const duplicate = structuredClone(valid)
+    duplicate.customCreatures = [first, structuredClone(first)]
+    expect(() => encodeModel04Scenario(duplicate)).toThrow('invalid or incomplete model 0.4 custom profiles')
+
+    const extra = structuredClone(valid)
+    extra.customCreatures = [first, second]
+    expect(() => encodeModel04Scenario(extra)).toThrow('invalid or incomplete model 0.4 custom profiles')
+
+    const missing = structuredClone(valid)
+    missing.customCreatures = []
+    expect(() => encodeModel04Scenario(missing)).toThrow('invalid or incomplete model 0.4 custom profiles')
+
+    const duplicateWire = rewriteV4Wire(encoded, (wire) => { wire[3] = [first, structuredClone(first)] })
+    expect(decodeModel04Scenario(duplicateWire)).toMatchObject({ ok: false, reason: 'corrupt' })
+
+    const extraWire = rewriteV4Wire(encoded, (wire) => { wire[3] = [first, second] })
+    expect(decodeModel04Scenario(extraWire)).toMatchObject({ ok: false, reason: 'corrupt' })
+
+    const missingWire = rewriteV4Wire(encoded, (wire) => { wire.splice(3, 1) })
+    expect(decodeModel04Scenario(missingWire)).toMatchObject({ ok: false, reason: 'corrupt' })
+
+    const nonCustomWire = rewriteV4Wire(encoded, (wire) => {
+      const scenario = wire[2] as Record<string, unknown>
+      scenario.soloId = creatures[0].id
+      const embedded = structuredClone(first)
+      embedded.id = creatures[0].id
+      wire[3] = [embedded]
+    })
+    expect(decodeModel04Scenario(nonCustomWire, new Set(creatures.map((creature) => creature.id)))).toMatchObject({ ok: false, reason: 'corrupt' })
   })
 
   test('routes current v3 shares through the pure v3-to-v4 migration', () => {

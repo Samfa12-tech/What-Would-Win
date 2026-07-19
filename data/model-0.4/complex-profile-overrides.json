@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "targetModel": "0.4.0-draft.1",
+  "targetModel": "0.4.1",
   "profiles": [
     {
       "id": "western-dragon",
@@ -31,6 +31,7 @@
           "effects": [{ "kind": "harm", "channel": "fire", "potency": 100 }],
           "rangeM": 35,
           "areaRadiusM": 10,
+          "geometryScaling": "functional",
           "targetLimit": "area",
           "activationRate": 0.82,
           "resource": { "pool": "side-default" },
@@ -48,7 +49,7 @@
           "notes": "Three-dimensional mobility remains distinct from fire delivery."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Generic public-domain western dragon", "note": "Contact, fire geometry and flight are separate mechanics." }
+      "review": { "status": "reviewed", "interpretation": "Generic public-domain western dragon", "note": "Contact, fire geometry and flight are separate mechanics." }
     },
     {
       "id": "medusa",
@@ -78,11 +79,12 @@
           "delivery": "gaze",
           "effects": [{ "kind": "restraint", "channel": "petrification", "potency": 100 }],
           "rangeM": 30,
+          "geometryScaling": "fixed",
           "targetLimit": "frontage",
           "activationRate": 0.72,
           "conditions": {
             "requiresLineOfSight": true,
-            "requiresFacing": true,
+            "requiresMutualFacing": true,
             "targetPhysiology": ["living"],
             "requiredTargetSenses": ["vision"]
           },
@@ -90,7 +92,7 @@
           "notes": "Classical mortal Gorgon interpretation; target must see and face the gaze."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Classical mortal Gorgon", "note": "Gaze and contact fallback are separate." }
+      "review": { "status": "reviewed", "interpretation": "Classical mortal Gorgon", "note": "Gaze and contact fallback are separate." }
     },
     {
       "id": "phoenix",
@@ -118,6 +120,7 @@
           "effects": [{ "kind": "harm", "channel": "fire", "potency": 85 }],
           "rangeM": 20,
           "areaRadiusM": 6,
+          "geometryScaling": "magical",
           "targetLimit": "area",
           "activationRate": 0.78,
           "resource": { "pool": "side-default" },
@@ -146,7 +149,7 @@
           "notes": "One app-authored revival under a death contest; incapacitation may end the fight first."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Fire bird with one rebirth", "note": "Fire immunity, regeneration and resurrection are independent mechanics." }
+      "review": { "status": "reviewed", "interpretation": "Fire bird with one rebirth", "note": "Fire immunity, regeneration and resurrection are independent mechanics." }
     },
     {
       "id": "hydra",
@@ -182,7 +185,7 @@
           "notes": "Regrowth is suppressed only when an opposing fire channel has actually applied."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Many-headed regenerating serpent", "note": "Frontage and fire-countered regrowth are explicit." }
+      "review": { "status": "reviewed", "interpretation": "Many-headed regenerating serpent", "note": "Frontage and fire-countered regrowth are explicit." }
     },
     {
       "id": "troll",
@@ -218,7 +221,7 @@
           "notes": "Fixed app interpretation uses fire as the explicit regeneration counter."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Generic regenerating troll", "note": "Fire vulnerability and counter are declared, not inferred from name." }
+      "review": { "status": "reviewed", "interpretation": "Generic regenerating troll", "note": "Fire vulnerability and counter are declared, not inferred from name." }
     },
     {
       "id": "nemean-lion",
@@ -247,7 +250,7 @@
           "notes": "Ordinary leonine attack."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Classical weapon-resistant lion", "note": "Piercing/slashing immunity does not imply crushing or restraint immunity." }
+      "review": { "status": "reviewed", "interpretation": "Classical weapon-resistant lion", "note": "Piercing/slashing immunity does not imply crushing or restraint immunity." }
     },
     {
       "id": "siren",
@@ -277,6 +280,7 @@
           "delivery": "auditory",
           "effects": [{ "kind": "restraint", "channel": "hypnosis", "potency": 82 }],
           "rangeM": 50,
+          "geometryScaling": "fixed",
           "targetLimit": "area",
           "activationRate": 0.76,
           "conditions": {
@@ -298,7 +302,7 @@
           "notes": "Flight remains separate from song."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Classical bird-bodied singer", "note": "Auditory hypnosis and flight are independent." }
+      "review": { "status": "reviewed", "interpretation": "Classical bird-bodied singer", "note": "Auditory hypnosis and flight are independent." }
     },
     {
       "id": "giant-spider",
@@ -329,6 +333,7 @@
           "delivery": "ranged",
           "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 84 }],
           "rangeM": 15,
+          "geometryScaling": "functional",
           "targetLimit": "single",
           "activationRate": 0.76,
           "conditions": { "maximumTargetMassKg": 5000 },
@@ -336,7 +341,7 @@
           "notes": "Finite web supply and an explicit target-mass ceiling; not an area attack against arbitrary swarms."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "App-authored giant web-building spider", "note": "Web range, mass limit, supply and venom delivery are separate." }
+      "review": { "status": "reviewed", "interpretation": "App-authored giant web-building spider", "note": "Web range, mass limit, supply and venom delivery are separate." }
     },
     {
       "id": "charybdis",
@@ -355,6 +360,7 @@
             { "kind": "restraint", "channel": "restraint", "potency": 95 }
           ],
           "areaRadiusM": 40,
+          "geometryScaling": "environmental-fixed",
           "targetLimit": "area",
           "activationRate": 1,
           "conditions": { "terrains": ["ocean", "deep-ocean"] },
@@ -362,7 +368,7 @@
           "notes": "Stationary personified whirlpool; no creature-style pursuit or land locomotion."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Stationary environmental-hazard abstraction", "note": "Fixed radius and ocean terrain are explicit." }
+      "review": { "status": "reviewed", "interpretation": "Stationary environmental-hazard abstraction", "note": "Fixed radius and ocean terrain are explicit." }
     },
     {
       "id": "vampire",
@@ -394,11 +400,12 @@
           "delivery": "gaze",
           "effects": [{ "kind": "restraint", "channel": "hypnosis", "potency": 72 }],
           "rangeM": 12,
+          "geometryScaling": "fixed",
           "targetLimit": "single",
           "activationRate": 0.68,
           "conditions": {
             "requiresLineOfSight": true,
-            "requiresFacing": true,
+            "requiresMutualFacing": true,
             "targetPhysiology": ["living"],
             "requiredTargetSenses": ["vision"]
           },
@@ -418,7 +425,7 @@
           "notes": "This fixed app interpretation withholds regeneration in daylight."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Generic public-domain nocturnal vampire", "note": "Living-target dependency, hypnosis and night recovery are explicit." }
+      "review": { "status": "reviewed", "interpretation": "Generic public-domain nocturnal vampire", "note": "Living-target dependency, hypnosis and night recovery are explicit." }
     },
     {
       "id": "stone-golem",
@@ -440,7 +447,134 @@
           "notes": "Slow, heavy physical attack."
         }
       ],
-      "review": { "status": "reviewed-draft", "interpretation": "Generic animated stone construct", "note": "Poison, disease, hypnosis, fear and petrification immunity are explicit channels." }
+      "review": { "status": "reviewed", "interpretation": "Generic animated stone construct", "note": "Poison, disease, hypnosis, fear and petrification immunity are explicit channels." }
+    },
+    {
+      "id": "basilisk", "contact_reach_m": 1.4, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "basilisk-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 78 }], "targetLimit": "single", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "Physical bite remains available against targets that cannot be poisoned or petrified." },
+        { "id": "basilisk-venom", "name": "Venom delivery", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "venom", "potency": 88 }], "targetLimit": "single", "activationRate": 0.76, "conditions": { "targetPhysiology": ["living"] }, "resource": { "pool": "none" }, "notes": "Venom is a living-target channel separate from the physical bite." },
+        { "id": "petrifying-gaze", "name": "Petrifying gaze", "kind": "restraint", "delivery": "gaze", "effects": [{ "kind": "restraint", "channel": "petrification", "potency": 96 }], "rangeM": 24, "geometryScaling": "fixed", "targetLimit": "frontage", "activationRate": 0.68, "conditions": { "requiresLineOfSight": true, "requiresMutualFacing": true, "targetPhysiology": ["living"], "requiredTargetSenses": ["vision"] }, "resource": { "pool": "none" }, "notes": "Fixed visual interpretation; preparedness reduces the petrification channel in the kernel." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Venomous basilisk with a visual petrifying gaze", "note": "Bite, venom and gaze are independent routes; constructs and spirits remain valid physical-bite targets but are ineligible for the gaze and venom." }
+    },
+    {
+      "id": "chimera", "contact_reach_m": 2.4, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "many-part-assault", "name": "Many-part assault", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 88 }, { "kind": "harm", "channel": "physical-slashing", "potency": 80 }], "targetLimit": "frontage", "activationRate": 0.9, "resource": { "pool": "none" }, "notes": "The fixed many-headed interpretation expands contact frontage." },
+        { "id": "fire-breath", "name": "Fire breath", "kind": "attack", "delivery": "area", "effects": [{ "kind": "harm", "channel": "fire", "potency": 90 }], "rangeM": 18, "areaRadiusM": 5, "geometryScaling": "functional", "targetLimit": "area", "activationRate": 0.78, "resource": { "pool": "side-default" }, "notes": "Biological fire breath is a finite ranged area channel and can trigger fire counters." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Three-part terrestrial chimera with fire breath", "note": "Multiple heads affect frontage; fire remains distinct from physical contact." }
+    },
+    {
+      "id": "unicorn", "contact_reach_m": 1.8, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "horn-charge", "name": "Horn charge", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 78 }, { "kind": "harm", "channel": "physical-blunt", "potency": 66 }], "targetLimit": "single", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Physical horn and charge route." },
+        { "id": "restorative-magic", "name": "Restorative magic", "kind": "healing", "delivery": "self", "effects": [{ "kind": "healing", "channel": "healing", "potency": 52 }], "targetLimit": "single", "activationRate": 0.64, "resource": { "pool": "ability", "capacity": 2, "rechargeSeconds": 90 }, "notes": "The source magic trait is fixed as bounded self-healing, not an unrestricted offensive magic channel." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Combatant unicorn with bounded restorative magic", "note": "Magic is represented only through finite injury-dependent healing; it grants no unspecified attack or immunity." }
+    },
+    {
+      "id": "cerberus", "contact_reach_m": 1.8, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "three-headed-assault", "name": "Three-headed assault", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 88 }, { "kind": "harm", "channel": "physical-slashing", "potency": 72 }], "targetLimit": "frontage", "activationRate": 0.92, "resource": { "pool": "none" }, "notes": "Three heads are represented as bounded contact frontage, not three independent creatures." }],
+      "review": { "status": "reviewed", "interpretation": "Three-headed underworld hound", "note": "Many heads affect simultaneous contact coverage only." }
+    },
+    {
+      "id": "kraken", "contact_reach_m": 25, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "many-limbed-drag", "name": "Many-limbed drag", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-crushing", "potency": 100 }, { "kind": "restraint", "channel": "restraint", "potency": 94 }], "targetLimit": "frontage", "activationRate": 0.94, "resource": { "pool": "none" }, "notes": "Many limbs provide bounded frontage and restraint in an aquatic engagement." }],
+      "review": { "status": "reviewed", "interpretation": "Colossal many-limbed sea monster", "note": "Tentacles route to crushing, restraint, extended contact reach and frontage." }
+    },
+    {
+      "id": "scylla", "contact_reach_m": 10, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "many-headed-tentacle-assault", "name": "Many-headed tentacle assault", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 94 }, { "kind": "harm", "channel": "physical-crushing", "potency": 96 }, { "kind": "restraint", "channel": "restraint", "potency": 86 }], "targetLimit": "frontage", "activationRate": 0.94, "resource": { "pool": "none" }, "notes": "Heads and limbs share one bounded frontage interpretation." }],
+      "review": { "status": "reviewed", "interpretation": "Fixed many-headed, many-limbed sea-monster abstraction", "note": "Multiple anatomy expands frontage without multiplying the profile into independent bodies." }
+    },
+    {
+      "id": "manticore", "contact_reach_m": 2, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "manticore-assault", "name": "Bite and claws", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 80 }, { "kind": "harm", "channel": "physical-slashing", "potency": 76 }], "targetLimit": "single", "activationRate": 0.86, "resource": { "pool": "none" }, "notes": "Contact attack remains separate from the tail volley." },
+        { "id": "venomous-tail-volley", "name": "Venomous tail-spike volley", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 82 }, { "kind": "harm", "channel": "venom", "potency": 72 }], "rangeM": 35, "geometryScaling": "linear", "targetLimit": "frontage", "activationRate": 0.74, "resource": { "pool": "ability", "capacity": 24, "rechargeSeconds": 120 }, "notes": "Fixed interpretation treats the ranged tail spikes as finite venom-bearing projectiles." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Wingless manticore with venom-bearing tail spikes", "note": "Ranged piercing, venom and finite projectile supply are explicit." }
+    },
+    {
+      "id": "wyvern", "contact_reach_m": 3.5, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "wyvern-assault", "name": "Bite, talons and tail sting", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 90 }, { "kind": "harm", "channel": "venom", "potency": 82 }], "targetLimit": "frontage", "activationRate": 0.9, "resource": { "pool": "none" }, "notes": "Contact venom is carried by the tail sting." },
+        { "id": "flight", "name": "Flight", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 84 }], "targetLimit": "single", "activationRate": 1, "resource": { "pool": "none" }, "notes": "Flight is locomotion and access, not a second attack." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Two-legged flying venomous wyvern", "note": "Flight, piercing contact and venom are independent routes." }
+    },
+    {
+      "id": "roc", "contact_reach_m": 12, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "roc-assault", "name": "Talons, beak and drop", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 96 }, { "kind": "harm", "channel": "physical-crushing", "potency": 84 }], "targetLimit": "frontage", "activationRate": 0.88, "conditions": { "maximumTargetMassKg": 12000 }, "resource": { "pool": "none" }, "notes": "The drop is folded into contact crushing and cannot lift a target above the reviewed mass ceiling." },
+        { "id": "flight", "name": "Flight", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 84 }], "targetLimit": "single", "activationRate": 1, "resource": { "pool": "none" }, "notes": "Colossal flight route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Colossal predatory bird capable of bounded lift-and-drop attacks", "note": "Drop is a mass-limited contact sequence, not arbitrary ranged damage." }
+    },
+    {
+      "id": "griffin", "contact_reach_m": 2, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "griffin-assault", "name": "Talon, beak and pounce", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 82 }, { "kind": "harm", "channel": "physical-slashing", "potency": 74 }], "targetLimit": "single", "activationRate": 0.88, "resource": { "pool": "none" }, "notes": "Reviewed physical contact channels." },
+        { "id": "flight", "name": "Flight", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 90 }], "targetLimit": "single", "activationRate": 1, "resource": { "pool": "none" }, "notes": "Flight route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Flying lion-eagle hybrid", "note": "No unlisted magic is inferred; flight and physical attack channels are explicit." }
+    },
+    {
+      "id": "werewolf", "contact_reach_m": 1, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "werewolf-assault", "name": "Bite, claws and pounce", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 82 }, { "kind": "harm", "channel": "physical-slashing", "potency": 84 }], "targetLimit": "single", "activationRate": 0.9, "resource": { "pool": "none" }, "notes": "Physical contact route." },
+        { "id": "werewolf-regeneration", "name": "Regeneration", "kind": "regeneration", "delivery": "self", "effects": [{ "kind": "regeneration", "channel": "regeneration", "potency": 78 }], "targetLimit": "single", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "Bounded injury- and duration-dependent recovery; no unsupported silver rule is inferred." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic regenerating werewolf", "note": "Physical channels and regeneration are explicit; night vision remains a sensory/environment route." }
+    },
+    {
+      "id": "electric-eel", "contact_reach_m": 1, "physiology": "living", "channelModifiers": { "electric": 0.35 },
+      "abilities": [
+        { "id": "electric-discharge", "name": "Electric discharge", "kind": "attack", "delivery": "area", "effects": [{ "kind": "harm", "channel": "electric", "potency": 72 }], "rangeM": 2, "areaRadiusM": 1.5, "geometryScaling": "functional", "targetLimit": "area", "activationRate": 0.82, "conditions": { "terrains": ["river", "swamp", "ocean", "deep-ocean", "coast"] }, "resource": { "pool": "ability", "capacity": 6, "rechargeSeconds": 30 }, "notes": "Electric discharge uses the electric channel and a bounded biological recharge model." },
+        { "id": "eel-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 42 }], "targetLimit": "single", "activationRate": 0.68, "resource": { "pool": "none" }, "notes": "Physical fallback." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large electric eel in water", "note": "Electric shock is never substituted with a physical projectile." }
+    },
+    {
+      "id": "giant-pacific-octopus", "contact_reach_m": 2, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "eight-arm-restraint", "name": "Eight-arm restraint", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 52 }, { "kind": "restraint", "channel": "restraint", "potency": 68 }], "targetLimit": "frontage", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "Many limbs route to bounded frontage and restraint." }],
+      "review": { "status": "reviewed", "interpretation": "Large living octopus", "note": "Eight arms affect contact coverage without counting as eight independent attackers." }
+    },
+    {
+      "id": "giant-squid", "contact_reach_m": 5, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "many-limbed-grapple", "name": "Many-limbed grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 68 }, { "kind": "restraint", "channel": "restraint", "potency": 76 }], "targetLimit": "frontage", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Arms and tentacles route to bounded frontage." }],
+      "review": { "status": "reviewed", "interpretation": "Large living squid", "note": "Many limbs affect restraint and coverage, not body count." }
+    },
+    {
+      "id": "colossal-squid", "contact_reach_m": 5, "physiology": "living", "channelModifiers": {},
+      "abilities": [{ "id": "hooked-limb-grapple", "name": "Hooked-limb grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 78 }, { "kind": "restraint", "channel": "restraint", "potency": 80 }], "targetLimit": "frontage", "activationRate": 0.86, "resource": { "pool": "none" }, "notes": "Many hooked limbs route to bounded frontage and restraint." }],
+      "review": { "status": "reviewed", "interpretation": "Colossal squid with hooked limbs", "note": "Many limbs affect coverage without multiplying independent bodies." }
+    },
+    {
+      "id": "prepared-archer", "contact_reach_m": 1.2, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "bow-shot", "name": "Bow shot", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 68 }], "rangeM": 80, "geometryScaling": "linear", "targetLimit": "single", "activationRate": 0.82, "resource": { "pool": "ability", "capacity": 24 }, "notes": "Prepared archer carries a finite reviewed arrow supply." },
+        { "id": "knife", "name": "Knife", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 46 }], "targetLimit": "single", "activationRate": 0.66, "resource": { "pool": "none" }, "notes": "Contact fallback after range closes or arrows deplete." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Prepared human archer with bow, 24 arrows and knife", "note": "Ranged piercing and limited ammunition are explicit." }
+    },
+    {
+      "id": "cyclops", "contact_reach_m": 4, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "giant-club", "name": "Giant club", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 90 }], "targetLimit": "frontage", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Blunt contact route." },
+        { "id": "thrown-boulder", "name": "Thrown boulder", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 82 }], "rangeM": 25, "geometryScaling": "linear", "targetLimit": "single", "activationRate": 0.62, "resource": { "pool": "ability", "capacity": 3 }, "notes": "Throw is a finite blunt projectile, never a piercing substitution." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "One-eyed giant with club and nearby throwable stones", "note": "Contact and ranged blunt channels are separate." }
+    },
+    {
+      "id": "hill-giant", "contact_reach_m": 4.5, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "giant-club", "name": "Giant club", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 92 }], "targetLimit": "frontage", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Blunt contact route." },
+        { "id": "thrown-boulder", "name": "Thrown boulder", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 84 }], "rangeM": 30, "geometryScaling": "linear", "targetLimit": "single", "activationRate": 0.62, "resource": { "pool": "ability", "capacity": 3 }, "notes": "Throw is a finite blunt projectile, never a piercing substitution." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic hill giant with club and throwable stones", "note": "Contact and ranged blunt channels are separate." }
     }
   ]
 }

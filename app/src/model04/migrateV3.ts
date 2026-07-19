@@ -1,6 +1,7 @@
 import type { Creature, Scenario } from '../types'
 import type {
   Ability,
+  AbilityGeometryScaling,
   CreatureV4Draft,
   LocomotionProfile,
   Model04MigrationMetadata,
@@ -63,6 +64,14 @@ function baseLegacyAbility(creature: Creature): Ability {
   }
 }
 
+function migratedRangedGeometry(creature: Creature): AbilityGeometryScaling {
+  const modes = new Set(creature.attack_modes)
+  if (modes.has('whirlpool')) return 'environmental-fixed'
+  if (modes.has('gaze') || modes.has('song')) return 'fixed'
+  if (modes.has('fire-breath') || modes.has('fire-burst') || modes.has('web') || modes.has('electric-shock')) return 'functional'
+  return 'linear'
+}
+
 function migratedAbilities(creature: Creature): Ability[] {
   const abilities: Ability[] = [baseLegacyAbility(creature)]
   if (creature.ranged) {
@@ -73,6 +82,7 @@ function migratedAbilities(creature: Creature): Ability[] {
       delivery: 'ranged',
       effects: [{ kind: 'harm', channel: 'physical-piercing', potency: creature.attack }],
       rangeM: creature.effective_reach_m,
+      geometryScaling: migratedRangedGeometry(creature),
       targetLimit: creature.multi_target >= 60 ? 'area' : 'single',
       activationRate: 1,
       resource: { pool: 'side-default' },

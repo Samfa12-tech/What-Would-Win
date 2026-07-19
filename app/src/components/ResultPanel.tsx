@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import type { Creature, ReportDepth, Scenario, SimulationResult } from '../types'
 import type { Model04SensitivityPoint } from '../model04/engineV4'
+import type { AbilityResolution, CreatureV4Draft } from '../model04/contracts'
 
 const TechnicalReport = lazy(async () => {
   const module = await import('./TechnicalReport')
@@ -10,6 +11,8 @@ const TechnicalReport = lazy(async () => {
 interface ResultPanelProps {
   result: SimulationResult
   sensitivity: Model04SensitivityPoint[]
+  abilityResolutions: AbilityResolution[]
+  contestants: { solo: CreatureV4Draft; group: CreatureV4Draft }
   scenario: Scenario
   solo: Creature
   group: Creature
@@ -36,7 +39,7 @@ function depthAtLeast(current: ReportDepth, target: ReportDepth): boolean {
   return order.indexOf(current) >= order.indexOf(target)
 }
 
-export function ResultPanel({ result, sensitivity, scenario, solo, group, shareStatus, onCopyShare, onDownloadImage, onDownloadJson }: ResultPanelProps) {
+export function ResultPanel({ result, sensitivity, abilityResolutions, contestants, scenario, solo, group, shareStatus, onCopyShare, onDownloadImage, onDownloadJson }: ResultPanelProps) {
   const winningProbability = result.winner === 'solo' ? result.soloWinProbability : result.groupWinProbability
   const advantageLabel = (advantage: (typeof result.narrative)[number]['advantage']) => {
     if (advantage === 'solo') return `${solo.name} edge`
@@ -164,7 +167,7 @@ export function ResultPanel({ result, sensitivity, scenario, solo, group, shareS
 
       {depthAtLeast(scenario.reportDepth, 'technical') && (
         <Suspense fallback={<div className="method-banner" role="status">Loading the technical calculation record…</div>}>
-          <TechnicalReport result={result} />
+          <TechnicalReport result={result} abilityResolutions={abilityResolutions} contestants={contestants} />
         </Suspense>
       )}
 

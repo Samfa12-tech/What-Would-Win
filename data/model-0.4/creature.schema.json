@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://samfa12.com/what-would-win/schemas/model-0.4/creature.schema.json",
-  "title": "What Would Win model 0.4 draft creature",
+  "title": "What Would Win model 0.4.1 creature",
   "description": "Prototype profile schema. Physical fields and normalized model scores must remain distinguishable.",
   "type": "object",
   "additionalProperties": false,
@@ -415,6 +415,15 @@
             "exclusiveMinimum": 0,
             "maximum": 10000000
           },
+          "geometryScaling": {
+            "enum": [
+              "fixed",
+              "linear",
+              "functional",
+              "magical",
+              "environmental-fixed"
+            ]
+          },
           "targetLimit": {
             "enum": [
               "single",
@@ -465,6 +474,15 @@
                 "type": "boolean"
               },
               "requiresFacing": {
+                "type": "boolean"
+              },
+              "requiresAttackerFacing": {
+                "type": "boolean"
+              },
+              "requiresTargetFacing": {
+                "type": "boolean"
+              },
+              "requiresMutualFacing": {
                 "type": "boolean"
               },
               "minimumDistanceM": {
@@ -569,7 +587,27 @@
                 "minimum": 0,
                 "maximum": 1000000000
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "rechargeSeconds": {}
+                  },
+                  "required": [
+                    "rechargeSeconds"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "capacity": {}
+                  },
+                  "required": [
+                    "capacity"
+                  ]
+                }
+              }
+            ]
           },
           "notes": {
             "type": "string",
@@ -614,6 +652,30 @@
             "minLength": 1,
             "maxLength": 500
           }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "interpretation",
+        "note"
+      ],
+      "properties": {
+        "status": {
+          "const": "reviewed"
+        },
+        "interpretation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
         }
       }
     }

@@ -10,12 +10,12 @@ const budgets = {
   // A split must reduce the eager path; moving bytes between chunks cannot conceal
   // growth in total JavaScript or in the complete published artifact.
   entryJavascript: 455_000,
-  optionalUiJavascript: 15_000,
-  model04RuntimeJavascript: 52_000,
-  javascript: 525_000,
+  optionalUiJavascript: 21_000,
+  model04RuntimeJavascript: 100_000,
+  javascript: 575_000,
   creatureRoster: 125_000,
-  css: 25_100,
-  total: 772_000,
+  css: 26_000,
+  total: 835_000,
   socialImage: 300_000,
 }
 

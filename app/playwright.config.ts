@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const previewPort = 4174
+const previewUrl = `http://127.0.0.1:${previewPort}`
+
 export default defineConfig({
   testDir: './e2e',
   outputDir: '../output/playwright/test-results',
@@ -12,15 +15,15 @@ export default defineConfig({
     ['html', { outputFolder: '../output/playwright/html-report', open: 'never' }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: previewUrl,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    command: `npm run preview -- --host 127.0.0.1 --port ${previewPort} --strictPort`,
+    url: previewUrl,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [

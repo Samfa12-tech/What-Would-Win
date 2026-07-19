@@ -1,19 +1,32 @@
-# Model 0.4 build-budget revision
+# Model 0.4.1 build-budget review
 
-The build budget is a repository-owned CI guardrail, not a user-set time or token budget. Model 0.4 adds a separately lazy-loaded deterministic runtime and canonical ability overrides, so the guard now reports that cost as its own category instead of hiding it inside generic lazy JavaScript.
+The build budget is a repository-owned CI guardrail. Model 0.4.1 adds 18 reviewed profile overrides, effect-level physical diagnostics, geometry/use contracts, strict share validation, reproducible export state, a dossier and a deeper technical sensitivity path. The review first removed avoidable eager duplication, then set explicit ceilings with measurable headroom.
 
-| Category | Model 0.3 ceiling | Model 0.4 ceiling | Reason |
-|---|---:|---:|---|
-| Entry JavaScript | 455,000 | 455,000 | Startup ceiling is unchanged. |
-| Optional UI JavaScript | 15,000 | 15,000 | Custom editor and technical report ceiling is unchanged. |
-| Model 0.4 runtime JavaScript | — | 52,000 | New isolated engine, migrations, canonical overrides, strict imported-ability validation, lossless custom-profile preservation and v4 codecs. |
-| Total JavaScript | 480,000 | 525,000 | Adds only the bounded runtime category. |
-| Creature roster | 125,000 | 125,000 | Existing external roster is unchanged. |
-| CSS | 25,000 | 25,100 | Adds bounded 320px text-spacing and cross-browser forced-colour fixes found by the activation accessibility gate. |
-| Published runtime artifact | 715,000 | 772,000 | Accommodates the new runtime plus manifest growth with less than 1% headroom at the measured 765,530-byte artifact. |
+## Measured movement
 
-The checker requires exactly one `runtime-*` chunk and subtracts it from optional UI JavaScript. Splitting or renaming code therefore cannot conceal growth: entry, optional UI, model 0.4 runtime, total JavaScript and complete artifact remain independently bounded.
+| Category | Released 0.4.0 | Corrected 0.4.1 | Change |
+|---|---:|---:|---:|
+| Entry JavaScript | 453,589 | 444,845 | -8,744 |
+| Optional UI JavaScript | 12,048 | 18,620 | +6,572 |
+| Model-0.4 runtime JavaScript | 49,614 | 89,681 | +40,067 |
+| Total JavaScript | 515,251 | 553,146 | +37,895 |
+| Creature roster | 120,725 | 120,725 | 0 |
+| CSS | 25,014 | 25,014 | 0 |
+| Deployable payload | 765,633 | 803,814 | +38,181 |
 
-The activation gate initially set the isolated runtime at 45,000 bytes. Full validation of imported structured abilities and preservation of those abilities through the compatibility editor raised the measured chunk to 49,614 bytes while total JavaScript remained below 525,000 bytes. The final 52,000-byte category retains 2,386 bytes of explicit headroom; it is not an unbounded exemption.
+The eager entry path no longer bundles the legacy v1 history recalculation and legacy share fallback used only by migration tests. Those helpers moved to `legacyHistory.ts`; the active App requires `Model04Runtime`. This removed about 9 kB from entry and about 4 kB from total JavaScript. The v4 dossier and technical report remain separate lazy chunks (3,985 and 7,260 bytes).
 
-The final accessibility matrix also exposed a 320px text-spacing overflow and a WebKit forced-colour contrast defect. Their CSS fix measures 25,014 bytes, so the CSS ceiling moved by 100 bytes to retain an 86-byte guardrail rather than suppressing the checks.
+## Reviewed ceilings
+
+| Category | Ceiling | Corrected | Headroom |
+|---|---:|---:|---:|
+| Entry JavaScript | 455,000 | 444,845 | 10,155 |
+| Optional UI JavaScript | 21,000 | 18,620 | 2,380 |
+| Model-0.4 runtime JavaScript | 100,000 | 89,681 | 10,319 |
+| Total JavaScript | 575,000 | 553,146 | 21,854 |
+| Creature roster | 125,000 | 120,725 | 4,275 |
+| CSS | 26,000 | 25,014 | 986 |
+| Deployable payload | 835,000 | 803,814 | 31,186 |
+| Social image | 300,000 | 238,563 | 61,437 |
+
+These are intentional category changes, not a one-byte waiver. Runtime growth is the versioned cost of corrected engine/data contracts; optional growth is isolated to lazy dossier/technical UI. Total-JavaScript and complete-payload gates still prevent chunk naming or splitting from concealing aggregate growth. Static subdirectory hosting remains unchanged.

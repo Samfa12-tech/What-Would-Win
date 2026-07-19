@@ -26,7 +26,7 @@ These are explicit versioned model coefficients, not biological claims.
 
 ## Counter rules
 
-- Gaze and auditory effects can declare the exact target senses they require.
+- Gaze and auditory effects can declare the exact target senses they require. Attacker-facing, target-facing and mutual-facing requirements are separate; random orientation is a deterministic partial factor.
 - Abilities can restrict target physiology and terrain.
 - Channel modifier `0` rejects an otherwise eligible effect as immune.
 - Values below/above `1` provide resistance/vulnerability without binary special cases.
@@ -44,6 +44,6 @@ An environmental hazard is represented by:
 - an ability with `kind: hazard` and `delivery: environmental`;
 - terrain and area conditions.
 
-Environmental delivery does not lose access merely because the scenario starts far from the hazard. Terrain eligibility still applies, and no creature-name exception exists.
+Environmental delivery never gains creature-style pursuit. It obeys its resolved fixed radius, starting distance, arena geometry and terrain eligibility; Charybdis applies at 40 m and rejects at 40.1 m without a creature-name exception.
 
 Canonical profile authoring, duration/injury derivation, group recovery aggregation and the activation calibration gates are implemented in the active canonical-data and engine layers. Future coefficient changes still require rationale, version review and regression coverage.

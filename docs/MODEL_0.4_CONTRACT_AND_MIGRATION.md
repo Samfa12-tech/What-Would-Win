@@ -29,6 +29,8 @@ The identities advanced together at activation:
 
 The v3 creature and scenario schemas remain hash-locked compatibility inputs. The active v4 schemas live under `data/model-0.4/`.
 
+The migration-evidence artifacts retain `targetModel: 0.4.0-draft.1` as their frozen pre-cutover schema identity. That internal evidence label is distinct from the active public model identity `0.4.0`; changing it would require an explicit artifact-schema migration rather than a cosmetic relabel.
+
 ## Reach migration
 
 The legacy field combined contact anatomy and built-in ranged delivery. The v4 contract replaces it with:

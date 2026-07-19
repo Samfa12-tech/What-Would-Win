@@ -48,11 +48,12 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 7. `app/src/model04/runtime.ts`
 8. `app/src/model04/persistence.ts`
 9. `app/src/model04/migrateV3.ts`
-10. `app/src/App.tsx`
-11. `app/src/test/model04*.test.ts`
-12. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
-13. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
-14. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
+10. `docs/MODEL_0.4_CALIBRATION_COMPARISON.md`
+11. `app/src/App.tsx`
+12. `app/src/test/model04*.test.ts`
+13. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
+14. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
+15. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
 
 ## Product invariants
 

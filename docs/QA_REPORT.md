@@ -18,6 +18,8 @@
 
 The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
 
+`MODEL_0.4_CALIBRATION_COMPARISON.md` records the reproducible model-0.3 versus model-0.4 solo probabilities for all 16 handoff fixtures and explains every movement. The ordinary-animal case retains the solo winner and moves by 0.075711, inside its approved maximum absolute difference of 0.12.
+
 ## Production build snapshot
 
 | Budget group | Observed | Ceiling |

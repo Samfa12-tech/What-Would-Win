@@ -44,7 +44,7 @@ function contractHash(value: unknown): string {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
-describe('parallel model 0.4 contract and model 0.3 migration', () => {
+describe('active model 0.4 contract and model 0.3 migration', () => {
   test('freezes the active model 0.3 schemas while v4 remains parallel', () => {
     expect(contractHash(creatureV3Schema)).toBe('05dec6bf')
     expect(contractHash(scenarioV3Schema)).toBe('d6d29044')

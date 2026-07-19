@@ -52,6 +52,7 @@ Ordinary-scale results include a seven-phase deterministic explanation backed by
 - `docs/QA_REPORT.md` — current automated evidence and outstanding manual checks.
 - `docs/MODEL_AUDIT_0.3.md` — historical model-0.3 physical-foundation audit and calibration guardrails.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — historical data-0.3.1 semantic audit and migration decisions.
+- `docs/MODEL_0.4_CALIBRATION_COMPARISON.md` — reproducible 16-fixture model-0.3 versus model-0.4 probability table and movement review.
 - `data/DATA_DICTIONARY.md` — canonical data semantics and editing rules.
 - `MANIFEST.md` — artifact inventory, verified snapshot and deliberate limits.
 

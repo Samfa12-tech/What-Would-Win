@@ -69,7 +69,7 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
   }
 }
 
-describe('parallel model 0.4 canonical ability data', () => {
+describe('active model 0.4 canonical ability data', () => {
   test('validates the override contract and all 134 merged draft profiles', () => {
     expect(validateOverrides(complexOverridesJson), ajv.errorsText(validateOverrides.errors)).toBe(true)
     expect(draft.creatures).toHaveLength(134)

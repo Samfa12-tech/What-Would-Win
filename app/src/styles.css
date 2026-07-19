@@ -1432,6 +1432,13 @@ footer strong {
   }
 }
 
+@media (forced-colors: active) {
+  .versus-mark span {
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
 /* Frontend workspace: orientation, navigation and optional shortcuts. */
 
 #matchup,
@@ -1787,6 +1794,7 @@ footer strong {
   .header-meta a {
     padding: 5px 8px;
     font-size: 10px;
+    white-space: normal;
   }
 
   .footer-links {

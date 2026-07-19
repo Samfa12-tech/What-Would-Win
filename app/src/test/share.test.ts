@@ -10,7 +10,11 @@ import {
   encodeScenarioPayload,
 } from '../simulation/share'
 import type { Creature, CustomCreature, ScenarioSharePayload } from '../types'
-import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
+import {
+  LEGACY_DATA_VERSION as DATA_VERSION,
+  LEGACY_MODEL_VERSION as MODEL_VERSION,
+  LEGACY_SHARE_FORMAT_VERSION as SHARE_FORMAT_VERSION,
+} from '../version'
 
 const creatures = creaturesJson as Creature[]
 

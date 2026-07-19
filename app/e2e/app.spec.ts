@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
-const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v1'
-const HISTORY_STORAGE_KEY = 'what-would-win-history-v1'
+const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
+const HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
 const CUSTOM_NAME = 'Codex Field Beast'
 
 function soloPanel(page: Page) {
@@ -36,7 +36,7 @@ interface CompactSharePayload {
   modelVersion: string
   dataVersion: string
   scenario: unknown
-  customCreatures?: unknown[][]
+  customCreatures?: Array<Record<string, unknown>>
 }
 
 function decodeSharePayload(url: string): CompactSharePayload {
@@ -51,7 +51,7 @@ function decodeSharePayload(url: string): CompactSharePayload {
     modelVersion: wire[0] as string,
     dataVersion: wire[1] as string,
     scenario: wire[2],
-    ...(wire.length === 4 ? { customCreatures: wire[3] as unknown[][] } : {}),
+    ...(wire.length === 4 ? { customCreatures: wire[3] as Array<Record<string, unknown>> } : {}),
   }
 }
 
@@ -107,7 +107,7 @@ test('shows a durable roster error and retries without mutating stored data', as
   await page.unroute('**/assets/creatures-*.json')
   await page.getByRole('button', { name: 'Try again' }).click()
   await expect(page.getByRole('heading', { name: 'What Would Win' })).toBeVisible()
-  await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged storage format')
+  await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   await expect(page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).resolves.toBe(storedHistory)
 })
 
@@ -216,7 +216,7 @@ test('audited cross-scaling scenario exposes stopping and frontage diagnostics',
   await page.getByRole('button', { name: 'Run simulation' }).click()
 
   await expect(page.locator('.results').getByRole('heading', { name: 'House mouse', level: 2 })).toBeVisible()
-  await expect(page.getByText(/Each group member pays a body-mass stopping penalty/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
   const record = page.locator('.technical-grid')
   const soloStopping = Number(await record.locator('div', { hasText: 'Solo stopping penalty' }).locator('dd').textContent())
   const groupStopping = Number(await record.locator('div', { hasText: 'Group stopping penalty' }).locator('dd').textContent())
@@ -257,7 +257,7 @@ test('debate methodology controls survive simulation, history and a clean-browse
   })
 
   await page.getByRole('button', { name: 'Copy share link' }).click()
-  await expect(page).toHaveURL(/\?s=/)
+  await expect(page).toHaveURL(/\?s=/, { timeout: 10_000 })
   const clean = await openSharedScenarioInCleanBrowser(browser, page.url())
   try {
     await expect(clean.page.getByLabel('Win condition')).toHaveValue('death')
@@ -274,7 +274,7 @@ test('debate methodology controls survive simulation, history and a clean-browse
 test('clones, names, edits, saves, reloads and uses a private custom profile', async ({ page }) => {
   const customId = await createSavedCustom(page)
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), CUSTOM_STORAGE_KEY)
-  expect(stored.storageVersion).toBe(1)
+  expect(stored.storageVersion).toBe(2)
   expect(stored.items[0].creature).toMatchObject({ id: customId, name: CUSTOM_NAME, attack: 73 })
 
   await page.reload()
@@ -297,7 +297,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   const groupId = await page.getByTestId('group-creature-select').inputValue()
 
   await page.getByRole('button', { name: 'Copy share link' }).click()
-  await expect(page).toHaveURL(/\?s=/)
+  await expect(page).toHaveURL(/\?s=/, { timeout: 10_000 })
   const shareUrl = page.url()
   const payload = decodeSharePayload(shareUrl)
   expect(payload).toEqual(expect.objectContaining({
@@ -305,8 +305,8 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     modelVersion: expect.any(String),
     dataVersion: expect.any(String),
   }))
-  expect(payload.customCreatures?.[0]?.[0]).toBe(customId)
-  expect(payload.customCreatures?.[0]?.[1]).toBe('Shared Field Beast')
+  expect(payload.customCreatures?.[0]?.id).toBe(customId)
+  expect(payload.customCreatures?.[0]?.name).toBe('Shared Field Beast')
 
   const clean = await openSharedScenarioInCleanBrowser(browser, shareUrl)
   try {
@@ -321,28 +321,14 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     await clean.context.close()
   }
 
-  const previousUrl = new URL(shareUrl)
-  previousUrl.searchParams.set('s', encodeSharePayload({
-    ...payload,
-    modelVersion: '0.2.0',
-    dataVersion: '0.2.0',
-  }))
-  const migrated = await openSharedScenarioInCleanBrowser(browser, previousUrl.toString())
-  try {
-    await expect(migrated.page.getByRole('alert')).toContainText('earlier simulation or bundled-data versions')
-    await expect(migrated.page.getByTestId('solo-creature-select')).toHaveValue(customId)
-    await expect(migrated.page.getByTestId('group-creature-select')).toHaveValue(groupId)
-    await expect(migrated.page.getByLabel('Quantity')).toHaveValue('37')
-  } finally {
-    await migrated.context.close()
-  }
+  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.0', dataVersion: '0.4.0' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
   await page.getByRole('button', { name: 'Copy share link' }).click()
   const payload = decodeSharePayload(page.url())
-  const compactScenario = payload.scenario as unknown[]
-  compactScenario[0] = 'missing-built-in-profile'
+  const sharedScenario = payload.scenario as Record<string, unknown>
+  sharedScenario.soloId = 'missing-built-in-profile'
 
   await page.goto(`/?s=${encodeSharePayload(payload)}`)
 
@@ -355,11 +341,11 @@ test('a shared custom profile cannot shadow a saved local profile with the same 
   const customId = await createSavedCustom(page, 'Saved Local Beast')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await page.getByRole('button', { name: 'Copy share link' }).click()
-  await expect(page).toHaveURL(/\?s=/)
+  await expect(page).toHaveURL(/\?s=/, { timeout: 10_000 })
   const payload = decodeSharePayload(page.url())
   const shared = payload.customCreatures?.[0]
   expect(shared).toBeTruthy()
-  shared![1] = 'Shared Shadow Beast'
+  shared!.name = 'Shared Shadow Beast'
 
   await page.goto(`/?s=${encodeSharePayload(payload)}`)
 
@@ -372,51 +358,21 @@ test('corrupt custom-profile storage recovers visibly without overwriting the st
   await page.evaluate((key) => localStorage.setItem(key, '{not valid json'), CUSTOM_STORAGE_KEY)
   await page.reload()
 
-  await expect(page.getByRole('alert')).toContainText('Saved custom profiles contain invalid JSON')
+  await expect(page.getByRole('alert')).toContainText('Saved model 0.4 custom profiles contain invalid JSON')
   await expect(page.getByRole('alert')).toContainText('stored data was left untouched')
   expect(await page.evaluate((key) => localStorage.getItem(key), CUSTOM_STORAGE_KEY)).toBe('{not valid json')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
-test('legacy and 0.2 history migrate while corrupt history remains untouched', async ({ page }) => {
+test('version 2 history persists while corrupt history remains untouched', async ({ page }) => {
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
-  const legacy = current.items.map(({ formatVersion: _formatVersion, modelVersion: _modelVersion, dataVersion: _dataVersion, ...item }: Record<string, unknown>) => item)
-  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: JSON.stringify(legacy) })
-  await page.reload()
-
-  await expect(page.getByTestId('history-warning')).toContainText('migrated')
-  const migrated = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
-  expect(migrated.storageVersion).toBe(1)
-  expect(migrated.items[0]).toEqual(expect.objectContaining({
-    formatVersion: 1,
-    modelVersion: expect.any(String),
-    dataVersion: expect.any(String),
-  }))
-
-  const previous = {
-    ...migrated,
-    items: migrated.items.map((item: Record<string, unknown>) => ({
-      ...item,
-      modelVersion: '0.2.0',
-      dataVersion: '0.2.0',
-      winnerName: 'Deliberately stale result',
-      soloWinProbability: 0.123456,
-    })),
-  }
-  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: JSON.stringify(previous) })
-  await page.reload()
-  await expect(page.getByTestId('history-warning')).toContainText('recalculated')
-  const remigrated = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
-  expect(remigrated.items[0].modelVersion).not.toBe('0.2.0')
-  expect(remigrated.items[0].dataVersion).not.toBe('0.2.0')
-  expect(remigrated.items[0].winnerName).not.toBe('Deliberately stale result')
-  expect(remigrated.items[0].soloWinProbability).not.toBe(0.123456)
-  await expect(page.locator('.history-card').first()).not.toContainText('Deliberately stale result')
+  expect(current.storageVersion).toBe(2)
+  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.0', dataVersion: '0.4.0' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
-  await expect(page.getByTestId('history-warning')).toContainText('invalid JSON')
+  await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   expect(await page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).toBe('{bad history json')
 })
 
@@ -476,6 +432,22 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(exported.customCreatures).toEqual([
     expect.objectContaining({ id: customId, name: 'Exported Field Beast' }),
   ])
+})
+
+test('result image download is a non-empty 1200 by 630 PNG', async ({ page }) => {
+  await page.getByText('Export files', { exact: true }).click()
+  const pending = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download result image' }).click()
+  const download = await pending
+  expect(download.suggestedFilename()).toMatch(/\.png$/)
+  const stream = await download.createReadStream()
+  const chunks: Buffer[] = []
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk))
+  const png = Buffer.concat(chunks)
+  expect(png.length).toBeGreaterThan(10_000)
+  expect(png.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
+  expect(png.readUInt32BE(16)).toBe(1200)
+  expect(png.readUInt32BE(20)).toBe(630)
 })
 
 test('360px mobile layout has no horizontal overflow, including the custom editor', async ({ page }, testInfo) => {

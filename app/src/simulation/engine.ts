@@ -11,7 +11,7 @@ import type {
 } from '../types'
 import { formatLogQuantity, multiplyLogQuantity, parseQuantity } from './quantity'
 import { hashString, mulberry32, normalSample } from './random'
-import { DATA_VERSION, MODEL_VERSION } from '../version'
+import { LEGACY_DATA_VERSION as DATA_VERSION, LEGACY_MODEL_VERSION as MODEL_VERSION } from '../version'
 import { METHODOLOGY_DEFAULTS } from '../scenarioDefaults'
 
 export const NAMED_SIZE_MASS_KG = {

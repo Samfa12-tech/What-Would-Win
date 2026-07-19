@@ -51,3 +51,6 @@ jobs:
 
       - name: Enforce build budgets
         run: node scripts/check-build-budgets.mjs
+
+      - name: Verify static subpath artifact
+        run: node scripts/check-static-subpath.mjs

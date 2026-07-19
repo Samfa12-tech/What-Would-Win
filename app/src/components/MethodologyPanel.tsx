@@ -1,4 +1,4 @@
-import { DATA_VERSION, MODEL_VERSION } from '../version'
+import { MODEL_04_DATA_VERSION as DATA_VERSION, MODEL_04_VERSION as MODEL_VERSION } from '../model04/contracts'
 
 export function MethodologyPanel() {
   return (

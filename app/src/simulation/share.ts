@@ -5,7 +5,11 @@ import type {
   ScenarioSharePayload,
 } from '../types'
 import { validateCreature, validateScenario } from '../validation'
-import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
+import {
+  LEGACY_DATA_VERSION as DATA_VERSION,
+  LEGACY_MODEL_VERSION as MODEL_VERSION,
+  LEGACY_SHARE_FORMAT_VERSION as SHARE_FORMAT_VERSION,
+} from '../version'
 import { METHODOLOGY_DEFAULTS, withMethodologyDefaults } from '../scenarioDefaults'
 
 export const MAX_ENCODED_SCENARIO_LENGTH = 64_000

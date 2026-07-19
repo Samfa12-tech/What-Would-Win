@@ -8,7 +8,7 @@ import creatureV4Schema from '../../../data/model-0.4/creature.schema.json'
 import mythologyFixturesJson from '../../../data/model-0.4/mythology-fixtures.json'
 import scenarioV4Schema from '../../../data/model-0.4/scenario.schema.json'
 import { resolveAbilityKernel } from '../model04/abilityKernel'
-import { buildCanonicalModel04Draft, type ComplexProfileOverrideStore } from '../model04/canonicalDraft'
+import { activateCanonicalModel04Data, buildCanonicalModel04Draft, type ComplexProfileOverrideStore } from '../model04/canonicalDraft'
 import type { AbilityKernelContext, AbilityKernelSide, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
 import { migrateScenarioV3ToV4Draft } from '../model04/migrateV3'
 import { defaultScenario } from '../simulation/engine'
@@ -83,6 +83,17 @@ describe('parallel model 0.4 canonical ability data', () => {
       } else {
         expect(creature.migration.reviewRequired).toBe(true)
       }
+    }
+  })
+
+  test('accepts conservative simple-profile migrations only after the activation review gate', () => {
+    const activated = activateCanonicalModel04Data(draft)
+    expect(activated).toMatchObject({ reviewedComplexCount: 11, acceptedConservativeMigrationCount: 123 })
+    expect(activated.creatures).toHaveLength(134)
+    expect(activated.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
+    expect(activated.creatures.every((creature) => creature.abilities.every((ability) => ability.legacyGenerated !== true))).toBe(true)
+    for (const creature of activated.creatures) {
+      expect(validateCreature(creature), `${creature.id}: ${ajv.errorsText(validateCreature.errors)}`).toBe(true)
     }
   })
 

@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-07-19
+
+- Activated the reviewed 134-profile model/data 0.4 contract with explicit contact reach, physiology, senses, locomotion, channel modifiers and structured bilateral abilities.
+- Replaced the legacy combined special-capability multiplier with deterministic conditions, counters, resources and stable applied/rejected ability factors while keeping seeded uncertainty subordinate to the numerical state.
+- Added the 16 mythology/ordinary calibration fixtures, deterministic sensitivity points and extreme-quantity/seed/factor-ledger invariants.
+- Activated share format v4 and custom/history storage v2 with frozen v3/v2/v1/unversioned decoding, recovery-preserving migrations and exact asymmetric/per-ability history restoration.
+- Preserved imported structured custom abilities through compatibility editing, sharing and export; unsupported ability types and unknown structured fields now fail strict validation.
+- Added exact PNG-download, static-subpath, 320 px reflow, text-spacing, forced-colour and ARIA-tree coverage; the production browser matrix passes 93 checks with 3 expected project-scope skips.
+- Isolated the model-0.4 runtime from startup and recorded narrow, independently enforced entry/runtime/total/CSS artifact budgets.
 
 - Added a controlled built-in mechanics vocabulary and stable semantic creature-data linter, wired into the release audit used by tests, builds and CI.
 - Corrected ranged classification for Stegosaurus, Cyclops, Hill giant and Phoenix; advanced the application and bundled data to 0.3.1 while retaining model 0.3.0 and share format v3.

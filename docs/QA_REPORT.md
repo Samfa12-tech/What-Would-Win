@@ -1,43 +1,58 @@
-# What Would Win — model 0.3 / data 0.3.1 QA report
+# What Would Win — model 0.4 QA report
 
-**QA date:** 18 July 2026
+**QA date:** 19 July 2026
 
-## Automated checks
+**Release identity:** application/model/data **0.4.0**, share format **v4**, custom/history storage **v2**
 
-- `npm run typecheck`: passing.
-- `npm test`: 95 tests passing across engine, calibration, semantic-data, custom-profile, data-contract, history, share-codec and performance suites.
-- `npm run audit:semantics`: 134 profiles, 33 habitats, 58 attack modes and 68 traits checked with 0 errors and 0 warnings; controlled invalid fixtures cover unknown/wrong-field tags, malformed tag lists and values, capability contradictions and advisory diagnostics.
-- Calibration: all 16 behavioural fixtures remain inside their documented model-0.3 acceptance bands.
-- `npm run test:simulation-budget`: 1/1 passing; the complete technical-depth calibration run remains below the 2-second CI ceiling.
-- `npm run test:e2e -- --workers=2`: production build plus 76 Playwright checks across desktop Chromium, 360 px mobile Chromium, Firefox and WebKit; 73 passed and 3 desktop-only skips for the mobile overflow contract.
-- `npm run build`: passing with hashed static assets.
-- `node scripts/check-build-budgets.mjs`: JavaScript, CSS, runtime total and social-preview budgets all passing.
-- Draft 2020-12 validation: all 134 bundled creatures pass; invalid/extra fields, duplicate IDs, cryptid classification, provenance shape and canonical/bundled drift are covered.
+## Verified automated checks on the current worktree
 
-The model suite now covers role reversal at quantity one, several fixed-biomass fragmentation levels, bilateral stopping, continuous ranged-resource access, inaccessible-body pressure ceilings, environment-adjusted movement, resized immersion geometry, water-depth precedence on nominally land terrain, bounded starting distance, arena occupancy and arena-usable loss counts, inactive-input random-stream stability, conceptual-threshold continuity, factor-ledger power reconstruction, conceptual factor traceability, preparation caps, escape-adjusted loss estimates and sub-one loss wording. History coverage verifies that previous-version outcomes are recalculated before receiving current-version metadata, while unavailable custom references remain visibly pending.
+- `npm test`: **166/166 tests passed across 17 Vitest files**.
+- Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; semantic audit reported **0 errors and 0 warnings**.
+- The model-0.4 contract audit verified migration artifacts for all **134 profiles**.
+- Provenance audit verified **134 records**; legal and bundled-runtime notices also passed.
+- `npm run typecheck`: passed.
+- `npm run test:simulation-budget`: **1/1 passed**; reported test time 91 ms, below the two-second gate.
+- `npm run build`: passed with Vite 8.1.5 and 139 transformed modules.
+- `node scripts/check-build-budgets.mjs`: all current model-0.4 component and total budgets passed.
+- `node scripts/check-static-subpath.mjs`: passed; all **6** local references resolved inside `/apps/what-would-win/`.
 
-Browser flows cover searchable roster filtering, suggested briefs, invalid and conceptual quantities, seven-phase ordinary narratives, three-phase conceptual summaries, withheld conceptual duration/loss metrics, the technical factor ledger, the audited resized mouse scenario, methodology persistence, v0.2 share/history recalculation, custom profile save/edit/share, corrupt-storage recovery, JSON export, mobile overflow, install metadata and static assets. Axe scans include the initial UI, custom editor, technical ledger and conceptual results; keyboard focus and disclosure behavior are automated.
+The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
 
 ## Production build snapshot
 
-- JavaScript: 577,543 bytes (148.02 kB gzip) against a 580,000-byte budget.
-- CSS: 24,911 bytes (5.73 kB gzip) against a 25,000-byte budget.
-- Runtime payload excluding the crawler-only social image: 705,855 bytes against a 715,000-byte budget; this includes the complete public legal notices.
-- Social preview: 238,563 bytes against a separate 300,000-byte budget.
-- Vite reports a large single JavaScript chunk; it is within the locked budget but has very little remaining headroom.
+| Budget group | Observed | Ceiling |
+|---|---:|---:|
+| Entry JavaScript | 453,589 bytes | 455,000 bytes |
+| Optional UI JavaScript | 12,048 bytes | 15,000 bytes |
+| Model-0.4 runtime JavaScript | 49,614 bytes | 52,000 bytes |
+| Total JavaScript | 515,251 bytes | 525,000 bytes |
+| Creature roster | 120,725 bytes | 125,000 bytes |
+| CSS | 25,014 bytes | 25,100 bytes |
+| Total deployable payload | 765,633 bytes | 772,000 bytes |
+| Social image | 238,563 bytes | 300,000 bytes |
 
-## Visual and interaction checks
+Vite output included the 120.72 kB creature JSON, 25.01 kB CSS, 4.67 kB technical-report chunk, 7.37 kB custom-editor chunk, 49.61 kB model-0.4 runtime and 453.59 kB entry JavaScript. The narrowly revised runtime/CSS ceilings and reasons are recorded in `MODEL_0.4_BUILD_BUDGET.md`; code splitting or another explicit review must precede substantial growth.
 
-The production build is exercised at desktop and 360 px mobile widths. Automated checks verify labelled controls, no mobile horizontal overflow, result hierarchy, structured encounter phases, technical disclosures, custom-profile editing, footer/navigation links and the setup-to-verdict return path. Successful browser runs retain the HTML report under `output/playwright/`; traces, screenshots and video are retained on failure. Historical handoff screenshots remain reference material, not proof of the current result design.
+## Browser, accessibility and deployment status
 
-Markdown is the canonical product-plan format. The derivative DOCX/PDF copies and their obsolete builder were removed.
+The exact production build completed the model-0.4 Playwright matrix with **93 passed, 3 expected project-scope skips and 0 failures** across desktop Chromium, 360 px mobile Chromium, desktop Firefox and desktop WebKit. The skips are the mobile-only 360 px contract in the three non-mobile projects.
+
+- Production-build Chromium, 360 px Chromium, Firefox and WebKit matrix: **passed**.
+- Automated axe, keyboard, focus, 320 px reflow, user text-spacing, forced-colour and ARIA-tree checks: **passed** in the applicable browser matrix.
+- PNG download: **passed** in all four projects with PNG signature, non-empty size and exact 1200 × 630 dimensions; JSON export also passed.
+- Physical Safari/iOS or other physical-device checks: **not performed**.
+- Real NVDA and VoiceOver checks: **not performed**.
+- Automated static-artifact subpath validation: **passed**.
+- Smoke test of the deployed `samfa12.com/apps/what-would-win/` artifact: **not performed**.
+- PNG/JSON downloads on representative physical mobile/desktop devices: **not performed**; automated browser coverage is recorded separately above.
+
+Automated unit, axe, keyboard, build and static-path coverage is useful but must not be described as physical-device or screen-reader validation.
 
 ## Known QA gaps and risks
 
-- No manual NVDA, VoiceOver or physical Safari/iOS pass has been completed; automated axe and WebKit coverage are present.
-- PNG result export is not browser-automated; JSON export is covered.
-- Frontage, reserve log-weight, stopping, arena occupancy, duration and losses remain transparent heuristics rather than anatomy, conservation or event-timeline simulations.
-- Conceptual quantities deliberately omit logistics and physical staging; a selected bounded arena still caps usable quantity, while open arenas permit aggregate-force calculations.
-- Creature values remain curated prototype data and require expert zoological review.
-- A tampered or very old share with an unknown non-custom creature ID falls back to the relevant default profile and now raises a visible substitution warning.
-- JavaScript and total-payload budgets have narrow headroom; code splitting should precede another large UI or roster expansion.
+- Run real screen-reader and physical-device checks, including custom editing, v4 sharing, v2 recovery and legacy migration flows.
+- Upload the exact tested `app/dist/` artifact and smoke the deployed subpath rather than inferring hosting success from relative paths alone.
+- Structured abilities remain aggregate factors rather than event/projectile/anatomy simulation.
+- The physical foundation and ordinary duration/loss values remain transparent heuristics.
+- Creature values and migrated ability declarations require continued scientific, cultural and game-systems review.
+- Current deterministic sensitivity points are selected perturbations, not global field-level uncertainty analysis.

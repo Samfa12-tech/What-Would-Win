@@ -140,6 +140,20 @@ test('labels mechanical and descriptive-only profile tags in the dossier', async
   await expect(soloPanel(page).getByText(/Mechanical tags affect at least one current model rule/)).toBeVisible()
 })
 
+test('keeps the activated model 0.4 dossier compact until requested', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('western-dragon')
+  await expect(page.getByTestId('model04-dossier')).toHaveCount(0)
+  await soloPanel(page).getByText('Model 0.4 abilities and counters', { exact: true }).click()
+
+  const dossier = soloPanel(page).getByTestId('model04-dossier')
+  await expect(dossier).toBeVisible()
+  await expect(dossier).toContainText('Fixed interpretation: Generic public-domain western dragon')
+  await expect(dossier).toContainText('Physiology')
+  await expect(dossier).toContainText('Fire breath')
+  await expect(dossier).toContainText('fire')
+  await expect(dossier).toContainText('Origin: reviewed override')
+})
+
 test('publishes branded install and social metadata', async ({ page, request }) => {
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://samfa12.com/apps/what-would-win/')
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://samfa12.com/apps/what-would-win/')
@@ -196,11 +210,49 @@ test('technical depth runs 15,000 trials and exposes the calculation record', as
   await expect(record.getByText('15,000', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Modelled encounter sequence' })).toBeVisible()
   await expect(page.locator('.battle-phase h4')).toHaveText([
-    'Briefing', 'Deployment', 'Access and approach', 'First effective contact',
-    'Sustained pressure', 'Likely resolution', 'Alternate path',
+    'Briefing', 'Deployment', 'Approach', 'Contact', 'Pressure', 'Resolution', 'Uncertainty',
   ])
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
   await expect(page.locator('.technical-factors li').first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ability resolution record' })).toBeVisible()
+  await expect(page.getByTestId('ability-resolution-record').locator('li').first()).toBeVisible()
+})
+
+test('shows rejected and countered abilities only in the technical resolution record', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('medusa')
+  await page.getByTestId('group-creature-select').selectOption('stone-golem')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(page.getByTestId('ability-resolution-record')).toHaveCount(0)
+
+  await page.getByLabel('Report detail').selectOption('technical')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  const record = page.getByTestId('ability-resolution-record')
+  await expect(record.locator('li[data-ability-status="ineligible"]', { hasText: 'Petrifying gaze' })).toBeVisible()
+
+  await page.getByTestId('solo-creature-select').selectOption('troll')
+  await page.getByTestId('group-creature-select').selectOption('western-dragon')
+  await page.getByLabel('Starting distance (m)').fill('5')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(record.locator('li[data-ability-status="countered"]', { hasText: 'Regeneration' })).toContainText('Counter channel: fire')
+})
+
+test('shows depleted and out-of-range abilities as technical diagnostics', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('western-dragon')
+  await page.getByTestId('group-creature-select').selectOption('prepared-archer')
+  await page.getByLabel('Report detail').selectOption('technical')
+  await page.getByText('Advanced dossier', { exact: true }).click()
+  await page.getByLabel('Starting distance (m)').fill('15')
+  await page.getByLabel('Solo resources').fill('0')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+
+  const record = page.getByTestId('ability-resolution-record')
+  await expect(record.locator('li[data-ability-status="resource-depleted"]', { hasText: 'Fire breath' })).toBeVisible()
+
+  await page.getByLabel('Solo resources').fill('100')
+  await page.getByLabel('Arena boundary').selectOption('open')
+  await page.getByLabel('Starting distance (m)').fill('1000')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(record.locator('li[data-ability-status="out-of-range"]', { hasText: 'Fire breath' })).toBeVisible()
 })
 
 test('audited cross-scaling scenario exposes stopping and frontage diagnostics', async ({ page }) => {
@@ -218,9 +270,9 @@ test('audited cross-scaling scenario exposes stopping and frontage diagnostics',
   await expect(page.locator('.results').getByRole('heading', { name: 'House mouse', level: 2 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
   const record = page.locator('.technical-grid')
-  const soloStopping = Number(await record.locator('div', { hasText: 'Solo stopping penalty' }).locator('dd').textContent())
-  const groupStopping = Number(await record.locator('div', { hasText: 'Group stopping penalty' }).locator('dd').textContent())
-  const effectiveQuantity = Number(await record.locator('div', { hasText: 'Pre-exponent effective count log10' }).locator('dd').textContent())
+  const soloStopping = Number.parseFloat(await record.locator('div', { hasText: 'Solo stopping penalty' }).locator('dd').innerText())
+  const groupStopping = Number.parseFloat(await record.locator('div', { hasText: 'Group stopping penalty' }).locator('dd').innerText())
+  const effectiveQuantity = Number.parseFloat(await record.locator('div', { hasText: 'Pre-exponent effective count log10' }).locator('dd').innerText())
   expect(groupStopping).toBeGreaterThan(soloStopping)
   expect(effectiveQuantity).toBeLessThanOrEqual(2)
 })
@@ -321,7 +373,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     await clean.context.close()
   }
 
-  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.0', dataVersion: '0.4.0' })
+  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.1', dataVersion: '0.4.1' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -368,7 +420,7 @@ test('version 2 history persists while corrupt history remains untouched', async
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
   expect(current.storageVersion).toBe(2)
-  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.0', dataVersion: '0.4.0' } })
+  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.1', dataVersion: '0.4.1' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
@@ -402,6 +454,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
+  expect(exported.applicationVersion).toBe('0.4.1')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))
@@ -413,7 +466,7 @@ test('result JSON download includes version metadata and the selected custom rec
   ]))
   expect(exported.result.appliedFactors).toEqual(expect.arrayContaining([
     expect.objectContaining({ id: 'solo-mass', phase: 'briefing', logDelta: expect.any(Number) }),
-    expect.objectContaining({ id: 'group-aggregation', phase: 'pressure', logDelta: expect.any(Number) }),
+    expect.objectContaining({ id: 'group-aggregation-v4', phase: 'pressure', logDelta: expect.any(Number) }),
   ]))
   expect(exported.result.technical).toEqual(expect.objectContaining({
     groupFrontageCapacity: expect.any(Number),
@@ -424,11 +477,20 @@ test('result JSON download includes version metadata and the selected custom rec
   }))
   expect(exported.scenario.soloId).toBe(customId)
   expect(exported.scenario).toEqual(expect.objectContaining({
+    schemaVersion: 4,
     winCondition: 'incapacitation',
     soloMindset: 'natural',
     arenaBoundary: 'bounded',
+    soloResources: expect.objectContaining({ defaultPercent: expect.any(Number), abilityPercent: expect.any(Object) }),
+    groupResources: expect.objectContaining({ defaultPercent: expect.any(Number), abilityPercent: expect.any(Object) }),
   }))
-  expect(exported.contestants.solo).toMatchObject({ id: customId, name: 'Exported Field Beast' })
+  expect(exported.contestants.solo).toMatchObject({ id: customId, name: 'Exported Field Beast', schemaVersion: 4, abilities: expect.any(Array) })
+  expect(exported.abilityResolutions).toEqual(expect.arrayContaining([
+    expect.objectContaining({ side: expect.any(String), abilityId: expect.any(String), active: expect.any(Boolean) }),
+  ]))
+  expect(exported.sensitivity).toEqual(expect.arrayContaining([
+    expect.objectContaining({ baselineMargin: expect.any(Number), variantMargin: expect.any(Number) }),
+  ]))
   expect(exported.customCreatures).toEqual([
     expect.objectContaining({ id: customId, name: 'Exported Field Beast' }),
   ])

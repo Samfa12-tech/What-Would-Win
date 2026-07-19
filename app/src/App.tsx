@@ -6,31 +6,23 @@ import { MethodologyPanel } from './components/MethodologyPanel'
 import {
   cloneAsCustom,
   cloneSavedItem,
-  exportCustomCreature,
-  importCustomCreature,
   isCustomCreature,
-  loadCustomCreatures,
-  saveCustomCreatures,
   type SavedCustomCreature,
 } from './customCreatures'
-import { defaultScenario, simulate, TRIALS_BY_DEPTH } from './simulation/engine'
-import { buildShareUrl, decodeScenarioPayload } from './simulation/share'
-import type { Creature, HistoryItem, HistoryStore, Scenario, SimulationResult, StatOverrides } from './types'
-import { validateScenario } from './validation'
-import { DATA_VERSION, LEGACY_DATA_VERSION, LEGACY_MODEL_VERSION, MODEL_VERSION } from './version'
+import { defaultScenario, TRIALS_BY_DEPTH } from './simulation/engine'
+import type { Creature, HistoryItem, Scenario, SimulationResult, StatOverrides } from './types'
+import { APPLICATION_VERSION, DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
 import { withMethodologyDefaults } from './scenarioDefaults'
 import type { Model04Runtime, Model04RuntimeResources, Model04RuntimeResult } from './model04/runtime'
 import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
 import type { Model04SensitivityPoint } from './model04/engineV4'
+import { HISTORY_ITEM_FORMAT_VERSION, historyItemNeedsRecalculation } from './legacyHistory'
 
 const CustomCreatureEditor = lazy(async () => {
   const module = await import('./components/CustomCreatureEditor')
   return { default: module.CustomCreatureEditor }
 })
 
-export const HISTORY_KEY = 'what-would-win-history-v1'
-export const HISTORY_STORAGE_VERSION = 1
-export const HISTORY_ITEM_FORMAT_VERSION = 1
 const MAX_HISTORY_ITEMS = 12
 
 const scalingModes: Array<{ value: Scenario['scalingMode']; title: string; description: string }> = [
@@ -130,184 +122,6 @@ interface InitialAppState {
   historyWarning: string
 }
 
-export interface HistoryLoadResult {
-  items: HistoryItem[]
-  warning: string
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function hasOnlyKeys(value: Record<string, unknown>, keys: string[]): boolean {
-  const allowed = new Set(keys)
-  return Object.keys(value).every((key) => allowed.has(key))
-}
-
-function validHistoryText(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0 && value.length <= 200
-}
-
-function isPreviousHistoryVersionPair(value: Record<string, unknown>): boolean {
-  return (
-    value.modelVersion === '0.3.0' && value.dataVersion === '0.3.0'
-  ) || (
-    value.modelVersion === '0.2.0' && value.dataVersion === '0.2.0'
-  ) || (
-    value.modelVersion === '0.1.0' && value.dataVersion === '0.1.0'
-  )
-}
-
-function parseHistoryItem(value: unknown, legacy: boolean): HistoryItem | null {
-  if (!isRecord(value)) return null
-  const legacyKeys = ['id', 'createdAt', 'scenario', 'winnerName', 'soloName', 'groupName', 'soloWinProbability']
-  const currentKeys = ['formatVersion', 'modelVersion', 'dataVersion', ...legacyKeys]
-  if (!hasOnlyKeys(value, legacy ? legacyKeys : currentKeys)) return null
-  const previousVersion = isPreviousHistoryVersionPair(value)
-  if (!legacy && (
-    value.formatVersion !== HISTORY_ITEM_FORMAT_VERSION
-    || (!previousVersion && (value.modelVersion !== LEGACY_MODEL_VERSION || value.dataVersion !== LEGACY_DATA_VERSION))
-  )) return null
-  const migratedScenario = withMethodologyDefaults(value.scenario) as Scenario
-  if (
-    !validHistoryText(value.id)
-    || typeof value.createdAt !== 'string'
-    || !Number.isFinite(Date.parse(value.createdAt))
-    || !validHistoryText(value.winnerName)
-    || !validHistoryText(value.soloName)
-    || !validHistoryText(value.groupName)
-    || typeof value.soloWinProbability !== 'number'
-    || !Number.isFinite(value.soloWinProbability)
-    || value.soloWinProbability < 0
-    || value.soloWinProbability > 1
-    || !validateScenario(migratedScenario).valid
-  ) return null
-
-  return {
-    formatVersion: HISTORY_ITEM_FORMAT_VERSION,
-    modelVersion: legacy ? '0.1.0' : value.modelVersion as string,
-    dataVersion: legacy ? '0.1.0' : value.dataVersion as string,
-    id: value.id,
-    createdAt: value.createdAt,
-    scenario: migratedScenario,
-    winnerName: value.winnerName,
-    soloName: value.soloName,
-    groupName: value.groupName,
-    soloWinProbability: value.soloWinProbability,
-  }
-}
-
-function historyStore(items: HistoryItem[]): HistoryStore {
-  return { storageVersion: HISTORY_STORAGE_VERSION, items }
-}
-
-function recalculateHistoryItem(item: HistoryItem, creatures: Creature[]): HistoryItem | null {
-  const solo = creatures.find((creature) => creature.id === item.scenario.soloId)
-  const group = creatures.find((creature) => creature.id === item.scenario.groupId)
-  if (!solo || !group) return null
-  try {
-    const result = simulate(creatures, item.scenario)
-    return {
-      ...item,
-      modelVersion: LEGACY_MODEL_VERSION,
-      dataVersion: LEGACY_DATA_VERSION,
-      winnerName: result.winnerName,
-      soloName: solo.name,
-      groupName: group.name,
-      soloWinProbability: result.soloWinProbability,
-    }
-  } catch {
-    return null
-  }
-}
-
-function legacyHistoryItemNeedsRecalculation(item: HistoryItem): boolean {
-  return item.modelVersion !== LEGACY_MODEL_VERSION || item.dataVersion !== LEGACY_DATA_VERSION
-}
-
-function historyItemNeedsRecalculation(item: HistoryItem): boolean {
-  return item.modelVersion !== MODEL_VERSION || item.dataVersion !== DATA_VERSION
-}
-
-export function loadHistory(storage: Storage, creatures: Creature[]): HistoryLoadResult {
-  let raw: string | null
-  try {
-    raw = storage.getItem(HISTORY_KEY)
-  } catch {
-    return { items: [], warning: 'Recent history could not be read from this browser.' }
-  }
-  if (!raw) return { items: [], warning: '' }
-
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    const legacy = Array.isArray(parsed)
-    if (!legacy && (
-      !isRecord(parsed)
-      || !hasOnlyKeys(parsed, ['storageVersion', 'items'])
-      || parsed.storageVersion !== HISTORY_STORAGE_VERSION
-      || !Array.isArray(parsed.items)
-    )) {
-      return { items: [], warning: 'Recent history uses an incompatible or damaged storage format. The stored data was left untouched.' }
-    }
-
-    const candidates = (legacy ? parsed : (parsed as { items: unknown[] }).items)
-    const items: HistoryItem[] = []
-    const ids = new Set<string>()
-    let ignored = Math.max(0, candidates.length - MAX_HISTORY_ITEMS)
-    let recalculatedItems = 0
-    let pendingItems = 0
-    for (const candidate of candidates.slice(0, MAX_HISTORY_ITEMS)) {
-      const item = parseHistoryItem(candidate, legacy)
-      if (!item || ids.has(item.id)) {
-        ignored += 1
-        continue
-      }
-      ids.add(item.id)
-      if (legacyHistoryItemNeedsRecalculation(item)) {
-        const recalculated = recalculateHistoryItem(item, creatures)
-        if (recalculated) {
-          items.push(recalculated)
-          recalculatedItems += 1
-        } else {
-          items.push(item)
-          pendingItems += 1
-        }
-      } else {
-        items.push(item)
-      }
-    }
-
-    let migrationWarning = ''
-    const migrationMessages = []
-    if (recalculatedItems > 0) {
-      migrationMessages.push(`${recalculatedItems} previous-version history ${recalculatedItems === 1 ? 'entry was' : 'entries were'} recalculated under the current model and data versions.`)
-    }
-    if (pendingItems > 0) {
-      migrationMessages.push(`${pendingItems} previous-version history ${pendingItems === 1 ? 'entry still needs' : 'entries still need'} recalculation because a referenced profile is unavailable.`)
-    }
-    if ((legacy || migrationMessages.length > 0) && ignored === 0) {
-      try {
-        storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
-        migrationWarning = [...migrationMessages, 'The history was migrated and saved.'].join(' ')
-      } catch {
-        migrationWarning = 'Previous-version history was loaded but its recalculated migration could not be saved in this browser.'
-      }
-    } else if (migrationMessages.length > 0) {
-      migrationWarning = `${migrationMessages.join(' ')} The migration was not saved because other stored entries were invalid, incompatible or duplicated; those records were left untouched, so recalculation will repeat next time.`
-    }
-    const ignoredWarning = ignored
-      ? `${ignored} invalid, incompatible or duplicate history ${ignored === 1 ? 'entry was' : 'entries were'} ignored. The stored data was left untouched.`
-      : ''
-    return { items, warning: [migrationWarning, ignoredWarning].filter(Boolean).join(' ') }
-  } catch {
-    return { items: [], warning: 'Recent history contains invalid JSON. The stored data was left untouched.' }
-  }
-}
-
-function saveHistoryStore(storage: Storage, items: HistoryItem[]): void {
-  storage.setItem(HISTORY_KEY, JSON.stringify(historyStore(items)))
-}
-
 function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]): string[] {
   const availableIds = new Set(creatures.map((creature) => creature.id))
   return [...new Set([item.scenario.soloId, item.scenario.groupId].filter((id) => !availableIds.has(id)))]
@@ -320,7 +134,7 @@ function defaultModel04Resources(scenario: Scenario): Model04RuntimeResources {
   }
 }
 
-function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04Runtime): InitialAppState {
+function initialAppState(builtInCreatures: Creature[], model04Runtime: Model04Runtime): InitialAppState {
   if (typeof window === 'undefined') {
     const scenario = defaultScenario(builtInCreatures)
     return {
@@ -333,11 +147,10 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04R
       historyWarning: '',
     }
   }
-  const loaded = model04Runtime ? model04Runtime.loadCustoms(window.localStorage) : loadCustomCreatures(window.localStorage)
+  const loaded = model04Runtime.loadCustoms(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
-  const decodedV4 = encoded && model04Runtime ? model04Runtime.decodeForUi(encoded) : null
-  const decoded = encoded ? decodeScenarioPayload(encoded) : null
-  const decodedSharedCustoms = decodedV4?.customCreatures ?? (decoded?.ok ? decoded.payload.customCreatures ?? [] : [])
+  const decodedV4 = encoded ? model04Runtime.decodeForUi(encoded) : null
+  const decodedSharedCustoms = decodedV4?.customCreatures ?? []
   const savedIds = new Set(loaded.items.map((item) => item.creature.id))
   const sharedCustoms = decodedSharedCustoms.filter((creature) => !savedIds.has(creature.id))
   const ignoredSharedCount = decodedSharedCustoms.length - sharedCustoms.length
@@ -347,24 +160,16 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime?: Model04R
     ...sharedCustoms,
   ]
   const availableIds = new Set(creatures.map((creature) => creature.id))
-  const decodedScenario = decodedV4?.scenario ?? (decoded?.ok ? decoded.payload.scenario : null)
+  const decodedScenario = decodedV4?.scenario ?? null
   const unavailableSharedIds = decodedScenario
     ? [...new Set([decodedScenario.soloId, decodedScenario.groupId].filter((id) => !availableIds.has(id)))]
     : []
-  const loadedHistory = model04Runtime ? model04Runtime.loadHistory(window.localStorage, creatures) : loadHistory(window.localStorage, creatures)
+  const loadedHistory = model04Runtime.loadHistory(window.localStorage, creatures)
   const shareWarning = decodedV4 && decodedV4.status !== 'current'
-    ? 'This earlier share was migrated and will be recalculated under model 0.4.'
-    : decoded && !decoded.ok
-    ? decoded.message
-    : decoded?.status === 'migrated-version'
-      ? 'This share uses earlier simulation or bundled-data versions. Its inputs were preserved and recalculated with the current versions.'
-      : decoded?.status === 'migrated-v2'
-        ? 'This version 2 share link was migrated to the current debate-method format and recalculated.'
-        : decoded?.status === 'migrated-v1'
-          ? 'This version 1 share link was migrated to the compact current format.'
-          : decoded?.status === 'migrated-legacy'
-            ? 'This legacy share link was migrated to the current scenario format.'
-            : ''
+    ? 'This earlier share was migrated and will be recalculated under model 0.4.1.'
+    : encoded && !decodedV4
+      ? 'This shared scenario is corrupt, oversized or incompatible and could not be opened.'
+      : ''
   const collisionWarning = ignoredSharedCount
     ? 'A shared custom profile was ignored because a saved local profile uses the same ID.'
     : ''
@@ -488,6 +293,9 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const initialRun = useMemo(() => model04Runtime.simulate(startingScenario, initialResources, creatures), [model04Runtime])
   const [result, setResult] = useState<SimulationResult>(initialRun.result)
   const [sensitivity, setSensitivity] = useState<Model04SensitivityPoint[]>(initialRun.sensitivity)
+  const [abilityResolutions, setAbilityResolutions] = useState(initialRun.abilityResolutions)
+  const [simulatedV4Scenario, setSimulatedV4Scenario] = useState(initialRun.scenario)
+  const [simulatedV4Contestants, setSimulatedV4Contestants] = useState(initialRun.contestants)
   const [error, setError] = useState('')
   const [shareStatus, setShareStatus] = useState('')
   const [history, setHistory] = useState<HistoryItem[]>(starting.history)
@@ -608,7 +416,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     }
   }
 
-  function saveHistory(nextScenario: Scenario, nextResult: SimulationResult) {
+  function saveHistory(nextScenario: Scenario, nextResult: SimulationResult, nextResources: Model04RuntimeResources) {
     const nextItem: HistoryItem = {
       formatVersion: HISTORY_ITEM_FORMAT_VERSION,
       modelVersion: MODEL_VERSION,
@@ -624,7 +432,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     const nextHistory = [nextItem, ...history].slice(0, MAX_HISTORY_ITEMS)
     setHistory(nextHistory)
     try {
-      model04Runtime.saveHistory(localStorage, nextHistory, resources)
+      model04Runtime.saveHistory(localStorage, nextHistory, nextResources)
       setHistoryWarning('')
     } catch {
       setHistoryWarning('The simulation ran, but recent history could not be saved in this browser.')
@@ -637,13 +445,16 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       const nextResult = simulated.result
       setResult(nextResult)
       setSensitivity(simulated.sensitivity)
+      setAbilityResolutions(simulated.abilityResolutions)
+      setSimulatedV4Scenario(simulated.scenario)
+      setSimulatedV4Contestants(simulated.contestants)
       setScenario(nextScenario)
       setSimulatedScenario(nextScenario)
       setResources(nextResources)
       setSimulatedResources(nextResources)
       setError('')
       setShareStatus('')
-      if (recordHistory) saveHistory(nextScenario, nextResult)
+      if (recordHistory) saveHistory(nextScenario, nextResult, nextResources)
       return simulated
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The simulation could not be completed.')
@@ -723,13 +534,16 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   function downloadResultJson() {
     const payload = {
       app: 'What Would Win',
-      modelVersion: '0.4.0',
-      dataVersion: '0.4.0',
-      shareFormatVersion: 4,
+      applicationVersion: APPLICATION_VERSION,
+      modelVersion: MODEL_VERSION,
+      dataVersion: DATA_VERSION,
+      shareFormatVersion: SHARE_FORMAT_VERSION,
       exportedAt: new Date().toISOString(),
-      scenario: simulatedScenario,
-      contestants: { solo: simulatedSolo, group: simulatedGroup },
-      customCreatures: [simulatedSolo, simulatedGroup].filter(isCustomCreature),
+      scenario: simulatedV4Scenario,
+      contestants: simulatedV4Contestants,
+      customCreatures: [simulatedV4Contestants.solo, simulatedV4Contestants.group].filter((profile) => profile.id.startsWith('custom:')),
+      abilityResolutions,
+      sensitivity,
       result,
     }
     downloadBlob('what-would-win-result.json', new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
@@ -832,6 +646,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
             title="The one"
             subtitle="SOLO PROFILE · QUANTITY FIXED AT 1"
             creature={solo}
+            dossier={model04Runtime.dossier(solo)}
             creatures={creatures}
             selectedId={scenario.soloId}
             size={scenario.soloSize}
@@ -855,6 +670,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
             title="The many"
             subtitle="GROUP PROFILE · USER-DEFINED QUANTITY"
             creature={group}
+            dossier={model04Runtime.dossier(group)}
             creatures={creatures}
             selectedId={scenario.groupId}
             size={scenario.groupSize}
@@ -1128,6 +944,8 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
         <ResultPanel
           result={result}
           sensitivity={sensitivity}
+          abilityResolutions={abilityResolutions}
+          contestants={simulatedV4Contestants}
           scenario={simulatedScenario}
           solo={simulatedSolo}
           group={simulatedGroup}

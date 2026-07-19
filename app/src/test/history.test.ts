@@ -5,7 +5,7 @@ import {
   HISTORY_KEY,
   HISTORY_STORAGE_VERSION,
   loadHistory,
-} from '../App'
+} from '../legacyHistory'
 import { defaultScenario, simulate } from '../simulation/engine'
 import type { Creature } from '../types'
 import { LEGACY_DATA_VERSION as DATA_VERSION, LEGACY_MODEL_VERSION as MODEL_VERSION } from '../version'

@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import type { Creature, Scenario, SizeConfig, StatOverrides } from '../types'
+import type { Model04Dossier as Model04DossierData } from '../model04/runtime'
 import { isCustomCreature } from '../customCreatures'
 import { SizeControl } from './SizeControl'
 import { StatControls } from './StatControls'
 import { profileTagStatus, type ProfileTagField } from '../mechanicsStatus'
+
+const Model04Dossier = lazy(async () => {
+  const module = await import('./Model04Dossier')
+  return { default: module.Model04Dossier }
+})
 
 interface CreaturePanelProps {
   side: 'solo' | 'group'
   title: string
   subtitle: string
   creature: Creature
+  dossier: Model04DossierData
   creatures: Creature[]
   selectedId: string
   size: SizeConfig
@@ -53,6 +60,7 @@ function ProfileTagList({ field, tokens, testId }: { field: ProfileTagField; tok
 
 export function CreaturePanel(props: CreaturePanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [dossierRequested, setDossierRequested] = useState(false)
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const matchesQuery = (item: Creature) => !normalizedQuery || [item.name, item.category, item.kind]
     .some((value) => value.toLowerCase().includes(normalizedQuery))
@@ -178,6 +186,17 @@ export function CreaturePanel(props: CreaturePanelProps) {
         <p>{props.creature.model_notes}</p>
         {selectedIsCustom && <p className="user-authored-note">Private user-authored modelled profile. The reference below describes its original orientation source, not your edits.</p>}
         <a href={props.creature.source_url} target="_blank" rel="noreferrer">Open orientation reference</a>
+      </details>
+
+      <details className="creature-data" onToggle={(event) => {
+        if (event.currentTarget.open) setDossierRequested(true)
+      }}>
+        <summary>Model 0.4 abilities and counters</summary>
+        {dossierRequested && (
+          <Suspense fallback={<p role="status">Loading the activated model dossier…</p>}>
+            <Model04Dossier dossier={props.dossier} />
+          </Suspense>
+        )}
       </details>
     </section>
   )

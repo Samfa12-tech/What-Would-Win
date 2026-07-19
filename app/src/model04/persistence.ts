@@ -108,12 +108,13 @@ function uniqueStrings(value: unknown, allowed?: ReadonlySet<string>, minimum = 
 
 function validAbilityCondition(value: unknown): boolean {
   if (!isRecord(value) || !hasOnlyKeys(value, [
-    'requiresLineOfSight', 'requiresFacing', 'minimumDistanceM', 'maximumDistanceM',
+    'requiresLineOfSight', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing', 'minimumDistanceM', 'maximumDistanceM',
     'minimumTargetMassKg', 'maximumTargetMassKg', 'terrains', 'forbiddenWeather',
     'timeOfDay', 'targetPhysiology', 'requiredTargetSenses',
   ])) return false
-  if ('requiresLineOfSight' in value && typeof value.requiresLineOfSight !== 'boolean') return false
-  if ('requiresFacing' in value && typeof value.requiresFacing !== 'boolean') return false
+  for (const key of ['requiresLineOfSight', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing'] as const) {
+    if (key in value && typeof value[key] !== 'boolean') return false
+  }
   for (const key of ['minimumDistanceM', 'maximumDistanceM'] as const) {
     if (key in value && !finiteRange(value[key], 0, 1e7)) return false
   }
@@ -130,7 +131,7 @@ function validAbilityCondition(value: unknown): boolean {
 
 function validAbility(value: unknown): boolean {
   if (!isRecord(value) || !hasOnlyKeys(value, [
-    'id', 'name', 'kind', 'delivery', 'effects', 'rangeM', 'areaRadiusM', 'targetLimit',
+    'id', 'name', 'kind', 'delivery', 'effects', 'rangeM', 'areaRadiusM', 'geometryScaling', 'targetLimit',
     'activationRate', 'conditions', 'counteredBy', 'resource', 'notes', 'legacyGenerated',
   ])) return false
   if (typeof value.id !== 'string' || value.id.length > 80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.id)) return false
@@ -146,6 +147,7 @@ function validAbility(value: unknown): boolean {
   })) return false
   if ('rangeM' in value && !finiteRange(value.rangeM, 0, 1e7)) return false
   if ('areaRadiusM' in value && !finiteRange(value.areaRadiusM, 0, 1e7, true)) return false
+  if ('geometryScaling' in value && !['fixed', 'linear', 'functional', 'magical', 'environmental-fixed'].includes(String(value.geometryScaling))) return false
   if ('targetLimit' in value && !['single', 'frontage', 'area'].includes(String(value.targetLimit))) return false
   if (!finiteRange(value.activationRate, 0, 1)) return false
   if ('conditions' in value && !validAbilityCondition(value.conditions)) return false
@@ -372,12 +374,26 @@ function canonicalScenario(scenario: ScenarioV4Draft): ScenarioV4Draft {
   }
 }
 
+function validateReferencedCustomProfiles(
+  scenario: ScenarioV4Draft,
+  customCreatures: readonly unknown[],
+  builtInIds: ReadonlySet<string> = new Set(),
+): customCreatures is CreatureV4Draft[] {
+  const referenced = new Set([scenario.soloId, scenario.groupId].filter((id) => id.startsWith('custom:')))
+  const embeddedIds = new Set<string>()
+  for (const candidate of customCreatures) {
+    if (!isCreatureV4Draft(candidate) || !candidate.id.startsWith('custom:')) return false
+    if (builtInIds.has(candidate.id) || embeddedIds.has(candidate.id) || !referenced.has(candidate.id)) return false
+    embeddedIds.add(candidate.id)
+  }
+  return embeddedIds.size === referenced.size && [...referenced].every((id) => embeddedIds.has(id))
+}
+
 export function encodeModel04Scenario(payload: ScenarioSharePayloadV4): string {
   if (!isScenarioV4Draft(payload.scenario)) throw new Error('Cannot encode an invalid model 0.4 scenario.')
-  const referenced = new Set([payload.scenario.soloId, payload.scenario.groupId].filter((id) => id.startsWith('custom:')))
   const customs = payload.customCreatures ?? []
   if (payload.formatVersion !== 4 || payload.modelVersion !== MODEL_04_VERSION || payload.dataVersion !== MODEL_04_DATA_VERSION) throw new Error('Cannot encode an incompatible model 0.4 payload.')
-  if (customs.some((creature) => !isCreatureV4Draft(creature) || !referenced.has(creature.id)) || [...referenced].some((id) => !customs.some((creature) => creature.id === id))) {
+  if (!validateReferencedCustomProfiles(payload.scenario, customs)) {
     throw new Error('Cannot encode invalid or incomplete model 0.4 custom profiles.')
   }
   const wire = [payload.modelVersion, payload.dataVersion, canonicalScenario(payload.scenario), ...(customs.length ? [customs] : [])]
@@ -386,32 +402,42 @@ export function encodeModel04Scenario(payload: ScenarioSharePayloadV4): string {
   return encoded
 }
 
-function decodeV4(value: string): ScenarioDecodeResultV4 {
+function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecodeResultV4 {
   try {
     const decoded = new TextDecoder('utf-8', { fatal: true }).decode(base64UrlToBytes(value))
     const wire: unknown = JSON.parse(decoded)
     if (!Array.isArray(wire) || (wire.length !== 3 && wire.length !== 4)) throw new Error('Invalid envelope.')
-    if (wire[0] !== MODEL_04_VERSION || wire[1] !== MODEL_04_DATA_VERSION) {
+    const currentIdentity = wire[0] === MODEL_04_VERSION && wire[1] === MODEL_04_DATA_VERSION
+    const releasedModel040Identity = wire[0] === '0.4.0' && wire[1] === '0.4.0'
+    if (!currentIdentity && !releasedModel040Identity) {
       return { ok: false, reason: 'incompatible', message: 'This model 0.4 share uses incompatible model or data versions.' }
     }
     if (!isScenarioV4Draft(wire[2])) throw new Error('Invalid scenario.')
     const customs = wire.length === 4 && Array.isArray(wire[3]) ? wire[3] : wire.length === 3 ? [] : null
-    if (!customs || customs.some((creature) => !isCreatureV4Draft(creature))) throw new Error('Invalid custom profiles.')
-    return { ok: true, status: 'current', payload: currentPayload(wire[2], customs as CreatureV4Draft[]) }
+    if (!customs || !validateReferencedCustomProfiles(wire[2], customs, builtInIds)) throw new Error('Invalid custom profiles.')
+    return {
+      ok: true,
+      status: releasedModel040Identity ? 'migrated-v4' : 'current',
+      payload: currentPayload(wire[2], customs),
+    }
   } catch {
     return { ok: false, reason: 'corrupt', message: 'The model 0.4 shared scenario could not be decoded.' }
   }
 }
 
-export function decodeModel04Scenario(value: string): ScenarioDecodeResultV4 {
+export function decodeModel04Scenario(value: string, builtInIds: ReadonlySet<string> = new Set()): ScenarioDecodeResultV4 {
   if (value.length > MAX_ENCODED_SCENARIO_LENGTH) return { ok: false, reason: 'oversized', message: 'The shared scenario is too large to open safely.' }
-  if (value.startsWith(`${MODEL_04_SHARE_FORMAT_VERSION}.`)) return decodeV4(value.slice(2))
+  if (value.startsWith(`${MODEL_04_SHARE_FORMAT_VERSION}.`)) return decodeV4(value.slice(2), builtInIds)
   if (/^[1-9]\d*\./.test(value) && !value.startsWith('2.') && !value.startsWith('3.')) {
     return { ok: false, reason: 'incompatible', message: 'This shared scenario uses an unsupported share format version.' }
   }
   const legacy = decodeScenarioPayload(value)
   if (!legacy.ok) return legacy
   const migratedCustoms = (legacy.payload.customCreatures ?? []).map((creature) => migrateCreatureV3ToV4Draft(creature as CustomCreature, 'custom-v1'))
+  const scenario = migrateScenarioV3ToV4Draft(legacy.payload.scenario)
+  if (!validateReferencedCustomProfiles(scenario, migratedCustoms, builtInIds)) {
+    return { ok: false, reason: 'corrupt', message: 'The shared scenario contains invalid or incomplete custom profiles.' }
+  }
   const status = legacy.status === 'migrated-v2'
     ? 'migrated-v2'
     : legacy.status === 'migrated-v1'
@@ -419,7 +445,7 @@ export function decodeModel04Scenario(value: string): ScenarioDecodeResultV4 {
       : legacy.status === 'migrated-legacy'
         ? 'migrated-legacy'
         : 'migrated-v3'
-  return { ok: true, status, payload: currentPayload(migrateScenarioV3ToV4Draft(legacy.payload.scenario), migratedCustoms) }
+  return { ok: true, status, payload: currentPayload(scenario, migratedCustoms) }
 }
 
 export interface LegacyHistoryResultSnapshot {

@@ -6,7 +6,7 @@
 
 ## Verified automated checks on the current worktree
 
-- `npm test`: **166/166 tests passed across 17 Vitest files**.
+- `npm test`: **167/167 tests passed across 17 Vitest files**.
 - Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; semantic audit reported **0 errors and 0 warnings**.
 - The model-0.4 contract audit verified migration artifacts for all **134 profiles**.
 - Provenance audit verified **134 records**; legal and bundled-runtime notices also passed.
@@ -16,7 +16,7 @@
 - `node scripts/check-build-budgets.mjs`: all current model-0.4 component and total budgets passed.
 - `node scripts/check-static-subpath.mjs`: passed; all **6** local references resolved inside `/apps/what-would-win/`.
 
-The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
+The passing suite covers the historical 16 calibration fixtures and model-0.3 physical invariants plus model-0.4 canonical migration, bilateral structured abilities, conditions/counters, physiology/senses including a synthetic spirit/incorporeal interaction, resource defaults and per-ability overrides, channel modifiers, inactive/rejected technical records, stable ability factors, regeneration/revival and environmental-hazard cases, deterministic sensitivity without a competing winner, v4 share migration, and v2 custom/history persistence and recovery.
 
 `MODEL_0.4_CALIBRATION_COMPARISON.md` records the reproducible model-0.3 versus model-0.4 solo probabilities for all 16 handoff fixtures and explains every movement. The ordinary-animal case retains the solo winner and moves by 0.075711, inside its approved maximum absolute difference of 0.12.
 

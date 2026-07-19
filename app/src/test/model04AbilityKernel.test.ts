@@ -164,6 +164,28 @@ describe('model 0.4 structured ability kernel', () => {
     expect(resolveAbilityKernel(side(conditional), side(creature(1)), scenario({ terrain: 'ruin' })).resolutions[0].active).toBe(true)
   })
 
+  test('models spirit targeting and incorporeal interaction through physiology and channels', () => {
+    const spirit = creature(1, {
+      physiology: 'spirit',
+      channelModifiers: { 'physical-piercing': 0, incorporeal: 1.5 },
+    })
+    const physical = creature(0)
+    const spectral = creature(0, { abilities: [ability({
+      id: 'spectral-strike',
+      effects: [{ kind: 'harm', channel: 'incorporeal', potency: 60 }],
+      conditions: { targetPhysiology: ['spirit'] },
+    })] })
+
+    expect(resolveAbilityKernel(side(physical), side(spirit), scenario()).resolutions[0]).toMatchObject({
+      active: false,
+      rejectionReason: 'target-immune',
+    })
+    expect(resolveAbilityKernel(side(spectral), side(spirit), scenario()).resolutions[0]).toMatchObject({
+      active: true,
+      abilityId: 'spectral-strike',
+    })
+  })
+
   test('models contact access continuously and ranged access explicitly', () => {
     const contact = creature(0, { abilities: [ability({ delivery: 'contact', rangeM: undefined, resource: { pool: 'none' } })] })
     const ranged = creature(0, { abilities: [ability({ delivery: 'ranged', rangeM: 100, resource: { pool: 'none' } })] })

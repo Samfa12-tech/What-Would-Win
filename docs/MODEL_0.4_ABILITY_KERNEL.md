@@ -49,6 +49,7 @@ Synthetic tests cover:
 - power stability when an inactive ability’s resource control changes;
 - immunity (`0`), resistance (`<1`) and vulnerability (`>1`);
 - physiology, sense and terrain conditions without creature-name logic;
+- spirit targeting with physical immunity and an explicit incorporeal channel;
 - continuous contact access versus explicit ranged access;
 - bounded area coverage at a target quantity of `10^100` without member allocation;
 - self-effects remaining independent of opponent healing immunity.

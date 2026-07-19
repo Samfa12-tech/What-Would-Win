@@ -30,6 +30,7 @@ These are explicit draft coefficients, not biological claims or final calibratio
 - Abilities can restrict target physiology and terrain.
 - Channel modifier `0` rejects an otherwise eligible effect as immune.
 - Values below/above `1` provide resistance/vulnerability without binary special cases.
+- Recovery or other conditional abilities may declare `counteredBy` channels; only channels already resolved as applied for the opposing side satisfy that counter.
 - A condition failure is distinct from channel immunity in technical output.
 
 The synthetic suite covers visual petrification, auditory compulsion, timed rebirth, injury-dependent regeneration/healing, piercing-hide immunity, living-only venom and a terrain-bound stationary maelstrom. The names are test labels only: a clone with a completely unrelated name produces byte-for-byte equal resolution output.

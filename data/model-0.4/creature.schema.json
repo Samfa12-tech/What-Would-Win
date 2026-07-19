@@ -425,6 +425,35 @@
             "minimum": 0,
             "maximum": 1
           },
+          "counteredBy": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "physical",
+                "physical-blunt",
+                "physical-piercing",
+                "physical-crushing",
+                "fire",
+                "cold",
+                "electric",
+                "venom",
+                "disease",
+                "petrification",
+                "hypnosis",
+                "fear",
+                "psychic",
+                "sonic",
+                "magic",
+                "incorporeal",
+                "restraint",
+                "healing",
+                "regeneration",
+                "revival",
+                "mobility"
+              ]
+            }
+          },
           "conditions": {
             "type": "object",
             "additionalProperties": false,

@@ -115,6 +115,7 @@ export interface Ability {
   targetLimit?: 'single' | 'frontage' | 'area'
   activationRate: number
   conditions?: AbilityCondition
+  counteredBy?: AbilityChannel[]
   resource: AbilityResource
   notes: string
   legacyGenerated?: boolean
@@ -216,6 +217,8 @@ export interface AbilityKernelContext {
   groupLineOfSight: boolean
   soloFacesTarget: boolean
   groupFacesTarget: boolean
+  soloAppliedChannels: AbilityChannel[]
+  groupAppliedChannels: AbilityChannel[]
 }
 
 export interface AbilityKernelResult {

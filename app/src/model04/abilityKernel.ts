@@ -24,6 +24,8 @@ const DEFAULT_CONTEXT: AbilityKernelContext = {
   groupLineOfSight: true,
   soloFacesTarget: true,
   groupFacesTarget: true,
+  soloAppliedChannels: [],
+  groupAppliedChannels: [],
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -133,8 +135,13 @@ function resolveAbility(
   const suppliedPercent = resourcePercent(ability, resources)
   const beneficial = SELF_ABILITY_KINDS.has(ability.kind) || ability.effects.every((effect) => SELF_EFFECT_KINDS.has(effect.kind))
   const conditionTarget = beneficial ? attacker : target
+  const opposingChannels = side === 'solo' ? context.groupAppliedChannels : context.soloAppliedChannels
 
-  if (!conditionsMet(side, ability, conditionTarget, scenario, context, distanceM) || ability.activationRate <= 0) {
+  if (
+    !conditionsMet(side, ability, conditionTarget, scenario, context, distanceM)
+    || ability.activationRate <= 0
+    || ability.counteredBy?.some((channel) => opposingChannels.includes(channel))
+  ) {
     return rejection(side, attacker.creature.id, ability, 'condition-unmet', suppliedPercent, 0)
   }
 

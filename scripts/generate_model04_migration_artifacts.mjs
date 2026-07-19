@@ -44,6 +44,7 @@ const abilitySchema = {
     areaRadiusM: { type: 'number', exclusiveMinimum: 0, maximum: 10000000 },
     targetLimit: { enum: ['single', 'frontage', 'area'] },
     activationRate: { type: 'number', minimum: 0, maximum: 1 },
+    counteredBy: { type: 'array', uniqueItems: true, items: { enum: abilityChannels } },
     conditions: {
       type: 'object', additionalProperties: false,
       properties: {

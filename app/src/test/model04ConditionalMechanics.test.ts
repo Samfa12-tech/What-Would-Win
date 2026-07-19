@@ -51,6 +51,8 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
     groupLineOfSight: true,
     soloFacesTarget: true,
     groupFacesTarget: true,
+    soloAppliedChannels: [],
+    groupAppliedChannels: [],
     ...overrides,
   }
 }
@@ -91,7 +93,7 @@ describe('model 0.4 conditional mechanics', () => {
     const hydra = singleAbility(profile('hydra'), {
       id: 'many-headed-regeneration', name: 'Many-headed regeneration', kind: 'regeneration', delivery: 'self',
       effects: [{ kind: 'regeneration', channel: 'regeneration', potency: 90 }], targetLimit: 'single',
-      activationRate: 1, resource: { pool: 'none' }, notes: 'Synthetic regeneration timing test.',
+      activationRate: 1, counteredBy: ['fire'], resource: { pool: 'none' }, notes: 'Synthetic regeneration timing test.',
     })
     const vampire = singleAbility(profile('vampire'), {
       id: 'blood-healing', name: 'Blood healing', kind: 'healing', delivery: 'self',
@@ -106,6 +108,7 @@ describe('model 0.4 conditional mechanics', () => {
     expect(uninjured.resolutions[0].rejectionReason).toBe('condition-unmet')
     expect(short.soloLogDelta).toBeGreaterThan(0)
     expect(long.soloLogDelta).toBeGreaterThan(short.soloLogDelta)
+    expect(resolveAbilityKernel(side(hydra), side(opponent), scenario(), context({ groupAppliedChannels: ['fire'] })).resolutions[0].rejectionReason).toBe('condition-unmet')
 
     const noHealingNeed = resolveAbilityKernel(side(vampire), side(opponent), scenario(), context({ soloInjuryPressure: 0 }))
     const healingNeed = resolveAbilityKernel(side(vampire), side(opponent), scenario(), context({ soloInjuryPressure: 0.8 }))

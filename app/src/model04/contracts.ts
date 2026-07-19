@@ -167,4 +167,39 @@ export interface AbilityResolution {
   accessFactor: number
   channelFactor: number
   logDelta: number
+  effects: AbilityEffectResolution[]
+}
+
+export interface AbilityEffectResolution {
+  factorId: `ability:${string}:${string}:effect-${number}`
+  effectIndex: number
+  kind: AbilityEffectKind
+  channel: AbilityChannel
+  potency: number
+  channelFactor: number
+  logDelta: number
+}
+
+export interface Model04AbilityFactor {
+  id: `ability:${string}:${string}:${string}`
+  side: 'solo' | 'group'
+  logDelta: number
+  abilityId: string
+  effectIndex: number
+  channel: AbilityChannel
+}
+
+export interface AbilityKernelSide {
+  creature: CreatureV4Draft
+  resolvedContactReachM: number
+  resolvedBodyLengthM: number
+  targetQuantityLog10: number
+  frontageCapacity: number
+}
+
+export interface AbilityKernelResult {
+  resolutions: AbilityResolution[]
+  factors: Model04AbilityFactor[]
+  soloLogDelta: number
+  groupLogDelta: number
 }

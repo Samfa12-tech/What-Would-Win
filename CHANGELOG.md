@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — 2026-07-20
+
+- Added the versioned `BattleStoryboard`, seven fixed phases, deterministic story seeds, stable scenario/result hashes, validated factor/ability references and standalone JSON export without changing model 0.4.1.
+- Added deterministic three-part and seven-phase likely-battle accounts, evidence annotations, minority-path sensitivity notes, close-contest language and conceptual-scale narration.
+- Added first-class result navigation for Verdict, Likely battle, Tactical reconstruction and Technical record; story seed persists through share links, current history and result exports.
+- Added a completely lazy React Three Fiber tactical diorama driven only by validated storyboard events, with primitive terrain, instanced formations, movement paths, range/area/frontage/reserve/hazard overlays, camera modes, captions and transcript.
+- Added all 15 reusable primitive visual archetypes and the bespoke → adjusted archetype → silhouette → labelled-token fallback contract; missing art can no longer block a reconstruction.
+- Added the six requested pilot briefings and deterministic test coverage for elephant/wolves, eagle/mice, dragon/archers, Medusa/spear carriers, giant spider/rhinoceros and Charybdis/orca.
+- Added visible-actor compression, conceptual no-actor handling, WebGL2 failure fallback, keyboard timeline controls and system/user reduced-motion handling.
+- Preserved the existing entry, optional-UI, model-runtime and core-CSS ceilings; added independent presentation, reconstruction-CSS and lazy tactical-runtime budgets.
+- Advanced the application version to 0.5.0. Model/data remain 0.4.1 and share format remains v4 because numerical mechanics and the canonical scenario envelope are unchanged.
+
 ## 0.4.1 — 2026-07-19
 
 - Added a release-blocking model-0.4 ability-coverage audit: 118 mechanical source tokens route across all 134 profiles, with 29 reviewed structured overrides including the complete mythical review queue.

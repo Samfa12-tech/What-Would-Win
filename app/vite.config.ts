@@ -20,6 +20,7 @@ export default defineConfig({
   plugins: [react(), minifyCreatureRoster()],
   build: {
     manifest: true,
+    chunkSizeWarningLimit: 950,
   },
   test: {
     environment: 'node',

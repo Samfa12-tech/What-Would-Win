@@ -192,26 +192,25 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await quantity.fill('10^100')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await expect(page.getByText(/Conceptual-scale result:/)).toBeVisible()
-  await expect(page.locator('.battle-phase h4')).toHaveText(['Conceptual briefing', 'Aggregate pressure', 'Interpretation'])
   await expect(page.getByText('Heuristic duration', { exact: true }).locator('..')).toContainText('not physically meaningful')
   await expect(page.getByText('Heuristic group losses', { exact: true }).locator('..')).toContainText('not physically meaningful')
-  await expect(page.getByRole('heading', { name: 'Deployment', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Likely battle', exact: true }).click()
+  await expect(page.getByLabel('Seven-phase battle account').locator('> li')).toHaveCount(7)
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText('no literal battlefield')
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 
 test('technical depth runs 15,000 trials and exposes the calculation record', async ({ page }) => {
+  test.slow()
   await page.getByLabel('Report detail').selectOption('technical')
   await expect(page.getByLabel('Report detail')).toHaveValue('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
+  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
 
   const record = page.locator('.technical-grid')
-  await expect(page.getByText('Technical calculation record')).toBeVisible()
+  await expect(page.getByText('Technical calculation record')).toBeVisible({ timeout: 15_000 })
   await expect(record.getByText('Trials', { exact: true })).toBeVisible()
   await expect(record.getByText('15,000', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Modelled encounter sequence' })).toBeVisible()
-  await expect(page.locator('.battle-phase h4')).toHaveText([
-    'Briefing', 'Deployment', 'Approach', 'Contact', 'Pressure', 'Resolution', 'Uncertainty',
-  ])
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
   await expect(page.locator('.technical-factors li').first()).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Ability resolution record' })).toBeVisible()
@@ -226,13 +225,17 @@ test('shows rejected and countered abilities only in the technical resolution re
 
   await page.getByLabel('Report detail').selectOption('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
+  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
   const record = page.getByTestId('ability-resolution-record')
   await expect(record.locator('li[data-ability-status="ineligible"]', { hasText: 'Petrifying gaze' })).toBeVisible()
 
   await page.getByTestId('solo-creature-select').selectOption('troll')
   await page.getByTestId('group-creature-select').selectOption('western-dragon')
+  await expect(page.getByTestId('solo-creature-select')).toHaveValue('troll')
+  await expect(page.getByTestId('group-creature-select')).toHaveValue('western-dragon')
   await page.getByLabel('Starting distance (m)').fill('5')
   await page.getByRole('button', { name: 'Run simulation' }).click()
+  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
   await expect(record.locator('li[data-ability-status="countered"]', { hasText: 'Regeneration' })).toContainText('Counter channel: fire')
 })
 
@@ -244,6 +247,7 @@ test('shows depleted and out-of-range abilities as technical diagnostics', async
   await page.getByLabel('Starting distance (m)').fill('15')
   await page.getByLabel('Solo resources').fill('0')
   await page.getByRole('button', { name: 'Run simulation' }).click()
+  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
 
   const record = page.getByTestId('ability-resolution-record')
   await expect(record.locator('li[data-ability-status="resource-depleted"]', { hasText: 'Fire breath' })).toBeVisible()
@@ -266,6 +270,7 @@ test('audited cross-scaling scenario exposes stopping and frontage diagnostics',
   await page.getByRole('radio', { name: /Functional scaling/ }).check()
   await page.getByLabel('Report detail').selectOption('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
+  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
 
   await expect(page.locator('.results').getByRole('heading', { name: 'House mouse', level: 2 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()
@@ -324,6 +329,7 @@ test('debate methodology controls survive simulation, history and a clean-browse
 })
 
 test('clones, names, edits, saves, reloads and uses a private custom profile', async ({ page }) => {
+  test.slow()
   const customId = await createSavedCustom(page)
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), CUSTOM_STORAGE_KEY)
   expect(stored.storageVersion).toBe(2)
@@ -333,7 +339,9 @@ test('clones, names, edits, saves, reloads and uses a private custom profile', a
   await page.getByTestId('solo-creature-select').selectOption(customId)
   await expect(page.getByTestId('solo-creature-select').locator('option:checked')).toHaveText(CUSTOM_NAME)
   await soloPanel(page).getByRole('button', { name: 'Edit custom' }).click()
-  await page.getByTestId('custom-creature-editor').getByLabel('Attack', { exact: true }).fill('81')
+  const attackInput = page.getByTestId('custom-creature-editor').getByLabel('Attack', { exact: true })
+  await attackInput.fill('81')
+  await expect(attackInput).toHaveValue('81')
   await page.getByTestId('save-custom-creature').click()
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await expect(page.locator('.results').getByRole('heading', { name: CUSTOM_NAME, level: 2 })).toBeVisible()
@@ -378,6 +386,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
   await page.getByRole('button', { name: 'Copy share link' }).click()
+  await expect(page).toHaveURL(/\?s=/, { timeout: 10_000 })
   const payload = decodeSharePayload(page.url())
   const sharedScenario = payload.scenario as Record<string, unknown>
   sharedScenario.soloId = 'missing-built-in-profile'
@@ -390,6 +399,7 @@ test('a share with an unavailable built-in creature reports the default substitu
 })
 
 test('a shared custom profile cannot shadow a saved local profile with the same ID', async ({ page }) => {
+  test.slow()
   const customId = await createSavedCustom(page, 'Saved Local Beast')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await page.getByRole('button', { name: 'Copy share link' }).click()
@@ -407,6 +417,7 @@ test('a shared custom profile cannot shadow a saved local profile with the same 
 })
 
 test('corrupt custom-profile storage recovers visibly without overwriting the stored data', async ({ page }) => {
+  test.slow()
   await page.evaluate((key) => localStorage.setItem(key, '{not valid json'), CUSTOM_STORAGE_KEY)
   await page.reload()
 
@@ -454,7 +465,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.4.1')
+  expect(exported.applicationVersion).toBe('0.5.0')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))

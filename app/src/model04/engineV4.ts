@@ -52,6 +52,7 @@ export interface Model04SensitivityPoint {
 
 export interface Model04SimulationResult {
   result: SimulationResult
+  deterministicState: Model04DeterministicState
   abilityResolutions: AbilityResolution[]
   sensitivity: Model04SensitivityPoint[]
 }
@@ -676,12 +677,15 @@ export function resolveModel04Deterministic(
   }
 }
 
-function simulateCore(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): Omit<Model04SimulationResult, 'sensitivity'> {
+function simulateCore(
+  creatures: CreatureV4Draft[],
+  scenario: ScenarioV4Draft,
+  deterministic: Model04DeterministicState,
+): Omit<Model04SimulationResult, 'sensitivity' | 'deterministicState'> {
   const profileMap = new Map(creatures.map((creature) => [creature.id, creature]))
   const soloProfile = profileMap.get(scenario.soloId)
   const groupProfile = profileMap.get(scenario.groupId)
   if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown model 0.4 profile.')
-  const deterministic = resolveModel04Deterministic(creatures, scenario)
   const physicalScenario = toPhysicalScenarioV3(scenario)
   const base = simulate(creatures.map(toPhysicalV3), physicalScenario)
   const sampled = sampleOutcomeFromPowers({
@@ -749,8 +753,8 @@ function simulateCore(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): 
 }
 
 export function simulateModel04(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): Model04SimulationResult {
-  const baseline = simulateCore(creatures, scenario)
   const deterministic = resolveModel04Deterministic(creatures, scenario)
+  const baseline = simulateCore(creatures, scenario, deterministic)
   const baselineMargin = deterministic.soloLogPower - deterministic.groupLogPower
   interface SensitivityVariant {
     id: string
@@ -878,5 +882,5 @@ export function simulateModel04(creatures: CreatureV4Draft[], scenario: Scenario
       caveat: variant.caveat ?? 'One bounded deterministic perturbation; interactions with other uncertain inputs are not combined.',
     }
   }).sort((left, right) => Math.abs(right.marginDelta) - Math.abs(left.marginDelta) || left.id.localeCompare(right.id))
-  return { ...baseline, sensitivity }
+  return { ...baseline, deterministicState: deterministic, sensitivity }
 }

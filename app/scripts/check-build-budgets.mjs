@@ -11,11 +11,19 @@ const budgets = {
   // growth in total JavaScript or in the complete published artifact.
   entryJavascript: 455_000,
   optionalUiJavascript: 21_000,
+  // Storyboard builder + validator + both complete HTML presentation views.
+  // This is additive and must not consume either original core budget below.
+  presentationJavascript: 36_000,
+  tacticalRuntimeJavascript: 950_000,
   model04RuntimeJavascript: 100_000,
-  javascript: 575_000,
+  coreJavascript: 575_000,
+  javascript: 1_550_000,
   creatureRoster: 125_000,
-  css: 26_000,
-  total: 835_000,
+  coreCss: 26_000,
+  reconstructionCss: 4_000,
+  css: 31_000,
+  total: 1_850_000,
+  coreDeployable: 835_000,
   socialImage: 300_000,
 }
 
@@ -55,15 +63,26 @@ const lazyJavascript = javascript - entryJavascript
 const model04RuntimeFiles = sizes.filter((file) => /dist[\\/]assets[\\/]runtime-[^\\/]+\.js$/.test(relative(appRoot, file.path)))
 if (model04RuntimeFiles.length !== 1) throw new Error(`Expected one lazy model 0.4 runtime chunk, found ${model04RuntimeFiles.length}.`)
 const model04RuntimeJavascript = model04RuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
-const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript
+const tacticalRuntimeFiles = sizes.filter((file) => /^dist\/assets\/TacticalScene-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
+if (tacticalRuntimeFiles.length !== 1) throw new Error(`Expected one lazy tactical runtime chunk, found ${tacticalRuntimeFiles.length}.`)
+const tacticalRuntimeJavascript = tacticalRuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
+const presentationFiles = sizes.filter((file) => /^dist\/assets\/(?:LikelyBattlePanel|TacticalReconstructionPanel|storyboard)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
+if (presentationFiles.length !== 3) throw new Error(`Expected three lazy presentation chunks, found ${presentationFiles.length}.`)
+const presentationJavascript = presentationFiles.reduce((sum, file) => sum + file.bytes, 0)
+const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript - tacticalRuntimeJavascript - presentationJavascript
 const rosterFiles = sizes.filter((file) => /dist[\\/]assets[\\/]creatures-[^\\/]+\.json$/.test(relative(appRoot, file.path)))
 const creatureRoster = rosterFiles.reduce((sum, file) => sum + file.bytes, 0)
-const css = sizes.filter((file) => file.path.endsWith('.css')).reduce((sum, file) => sum + file.bytes, 0)
+const cssFiles = sizes.filter((file) => file.path.endsWith('.css'))
+const css = cssFiles.reduce((sum, file) => sum + file.bytes, 0)
+const reconstructionCss = cssFiles.filter((file) => /^dist\/assets\/reconstruction-[^/]+\.css$/.test(relative(appRoot, file.path).replaceAll('\\', '/'))).reduce((sum, file) => sum + file.bytes, 0)
+const coreCss = css - reconstructionCss
 // Social previews are fetched by link crawlers, not by visitors loading the app.
 // Keep them independently bounded without weakening the runtime payload ceiling.
 const socialImages = sizes.filter((file) => relative(appRoot, file.path).replaceAll('\\', '/').startsWith('dist/social/'))
 const socialImage = socialImages.reduce((sum, file) => sum + file.bytes, 0)
 const total = sizes.filter((file) => !socialImages.includes(file)).reduce((sum, file) => sum + file.bytes, 0)
+const coreJavascript = javascript - presentationJavascript - tacticalRuntimeJavascript
+const coreDeployable = total - presentationJavascript - tacticalRuntimeJavascript - reconstructionCss
 
 if (rosterFiles.length !== 1) throw new Error(`Expected one emitted creature roster, found ${rosterFiles.length}.`)
 const roster = JSON.parse(await readFile(rosterFiles[0].path, 'utf8'))
@@ -73,8 +92,12 @@ const entrySources = await Promise.all(sizes.filter((file) => entryFiles.has(rel
 if (entrySources.some((source) => source.includes('African bush elephant'))) {
   throw new Error('The built-in creature payload was found inside the entry JavaScript bundle.')
 }
+const tacticalManifest = manifest['src/components/tactical/TacticalScene.tsx']
+if (!tacticalManifest?.isDynamicEntry || entryFiles.has(tacticalManifest.file)) {
+  throw new Error('The tactical 3D runtime must remain a dynamic entry outside the eager verdict graph.')
+}
 
-const measurements = { entryJavascript, optionalUiJavascript, model04RuntimeJavascript, javascript, creatureRoster, css, total, socialImage }
+const measurements = { entryJavascript, optionalUiJavascript, presentationJavascript, tacticalRuntimeJavascript, model04RuntimeJavascript, coreJavascript, javascript, creatureRoster, coreCss, reconstructionCss, css, coreDeployable, total, socialImage }
 let failed = false
 for (const [name, bytes] of Object.entries(measurements)) {
   const limit = budgets[name]

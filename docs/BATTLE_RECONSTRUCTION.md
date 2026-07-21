@@ -103,11 +103,12 @@ O(visible actors), not O(declared quantity). The hard visible cap is 80.
 ## Tactical renderer and archetypes
 
 The optional `TacticalScene` is a second-stage dynamic import. It uses React
-Three Fiber 9 and Three.js with primitive low-poly terrain, instanced actors,
-storyboard-driven formation movement, paths, particles, exact-or-smaller range
-rings, fire/gaze cones, area/hazard volumes, aggregate pressure fields,
-active-front and reserve rings. It has no per-actor
-combat AI. Environmental hazards are always fixed at `startPosition`.
+Three Fiber 9 and Three.js with 14 reusable primitive environment families,
+instanced actors, storyboard-driven formation movement, paths, particles,
+exact-or-smaller range rings, fire/gaze/web/electric/recovery effects,
+area/hazard volumes, aggregate pressure fields, active-front and reserve rings.
+It has no per-actor combat AI. Environmental hazards are always fixed at
+`startPosition`.
 
 The reusable primitive archetypes are light quadruped, heavy quadruped, hoofed
 runner, humanoid, theropod/biped, low reptile, serpentine, flying bird, winged
@@ -119,9 +120,11 @@ environmental hazard. Resolution always follows:
 3. silhouette/billboard;
 4. labelled tactical token.
 
-The initial bespoke registry is intentionally empty. Every current profile
-therefore uses a tested adjusted primitive and no missing art can fail a battle.
-No external creature/environment asset is loaded in 0.5.0.
+Each actor has a bounded `CreatureVisualProfile`: archetype, proportions,
+attachments, locomotion, attack motion, effect preset and material preset. The
+initial bespoke registry is intentionally empty. Every current profile
+therefore uses a tested adjusted modular primitive and no missing art can fail
+a battle. No external creature/environment asset is loaded in 0.5.0.
 
 ## Pilot scenarios
 
@@ -144,12 +147,20 @@ case; the pilot uses the reviewed 40 m boundary so the hazard volume is active.
 
 The HTML account, captions, evidence and transcript are complete without 3D.
 Result-view controls are native buttons. The tactical panel supports Space and
-Left/Right Arrow timeline control, visible Previous/Next controls, captions,
-full transcript and W/A/S/D/Q/E free-camera movement. Labels pair colour with
-side text and event captions. System `prefers-reduced-motion` starts playback
-paused, disables automatic motion and uses demand rendering; the user can also
-toggle reduced motion. WebGL2 absence or a scene error leaves the complete HTML
-experience intact.
+Left/Right Arrow timeline control, a direct phase slider with Home/End support,
+visible Previous/Next controls, captions, full transcript and W/A/S/D/Q/E
+free-camera movement. Playback maps storyboard `startSeconds` and
+`durationSeconds` into a bounded 7–21 second display timeline. Labels pair
+colour with side text and event captions. System `prefers-reduced-motion`
+starts playback paused, disables automatic motion and uses demand rendering;
+the user can also toggle reduced motion. Optional phase tones have no narrative
+content and begin only after user activation. WebGL2 absence or a scene error
+leaves the complete HTML experience intact.
+
+The scene can be downloaded as a PNG or recorded as a silent WebM where the
+browser provides canvas capture and `MediaRecorder`. These exports capture only
+the validated visualisation; they do not create or modify events. The complete
+HTML transcript and storyboard JSON remain the portable authoritative exports.
 
 ## Performance budgets
 
@@ -159,19 +170,22 @@ Measured production output for 0.5.0:
 |---|---:|---:|
 | eager entry JavaScript | 450,718 B | 455,000 B |
 | existing optional UI JavaScript | 18,632 B | 21,000 B |
-| presentation JavaScript | 35,510 B | 36,000 B |
+| presentation JavaScript | 39,849 B | 45,000 B |
 | model-0.4 runtime JavaScript | 90,171 B | 100,000 B |
 | original core JavaScript | 559,521 B | 575,000 B |
-| lazy tactical runtime | 894,157 B raw / 238,350 B gzip | 950,000 B raw |
+| lazy tactical runtime | 905,896 B raw / 241,380 B gzip | 950,000 B raw |
 | core CSS | 25,605 B | 26,000 B |
-| lazy reconstruction CSS | 2,998 B | 4,000 B |
+| lazy reconstruction CSS | 3,751 B | 4,000 B |
 | original core deployable payload | 816,214 B | 835,000 B |
-| total deployable payload (excluding social preview) | 1,748,879 B | 1,850,000 B |
+| total deployable payload (excluding social preview) | 1,765,710 B | 1,850,000 B |
 
-Additional runtime limits: 80 visible instances, no external archetype or
-environment asset bytes, device-pixel ratio 1–1.5, no shadows, low-power WebGL,
-30 fps / 33 ms target on supported mobile hardware and a 192 MB advisory GPU+
-scene memory ceiling. Paused/reduced-motion scenes use demand rendering.
+Additional runtime limits: 80 visible instances, 350,000 B per archetype asset,
+500,000 B per environment asset, 250,000 B per audio asset and 1,200,000 B for
+all selected tactical assets. Version 0.5.0 ships zero bytes in each external
+asset category. Device-pixel ratio is 1–1.5, shadows are disabled, WebGL uses
+the low-power preference, supported mobile hardware targets 30 fps / 33 ms and
+the advisory GPU plus scene-memory ceiling is 192 MB. Paused/reduced-motion
+scenes use demand rendering.
 
 The build audit asserts that the tactical scene is a dynamic entry outside the
 eager verdict graph. Adding 3D did not raise the existing entry, optional-UI,
@@ -183,8 +197,9 @@ model-runtime or core-CSS ceilings.
 - Camera direction uses event targets; it is not a cinematography system.
 - Free camera is keyboard translation around a fixed look target, not full
   orbit/pinch controls.
-- No audio, glTF assets, still/video export or bespoke creature animation is
-  included.
+- Phase tones are generated in the browser; there are no authored audio assets,
+  glTF assets or bespoke creature animations. PNG/WebM availability depends on
+  canvas-capture support in the browser.
 - Performance is budgeted and browser-tested; physical phone GPU/memory/frame
   timing remains a manual release check.
 - A story is a legal presentation of aggregate evidence, never a claim that the

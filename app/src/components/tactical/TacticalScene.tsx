@@ -3,17 +3,47 @@ import { useEffect, useMemo, useRef } from 'react'
 import type { Group, InstancedMesh } from 'three'
 import { CanvasTexture, Color, LinearFilter, Object3D, Vector3 } from 'three'
 import type { BattleEvent } from '../../storyboard'
-import type { TacticalActorPlan, TacticalSceneProps } from './contracts'
-import { buildTacticalPlan, eventDestination } from './contracts'
+import type { CreatureVisualAttachment, TacticalActorPlan, TacticalEnvironmentFamily, TacticalSceneProps } from './contracts'
+import { buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset } from './contracts'
 
 const soloColor = new Color('#d6a84e')
 const groupColor = new Color('#5aa9e6')
 
+const decorPoints: Array<[number, number, number]> = [[-12, 0, -9], [-9, 0, 10], [11, 0, -10], [13, 0, 8], [-14, 0, 2], [8, 0, 13]]
+
+function EnvironmentDecor({ family, accentColor }: { family: TacticalEnvironmentFamily; accentColor: string }) {
+  if (family === 'forest-clearing' || family === 'swamp') return <group>{decorPoints.map((position, index) => <group key={`${family}:${index}`} position={position}>
+    <mesh position-y={1.1}><cylinderGeometry args={[0.18, 0.28, 2.2, 7]} /><meshStandardMaterial color={family === 'swamp' ? '#342f25' : '#55422f'} /></mesh>
+    <mesh position-y={2.5}><coneGeometry args={[1.05, 2.4, 7]} /><meshStandardMaterial color={accentColor} roughness={1} /></mesh>
+  </group>)}</group>
+  if (family === 'desert' || family === 'snow' || family === 'mountain') return <group>{decorPoints.slice(0, family === 'mountain' ? 6 : 4).map((position, index) => <mesh key={`${family}:${index}`} position={[position[0], family === 'mountain' ? 1.2 : 0.25, position[2]]} rotation-y={index * 0.7}>
+    {family === 'mountain' ? <coneGeometry args={[2.2, 3.8, 6]} /> : <dodecahedronGeometry args={[family === 'snow' ? 0.65 : 0.9, 0]} />}
+    <meshStandardMaterial color={accentColor} roughness={1} />
+  </mesh>)}</group>
+  if (family === 'cave') return <group>
+    <mesh position={[0, 5.8, 0]} rotation-x={Math.PI / 2}><cylinderGeometry args={[22, 22, 0.7, 20]} /><meshStandardMaterial color="#343438" side={2} /></mesh>
+    {decorPoints.slice(0, 4).map((position, index) => <mesh key={`cave:${index}`} position={[position[0], 1.5, position[2]]}><coneGeometry args={[1.2, 3, 7]} /><meshStandardMaterial color={accentColor} /></mesh>)}
+  </group>
+  if (family === 'ruin' || family === 'urban-courtyard' || family === 'fortification') return <group>
+    {decorPoints.slice(0, 4).map((position, index) => <mesh key={`${family}:${index}`} position={[position[0], family === 'fortification' ? 1.8 : 1.1, position[2]]}>
+      <boxGeometry args={family === 'fortification' ? [5, 3.6, 0.8] : [1, 2.2 + (index % 2), 1]} /><meshStandardMaterial color={accentColor} roughness={1} />
+    </mesh>)}
+  </group>
+  if (family === 'river') return <mesh position={[0, 0.03, 0]} rotation-x={-Math.PI / 2}><planeGeometry args={[7, 48]} /><meshStandardMaterial color={accentColor} transparent opacity={0.78} /></mesh>
+  if (family === 'coast') return <mesh position={[-12, 0.03, 0]} rotation-x={-Math.PI / 2}><planeGeometry args={[24, 48]} /><meshStandardMaterial color={accentColor} transparent opacity={0.78} /></mesh>
+  if (family === 'ocean' || family === 'deep-ocean') return <group>
+    {[4, 9, 15].map((radius) => <mesh key={`wave:${radius}`} position-y={0.04} rotation-x={-Math.PI / 2}><ringGeometry args={[radius, radius + 0.08, 40]} /><meshBasicMaterial color={accentColor} transparent opacity={0.38} /></mesh>)}
+    {family === 'deep-ocean' && <mesh position-y={-1.3} rotation-x={-Math.PI / 2}><circleGeometry args={[22, 32]} /><meshBasicMaterial color="#031525" transparent opacity={0.45} /></mesh>}
+  </group>
+  return null
+}
+
 function Environment({ terrain }: { terrain: string }) {
-  const water = ['river', 'swamp', 'ocean', 'deep-ocean'].includes(terrain)
+  const spec = environmentSpecFor(terrain)
   return <group>
-    <mesh rotation-x={-Math.PI / 2} receiveShadow={false}><circleGeometry args={[24, 48]} /><meshStandardMaterial color={water ? '#1a5d79' : '#40583d'} roughness={1} /></mesh>
-    {!water && <mesh position={[0, -0.06, 0]} rotation-x={-Math.PI / 2}><ringGeometry args={[10, 23, 32]} /><meshBasicMaterial color="#778c57" transparent opacity={0.35} /></mesh>}
+    <mesh rotation-x={-Math.PI / 2} receiveShadow={false}><circleGeometry args={[24, 48]} /><meshStandardMaterial color={spec.groundColor} roughness={1} /></mesh>
+    {!spec.water && <mesh position={[0, -0.06, 0]} rotation-x={-Math.PI / 2}><ringGeometry args={[10, 23, 32]} /><meshBasicMaterial color={spec.accentColor} transparent opacity={0.35} /></mesh>}
+    <EnvironmentDecor family={spec.family} accentColor={spec.accentColor} />
     <ambientLight intensity={1.3} /><directionalLight position={[6, 10, 4]} intensity={1.4} />
   </group>
 }
@@ -31,6 +61,48 @@ function primitiveFor(actor: TacticalActorPlan) {
   if (archetype === 'hoofed-runner') return <boxGeometry args={[1.05, 0.6, 0.5]} />
   if (archetype === 'low-reptile') return <boxGeometry args={[1.2, 0.35, 0.55]} />
   return <capsuleGeometry args={[0.25, archetype === 'humanoid' || archetype === 'theropod-biped' ? 0.85 : 0.7, 3, 6]} />
+}
+
+function attachmentGeometry(attachment: CreatureVisualAttachment) {
+  if (attachment === 'wings') return <planeGeometry args={[1.8, 0.72]} />
+  if (attachment === 'horns' || attachment === 'tusks' || attachment === 'tail-spikes') return <coneGeometry args={[0.15, 0.8, 6]} />
+  if (attachment === 'tentacles') return <torusGeometry args={[0.6, 0.1, 5, 10, Math.PI * 1.4]} />
+  if (attachment === 'armour-plates') return <sphereGeometry args={[0.62, 8, 5]} />
+  return <sphereGeometry args={[attachment === 'multiple-heads' ? 0.34 : 0.24, 7, 5]} />
+}
+
+function actorScale(actor: TacticalActorPlan, base: number): [number, number, number] {
+  const { length, height, width } = actor.visualProfile.proportions
+  const largest = Math.max(length, height, width, 0.01)
+  const magnitude = Math.max(0.72, Math.min(1.9, Math.cbrt(largest))) * base
+  return [
+    magnitude * Math.max(0.5, Math.min(1.7, length / largest + 0.35)),
+    magnitude * Math.max(0.55, Math.min(1.55, height / largest + 0.45)),
+    magnitude * Math.max(0.5, Math.min(1.45, width / largest + 0.45)),
+  ]
+}
+
+function materialRoughness(actor: TacticalActorPlan): number {
+  return ['aquatic', 'constructed', 'armoured'].includes(actor.visualProfile.materialPreset) ? 0.38 : actor.visualProfile.materialPreset === 'spectral' ? 0.15 : 0.82
+}
+
+function AttachmentInstances({ actor }: { actor: TacticalActorPlan }) {
+  const base = actor.side === 'solo' ? 1.2 : 0.42
+  const scale = actorScale(actor, base)
+  const temp = useMemo(() => new Object3D(), [])
+  return <>{actor.visualProfile.attachments.map((attachment, attachmentIndex) => <instancedMesh key={`${actor.id}:${attachment}`} args={[undefined, undefined, actor.visibleCount]} ref={(mesh) => {
+    if (!mesh) return
+    actor.positions.forEach((position, index) => {
+      temp.position.set(position[0], position[1] + scale[1] * (attachment === 'wings' ? 0.2 : 0.45), position[2] - scale[2] * 0.35)
+      temp.rotation.set(attachment === 'wings' ? -Math.PI / 2 : Math.PI / 2, attachmentIndex * 0.18, 0)
+      temp.scale.set(scale[0] * 0.65, scale[1] * 0.65, scale[2] * 0.65)
+      temp.updateMatrix()
+      mesh.setMatrixAt(index, temp.matrix)
+      mesh.setColorAt(index, actor.side === 'solo' ? soloColor : groupColor)
+    })
+    mesh.instanceMatrix.needsUpdate = true
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+  }}>{attachmentGeometry(attachment)}<meshStandardMaterial roughness={materialRoughness(actor)} transparent={actor.visualProfile.materialPreset === 'spectral'} opacity={actor.visualProfile.materialPreset === 'spectral' ? 0.55 : 1} /></instancedMesh>)}</>
 }
 
 function ActorLabel({ actor }: { actor: TacticalActorPlan }) {
@@ -72,9 +144,10 @@ function Formation({ actor, showLabels, event, playing, reducedMotion }: {
   const temp = useMemo(() => new Object3D(), [])
   useEffect(() => {
     if (!mesh.current) return
+    const scale = actorScale(actor, actor.side === 'solo' ? 1.2 : 0.42)
     actor.positions.forEach((position, index) => {
       temp.position.set(...position)
-      temp.scale.setScalar(actor.side === 'solo' ? 1.2 : 0.42)
+      temp.scale.set(...scale)
       temp.updateMatrix()
       mesh.current?.setMatrixAt(index, temp.matrix)
       mesh.current?.setColorAt(index, actor.side === 'solo' ? soloColor : groupColor)
@@ -86,14 +159,18 @@ function Formation({ actor, showLabels, event, playing, reducedMotion }: {
     if (!group.current) return
     group.current.position.set(...(event ? scenePoint(event.startPosition) : actor.origin))
   }, [actor.origin, event?.id, event?.startPosition])
-  useFrame(() => {
+  useFrame((_state, delta) => {
     if (!group.current || !event || event.type === 'hazard-pulse') return
     const destination = eventDestination(event) ?? event.startPosition
     const target = new Vector3(...scenePoint(destination))
     group.current.position.lerp(target, reducedMotion || !playing ? 1 : 0.035)
+    if (actor.side === 'group' && playing && !reducedMotion && ['group-encirclement', 'replacement-wave'].includes(event.type)) {
+      group.current.rotation.y += Math.min(0.02, delta * 0.3)
+    }
   })
   return <group ref={group}>
-    <instancedMesh ref={mesh} args={[undefined, undefined, actor.visibleCount]}>{primitiveFor(actor)}<meshStandardMaterial roughness={0.8} /></instancedMesh>
+    <instancedMesh ref={mesh} args={[undefined, undefined, actor.visibleCount]}>{primitiveFor(actor)}<meshStandardMaterial roughness={materialRoughness(actor)} transparent={actor.visualProfile.materialPreset === 'spectral'} opacity={actor.visualProfile.materialPreset === 'spectral' ? 0.6 : 1} /></instancedMesh>
+    <AttachmentInstances actor={actor} />
     {showLabels && <ActorLabel actor={actor} />}
   </group>
 }
@@ -141,6 +218,31 @@ function EventVolumes({ events }: { events: BattleEvent[] }) {
       <coneGeometry args={[Math.max(0.35, (event.areaRadiusM ?? Math.min(8, (event.rangeM ?? 1) * 0.25)) * 0.22), length, 18, 1, true]} />
       <meshBasicMaterial color={event.abilityId?.includes('gaze') ? '#b997ff' : '#ff9f43'} transparent opacity={successful ? 0.22 : 0.07} wireframe={!successful} depthWrite={false} />
     </mesh>
+  })}</group>
+}
+
+function SpecialEventEffects({ events, reducedMotion }: { events: BattleEvent[]; reducedMotion: boolean }) {
+  const successful = events.filter((event) => ['effective', 'partially-effective'].includes(event.outcome))
+  return <group>{successful.flatMap((event) => {
+    const preset = eventEffectPreset(event)
+    const start = new Vector3(...scenePoint(event.startPosition))
+    const end = new Vector3(...scenePoint(event.endPosition ?? event.startPosition))
+    const midpoint = start.clone().add(end).multiplyScalar(0.5)
+    const length = Math.max(0.3, start.distanceTo(end))
+    const angle = Math.atan2(end.x - start.x, end.z - start.z)
+    if (preset === 'web-shot') return Array.from({ length: 4 }, (_, index) => <mesh key={`web:${event.id}:${index}`} position={[midpoint.x, midpoint.y + index * 0.05, midpoint.z]} rotation={[0, angle + (index - 1.5) * 0.07, (index - 1.5) * 0.12]}>
+      <boxGeometry args={[0.025, 0.025, length]} /><meshBasicMaterial color="#dce8e6" transparent opacity={0.78} />
+    </mesh>)
+    if (preset === 'auditory-wave') return [1, 2, 3].map((ring) => <mesh key={`sound:${event.id}:${ring}`} position={start} rotation-x={Math.PI / 2}>
+      <torusGeometry args={[ring * 0.7, 0.035, 5, 28]} /><meshBasicMaterial color="#caa8ff" transparent opacity={0.5 - ring * 0.08} />
+    </mesh>)
+    if (preset === 'regeneration' || preset === 'revival') return [0, 1, 2].map((ring) => <mesh key={`${preset}:${event.id}:${ring}`} position={[start.x, start.y + 0.35 + ring * 0.45, start.z]} rotation-x={Math.PI / 2}>
+      <torusGeometry args={[0.65 + ring * 0.16, 0.055, 6, 24]} /><meshBasicMaterial color={preset === 'revival' ? '#ffd36a' : '#77e6a0'} transparent opacity={reducedMotion ? 0.5 : 0.72 - ring * 0.1} />
+    </mesh>)
+    if (preset === 'electric-pulse') return [0, 1].map((ring) => <mesh key={`electric:${event.id}:${ring}`} position={end}>
+      <torusGeometry args={[0.65 + ring * 0.42, 0.06, 5, 12]} /><meshBasicMaterial color="#8deaff" transparent opacity={0.66} />
+    </mesh>)
+    return []
   })}</group>
 }
 
@@ -220,6 +322,7 @@ function SceneContents({ props }: { props: TacticalSceneProps }) {
     <EventPaths events={events} />
     <EventParticles events={events} reducedMotion={props.reducedMotion} />
     <EventVolumes events={events} />
+    <SpecialEventEffects events={events} reducedMotion={props.reducedMotion} />
     <DirectedCamera props={props} />
     <FreeCamera enabled={props.cameraMode === 'free'} />
   </>
@@ -231,7 +334,7 @@ export function TacticalScene(props: TacticalSceneProps) {
     data-testid="tactical-canvas"
     dpr={[1, 1.5]}
     frameloop={props.cameraMode === 'free' || (props.playing && !props.reducedMotion) ? 'always' : 'demand'}
-    gl={{ antialias: false, powerPreference: 'low-power', preserveDrawingBuffer: false }}
+    gl={{ antialias: false, powerPreference: 'low-power', preserveDrawingBuffer: true }}
     camera={{ position: [12, 12, 14], fov: 46 }}
   ><SceneContents props={props} /></Canvas>
 }

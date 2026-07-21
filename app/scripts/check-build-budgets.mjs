@@ -13,8 +13,14 @@ const budgets = {
   optionalUiJavascript: 21_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
-  presentationJavascript: 36_000,
+  presentationJavascript: 45_000,
   tacticalRuntimeJavascript: 950_000,
+  // Procedural 0.5 scenes ship no external media. These gates reserve explicit
+  // per-file limits for later selected-only archetype, environment and audio assets.
+  archetypeAssetMax: 350_000,
+  environmentAssetMax: 500_000,
+  audioAssetMax: 250_000,
+  selectedTacticalAssets: 1_200_000,
   model04RuntimeJavascript: 100_000,
   coreJavascript: 575_000,
   javascript: 1_550_000,
@@ -80,6 +86,15 @@ const coreCss = css - reconstructionCss
 // Keep them independently bounded without weakening the runtime payload ceiling.
 const socialImages = sizes.filter((file) => relative(appRoot, file.path).replaceAll('\\', '/').startsWith('dist/social/'))
 const socialImage = socialImages.reduce((sum, file) => sum + file.bytes, 0)
+const relativePath = (file) => relative(distRoot, file.path).replaceAll('\\', '/')
+const archetypeAssets = sizes.filter((file) => relativePath(file).startsWith('tactical/archetypes/'))
+const environmentAssets = sizes.filter((file) => relativePath(file).startsWith('tactical/environments/'))
+const audioAssets = sizes.filter((file) => relativePath(file).startsWith('tactical/audio/'))
+const maxBytes = (assets) => assets.reduce((maximum, file) => Math.max(maximum, file.bytes), 0)
+const archetypeAssetMax = maxBytes(archetypeAssets)
+const environmentAssetMax = maxBytes(environmentAssets)
+const audioAssetMax = maxBytes(audioAssets)
+const selectedTacticalAssets = [...archetypeAssets, ...environmentAssets, ...audioAssets].reduce((sum, file) => sum + file.bytes, 0)
 const total = sizes.filter((file) => !socialImages.includes(file)).reduce((sum, file) => sum + file.bytes, 0)
 const coreJavascript = javascript - presentationJavascript - tacticalRuntimeJavascript
 const coreDeployable = total - presentationJavascript - tacticalRuntimeJavascript - reconstructionCss
@@ -97,7 +112,7 @@ if (!tacticalManifest?.isDynamicEntry || entryFiles.has(tacticalManifest.file)) 
   throw new Error('The tactical 3D runtime must remain a dynamic entry outside the eager verdict graph.')
 }
 
-const measurements = { entryJavascript, optionalUiJavascript, presentationJavascript, tacticalRuntimeJavascript, model04RuntimeJavascript, coreJavascript, javascript, creatureRoster, coreCss, reconstructionCss, css, coreDeployable, total, socialImage }
+const measurements = { entryJavascript, optionalUiJavascript, presentationJavascript, tacticalRuntimeJavascript, archetypeAssetMax, environmentAssetMax, audioAssetMax, selectedTacticalAssets, model04RuntimeJavascript, coreJavascript, javascript, creatureRoster, coreCss, reconstructionCss, css, coreDeployable, total, socialImage }
 let failed = false
 for (const [name, bytes] of Object.entries(measurements)) {
   const limit = budgets[name]

@@ -46,7 +46,7 @@ The v4 share codec embeds the current structured scenario. Released v4/0.4.0 plu
 
 Ordinary-scale results include a seven-phase deterministic explanation backed by the applied-factor ledger. Conceptual-scale results use a three-phase aggregate explanation and deliberately withhold physical duration and loss estimates. Neither sequence is a sampled event timeline, anatomy simulation or alternate winner generator.
 
-Application 0.5.0 adds a validated, story-seeded `BattleStoryboard`, a complete deterministic likely-battle account and an optional lazy tactical diorama. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. The HTML account is authoritative; the primitive 3D scene is an accessible enhancement with transcript, captions, quantity disclosure, reduced motion and no-WebGL fallback. See `docs/BATTLE_RECONSTRUCTION.md`.
+Application 0.5.0 adds a validated, story-seeded `BattleStoryboard`, a complete deterministic likely-battle account and an optional lazy tactical diorama. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. The HTML account is authoritative; the primitive 3D scene is an accessible enhancement with transcript, captions, quantity disclosure, storyboard-timed seeking, reduced motion and no-WebGL fallback. Optional generated phase tones and PNG/WebM canvas capture never create or alter events. See `docs/BATTLE_RECONSTRUCTION.md`.
 
 ## Documentation
 

@@ -51,7 +51,7 @@
 - Production build interaction and overflow checked at desktop and mobile widths.
 - Searchable roster filtering, optional field briefings, sticky workspace navigation, the single run action and revise-and-rerun verdict loop are covered by browser and visual QA.
 - Every result can expose a validated seven-phase likely-battle storyboard, three-part account, evidence annotations, alternate path and stable JSON without re-running the simulation. Conceptual results create no literal actors or battlefield.
-- The optional tactical reconstruction is fully lazy, storyboard-driven, capped at 80 visible actors, uses 15 primitive archetypes plus a four-step visual fallback, and retains captions/transcript/reduced-motion/no-WebGL access.
+- The optional tactical reconstruction is fully lazy, storyboard-driven, capped at 80 visible actors, uses modular profiles across 15 primitive archetypes and 14 environments plus a four-step visual fallback, and retains captions/transcript/reduced-motion/no-WebGL access and optional PNG/WebM capture.
 - Markdown is the canonical documentation format; duplicate binary document derivatives are not repository deliverables.
 
 ## Deliberate limits

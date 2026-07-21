@@ -9,6 +9,9 @@
 - Added all 15 reusable primitive visual archetypes and the bespoke → adjusted archetype → silhouette → labelled-token fallback contract; missing art can no longer block a reconstruction.
 - Added the six requested pilot briefings and deterministic test coverage for elephant/wolves, eagle/mice, dragon/archers, Medusa/spear carriers, giant spider/rhinoceros and Charybdis/orca.
 - Added visible-actor compression, conceptual no-actor handling, WebGL2 failure fallback, keyboard timeline controls and system/user reduced-motion handling.
+- Added storyboard-timed playback, direct phase seeking, 14 reusable environment families, modular creature visual profiles, event-bound pilot effects, optional generated phase tones and browser PNG/WebM scene capture.
+- Made storyboard hashing locale-independent and added Node 22/24 golden-hash and deterministic snapshot coverage without changing the authoritative numerical engine.
+- Added explicit per-archetype, per-environment, per-audio and selected tactical-asset budgets; 0.5.0 continues to ship zero external tactical asset bytes.
 - Preserved the existing entry, optional-UI, model-runtime and core-CSS ceilings; added independent presentation, reconstruction-CSS and lazy tactical-runtime budgets.
 - Advanced the application version to 0.5.0. Model/data remain 0.4.1 and share format remains v4 because numerical mechanics and the canonical scenario envelope are unchanged.
 

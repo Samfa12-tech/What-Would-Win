@@ -3,7 +3,10 @@ function canonical(value: unknown): unknown {
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value as Record<string, unknown>)
       .filter(([, entry]) => entry !== undefined)
-      .sort(([left], [right]) => left.localeCompare(right))
+      // `localeCompare` may choose a different collation order across operating
+      // systems and ICU versions. Storyboard hashes are a persistence contract,
+      // so order keys by JavaScript's locale-independent UTF-16 code units.
+      .sort(([left], [right]) => left === right ? 0 : left < right ? -1 : 1)
       .map(([key, entry]) => [key, canonical(entry)]))
   }
   if (typeof value === 'number' && Object.is(value, -0)) return 0
@@ -22,9 +25,9 @@ export function stableHash(value: unknown): string {
     const code = text.charCodeAt(index)
     first = Math.imul(first ^ code, 0x01000193) >>> 0
     second = Math.imul(second ^ code, 0x85ebca6b) >>> 0
-    second ^= second >>> 13
+    second = (second ^ (second >>> 13)) >>> 0
   }
-  return `${first.toString(16).padStart(8, '0')}${second.toString(16).padStart(8, '0')}`
+  return `${(first >>> 0).toString(16).padStart(8, '0')}${(second >>> 0).toString(16).padStart(8, '0')}`
 }
 
 export function deterministicStorySeed(scenarioHash: string, resultHash: string, simulationSeed: number): number {

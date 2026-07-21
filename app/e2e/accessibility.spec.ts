@@ -20,6 +20,14 @@ async function expectNoSeriousAxeViolations(page: Page) {
   expect(seriousViolations(results.violations)).toEqual([])
 }
 
+async function selectResultView(page: Page, name: string) {
+  const button = page.getByRole('button', { name, exact: true })
+  await expect(async () => {
+    await button.click()
+    await expect(button).toHaveAttribute('aria-current', 'page')
+  }).toPass({ timeout: 15_000 })
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
 })
@@ -77,13 +85,13 @@ test('technical ledger and conceptual results have no serious axe violations', a
   test.slow()
   await page.getByLabel('Report detail').selectOption('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible({ timeout: 15_000 })
   await expectNoSeriousAxeViolations(page)
 
   await page.getByLabel('Quantity').fill('10^100')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Likely battle', exact: true }).click()
+  await selectResultView(page, 'Likely battle')
   await expect(page.getByLabel('Quantity representation disclosure')).toContainText('no literal battlefield')
   await expectNoSeriousAxeViolations(page)
 })
@@ -92,14 +100,14 @@ test('likely battle and tactical reconstruction remain complete and axe-clean', 
   test.slow()
   await page.getByRole('button', { name: 'Run simulation' }).click()
 
-  await page.getByRole('button', { name: 'Likely battle', exact: true }).click()
+  await selectResultView(page, 'Likely battle')
   const likelyBattle = page.getByTestId('likely-battle-panel')
   await expect(likelyBattle).toBeVisible({ timeout: 15_000 })
   await expect(likelyBattle.getByLabel('Three-part likely battle account').locator('article')).toHaveCount(3)
   await expect(likelyBattle.getByLabel('Seven-phase battle account').locator('> li')).toHaveCount(7)
   await expectNoSeriousAxeViolations(page)
 
-  await page.getByRole('button', { name: 'Tactical reconstruction', exact: true }).click()
+  await selectResultView(page, 'Tactical reconstruction')
   const tactical = page.getByTestId('tactical-reconstruction-panel')
   await expect(tactical).toBeVisible()
   await expect(tactical.locator('.tactical-transcript li')).toHaveCount(7)

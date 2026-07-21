@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { archetypeFor, buildTacticalPlan, eventDestination, formationPositions, mediumFor, representationFor, TACTICAL_MAX_VISIBLE_ACTORS } from '../components/tactical/contracts'
+import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, mediumFor, rangedLineFormationPositions, representationFor, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
 import type { BattleStoryboard } from '../storyboard'
-import type { CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
+import type { Ability, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
 
-const scenario = { terrain: 'open', groupQuantity: '1000000' } as ScenarioV4Draft
-const creature = (name: string, extra: Partial<CreatureV4Draft> = {}) => ({ id: name, name, category: 'animal', traits: [], icon: '', physiology: 'living', representative_peak_mass_kg: 30, locomotion: { land: true, flight: false, aquatic: false, amphibious: false }, ...extra } as CreatureV4Draft)
+const scenario = { terrain: 'open', groupQuantity: '1000000', startingDistanceM: 25, coordinationDoctrine: 'instinctive' } as ScenarioV4Draft
+const creature = (name: string, extra: Partial<CreatureV4Draft> = {}) => ({ id: name, name, category: 'animal', traits: [], attack_modes: [], abilities: [], icon: '', physiology: 'living', representative_peak_mass_kg: 30, body_length_m: 1, shoulder_or_body_height_m: 0.5, locomotion: { land: true, flight: false, aquatic: false, amphibious: false }, ...extra } as CreatureV4Draft)
+const ability = (id: string, patch: Partial<Ability> = {}) => ({ id, name: id, kind: 'attack', delivery: 'contact', effects: [{ kind: 'harm', channel: 'physical', potency: 1 }], activationRate: 1, resource: { pool: 'none' }, notes: '', ...patch } as Ability)
 const storyboard = (type: BattleStoryboard['reconstructionType'] = 'representative'): BattleStoryboard => ({ reconstructionType: type, storySeed: 77, representedQuantity: { declaredQuantityLog10: 6, visibleActorCount: 999, representedActorsPerVisibleActor: 12500, effectiveActiveCountLog10: 2, abstractionLabel: 'test' }, phases: [{ id: 'pressure', startSeconds: 0, durationSeconds: 1, advantage: 'group', narration: '', supportingFactorIds: [], events: [{ id: 'hazard', type: 'hazard-pulse', actingSide: 'solo', factorIds: [], activeActorCount: 1, startPosition: [1, 0, 1], endPosition: [9, 0, 9], outcome: 'effective', caption: '' }] }] } as unknown as BattleStoryboard)
 
 describe('tactical planning', () => {
@@ -14,9 +15,74 @@ describe('tactical planning', () => {
     expect(archetypeFor(creature('Golem', { physiology: 'construct' }))).toBe('construct')
     expect(representationFor(creature('mouse'))).toBe('adjusted-archetype')
   })
+  it('covers all fifteen reusable archetypes', () => {
+    const profiles: Array<[CreatureV4Draft, ReturnType<typeof archetypeFor>]> = [
+      [creature('wolf'), 'light-quadruped'],
+      [creature('elephant', { representative_peak_mass_kg: 4_000 }), 'heavy-quadruped'],
+      [creature('horse'), 'hoofed-runner'],
+      [creature('human warrior'), 'humanoid'],
+      [creature('theropod dinosaur'), 'theropod-biped'],
+      [creature('crocodile'), 'low-reptile'],
+      [creature('serpent'), 'serpentine'],
+      [creature('eagle', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }), 'flying-bird'],
+      [creature('western dragon', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }), 'winged-quadruped'],
+      [creature('orca', { locomotion: { land: false, flight: false, aquatic: true, amphibious: false } }), 'fish-cetacean'],
+      [creature('octopus', { locomotion: { land: false, flight: false, aquatic: true, amphibious: false } }), 'cephalopod'],
+      [creature('giant spider'), 'arthropod'],
+      [creature('locust swarm'), 'swarm'],
+      [creature('golem', { physiology: 'construct' }), 'construct'],
+      [creature('whirlpool', { physiology: 'environmental-hazard' }), 'environmental-hazard'],
+    ]
+    expect(profiles.map(([profile]) => archetypeFor(profile))).toEqual(profiles.map(([, expected]) => expected))
+  })
+  it('derives visual proportions, attachments, clips, materials and supported effects', () => {
+    const dragon = creature('Western dragon', {
+      traits: ['armour plates', 'tail spikes'], attack_modes: ['claw'], body_length_m: 12, shoulder_or_body_height_m: 4,
+      locomotion: { land: true, flight: true, aquatic: false, amphibious: false },
+      abilities: [ability('fire-breath', { delivery: 'area', rangeM: 30, effects: [{ kind: 'harm', channel: 'fire', potency: 1 }] })],
+    })
+    expect(visualProfileFor(dragon)).toMatchObject({
+      archetype: 'winged-quadruped', materialPreset: 'scaled', proportions: { length: 12, height: 4 },
+      attachments: expect.arrayContaining(['wings', 'tail-spikes', 'armour-plates']),
+      locomotionClips: expect.arrayContaining(['idle', 'run', 'fly', 'circle', 'retreat', 'regroup']),
+      attackClipMap: { 'fire-breath': 'fire-cone' }, effectPresetIds: ['fire-cone'],
+    })
+    const regenerating = visualProfileFor(creature('troll', { abilities: [ability('troll-regeneration', { kind: 'regeneration', delivery: 'self', effects: [{ kind: 'regeneration', channel: 'magic', potency: 1 }] })] }))
+    expect(regenerating.attackClipMap).toEqual({})
+    expect(regenerating.effectPresetIds).toEqual(['regeneration'])
+  })
+  it('exercises the complete no-fail asset fallback chain', () => {
+    const profile = creature('mouse', { icon: 'mouse-icon' })
+    expect(representationFor(profile, { bespoke: true })).toBe('bespoke')
+    expect(representationFor(profile, { bespoke: false, archetype: true })).toBe('adjusted-archetype')
+    expect(representationFor(profile, { bespoke: false, archetype: false, silhouette: true })).toBe('silhouette')
+    expect(representationFor(profile, { bespoke: false, archetype: false, silhouette: false })).toBe('labelled-token')
+  })
   it('caps formations and keeps layouts deterministic', () => {
     expect(formationPositions(1000, 12, 'group', 'ground')).toHaveLength(TACTICAL_MAX_VISIBLE_ACTORS)
     expect(formationPositions(20, 12, 'group', 'ground')).toEqual(formationPositions(20, 12, 'group', 'ground'))
+  })
+  it('uses a shallow ranged line only when the creature profile supports the declared distance', () => {
+    const archer = creature('prepared archer', { abilities: [ability('bow-shot', { delivery: 'ranged', rangeM: 80 })] })
+    expect(usesRangedLine(archer, scenario)).toBe(true)
+    expect(usesRangedLine(archer, { ...scenario, startingDistanceM: 100 })).toBe(false)
+    expect(new Set(rangedLineFormationPositions(20, 'ground').map((position) => position[2]))).toEqual(new Set([-0.42, 0.42]))
+    const plan = buildTacticalPlan(storyboard(), { solo: creature('dragon'), group: archer }, scenario)
+    expect(new Set(plan.actors.find((actor) => actor.side === 'group')?.positions.map((position) => position[2]))).toEqual(new Set([-0.42, 0.42]))
+  })
+  it('maps every reusable environment family to distinct primitive assembly metadata', () => {
+    const terrains = ['open', 'forest', 'desert', 'snow', 'mountain', 'cave', 'ruin', 'fortification', 'urban', 'river', 'swamp', 'coast', 'ocean', 'deep-ocean']
+    expect(terrains.map((terrain) => environmentSpecFor(terrain).family)).toEqual([
+      'open-plain', 'forest-clearing', 'desert', 'snow', 'mountain', 'cave', 'ruin', 'fortification', 'urban-courtyard', 'river', 'swamp', 'coast', 'ocean', 'deep-ocean',
+    ])
+  })
+  it('maps only validated event vocabulary to primitive effects', () => {
+    const baseEvent = storyboard().phases[0].events[0]
+    expect(eventEffectPreset({ ...baseEvent, type: 'restraint', abilityId: 'giant-web' })).toBe('web-shot')
+    expect(eventEffectPreset({ ...baseEvent, type: 'restraint', abilityId: 'compelling-song' })).toBe('auditory-wave')
+    expect(eventEffectPreset({ ...baseEvent, type: 'recovery', abilityId: 'regeneration' })).toBe('regeneration')
+    expect(eventEffectPreset({ ...baseEvent, type: 'revival', abilityId: 'rebirth' })).toBe('revival')
+    expect(eventEffectPreset({ ...baseEvent, type: 'advance', abilityId: undefined })).toBeUndefined()
   })
   it('does not literalise conceptual quantities', () => expect(buildTacticalPlan(storyboard('conceptual-scale'), { solo: creature('elephant'), group: creature('mouse') }, scenario).actors).toEqual([]))
   it('does not place aquatic actors on dry ground', () => {

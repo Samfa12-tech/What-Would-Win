@@ -102,7 +102,7 @@ test('tactical controls are keyboard-operable and expose a complete transcript',
   await expect(panel.getByRole('button', { name: 'Play' })).toBeEnabled()
   await expect(panel.getByLabel('Playback speed')).toHaveValue('1')
   await expect(panel.getByRole('button', { name: 'Directed camera' })).toBeVisible()
-  for (const name of ['Labels', 'Attack ranges', 'Effective counts', 'Factor annotations', 'Reduced motion']) {
+  for (const name of ['Labels', 'Attack ranges', 'Effective counts', 'Factor annotations', 'Reduced motion', 'Phase tones', 'Download scene PNG', 'Record scene WebM']) {
     await expect(panel.getByRole('button', { name })).toBeVisible()
   }
   await expect(panel.getByText('Full reconstruction transcript', { exact: true })).toBeVisible()
@@ -124,6 +124,127 @@ test('tactical controls are keyboard-operable and expose a complete transcript',
   await expect(panel.locator('.factor-annotation')).toBeVisible()
 })
 
+test('the optional tactical canvas exports a labelled PNG without changing the storyboard', async ({ page }) => {
+  await runDefaultSimulation(page)
+  await openTactical(page)
+  const panel = page.getByTestId('tactical-reconstruction-panel')
+  const canvas = panel.getByTestId('tactical-canvas')
+  await expect(canvas).toBeVisible({ timeout: 15_000 })
+  const originalCaption = await panel.getByTestId('tactical-caption').innerText()
+
+  const downloadPromise = page.waitForEvent('download')
+  await panel.getByRole('button', { name: 'Download scene PNG' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toMatch(/^what-would-win-reconstruction-\d+\.png$/)
+  const stream = await download.createReadStream()
+  const signature = await new Promise<Buffer>((resolve, reject) => {
+    stream.once('data', (chunk) => resolve(Buffer.from(chunk).subarray(0, 8)))
+    stream.once('error', reject)
+  })
+  expect([...signature]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
+  await expect(panel.locator('.capture-status')).toContainText('Scene image downloaded as PNG.')
+  expect(await panel.getByTestId('tactical-caption').innerText()).toBe(originalCaption)
+})
+
+test('the tactical canvas records WebM where the browser exposes canvas recording', async ({ page }) => {
+  await runDefaultSimulation(page)
+  await openTactical(page)
+  const panel = page.getByTestId('tactical-reconstruction-panel')
+  await expect(panel.getByTestId('tactical-canvas')).toBeVisible({ timeout: 15_000 })
+  const supported = await page.evaluate(() => {
+    const canvas = document.querySelector<HTMLCanvasElement>('.tactical-canvas-shell canvas')
+    return Boolean(canvas && typeof canvas.captureStream === 'function' && typeof MediaRecorder !== 'undefined')
+  })
+  if (!supported) {
+    await panel.getByRole('button', { name: 'Record scene WebM' }).click()
+    await expect(panel.locator('.capture-status')).toContainText('unavailable')
+    return
+  }
+
+  await panel.getByRole('button', { name: 'Record scene WebM' }).click()
+  await expect(panel.getByRole('button', { name: 'Stop WebM' })).toBeVisible()
+  await page.waitForTimeout(500)
+  const downloadPromise = page.waitForEvent('download')
+  await panel.getByRole('button', { name: 'Stop WebM' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toMatch(/^what-would-win-reconstruction-\d+\.webm$/)
+  const stream = await download.createReadStream()
+  const signature = await new Promise<Buffer>((resolve, reject) => {
+    stream.once('data', (chunk) => resolve(Buffer.from(chunk).subarray(0, 4)))
+    stream.once('error', reject)
+  })
+  expect([...signature]).toEqual([26, 69, 223, 163])
+  await expect(panel.locator('.capture-status')).toContainText('Scene recording downloaded as WebM.')
+})
+
+test('phase seeking is direct, accessible, and exposes the modelled timeline', async ({ page }) => {
+  await runDefaultSimulation(page)
+  await openTactical(page)
+  const panel = page.getByTestId('tactical-reconstruction-panel')
+  const caption = panel.getByTestId('tactical-caption')
+  const seek = panel.getByLabel('Seek to battle phase')
+
+  await expect(seek).toHaveAttribute('min', '1')
+  await expect(seek).toHaveAttribute('max', '7')
+  await expect(seek).toHaveAttribute('aria-valuetext', 'Phase 1: briefing')
+  await seek.focus()
+  await page.keyboard.press('End')
+  await expect(caption).toContainText('Phase 7 of 7: resolution')
+  await page.keyboard.press('Home')
+  await expect(caption).toContainText('Phase 1 of 7: briefing')
+  await seek.fill('5')
+  await expect(caption).toContainText('Phase 5 of 7: pressure')
+  await expect(seek).toHaveAttribute('aria-valuetext', 'Phase 5: pressure')
+
+  const sourceStartSeconds = Number(await caption.getAttribute('data-source-start-seconds'))
+  const sourceDurationSeconds = Number(await caption.getAttribute('data-source-duration-seconds'))
+  const sourceTimelineSeconds = Number(await panel.getAttribute('data-source-timeline-seconds'))
+  const displayTimelineMs = Number(await panel.getAttribute('data-display-timeline-ms'))
+  expect(sourceStartSeconds).toBeGreaterThan(0)
+  expect(sourceDurationSeconds).toBeGreaterThan(0)
+  expect(sourceTimelineSeconds).toBeGreaterThan(sourceStartSeconds)
+  expect(displayTimelineMs).toBeGreaterThanOrEqual(7_000)
+  expect(displayTimelineMs).toBeLessThanOrEqual(21_000)
+  await expect(caption.locator('.tactical-timing')).toContainText(/Modelled time .* seconds .* playback/)
+
+  await panel.getByRole('button', { name: 'Play' }).click()
+  await expect(panel.getByRole('button', { name: 'Pause' })).toBeVisible()
+  await seek.fill('3')
+  await expect(panel.getByRole('button', { name: 'Play' })).toBeVisible()
+  await expect(caption).toContainText('Phase 3 of 7: approach')
+})
+
+test('playback advances after the metadata-derived phase delay', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (contextId: string, ...args: unknown[]) {
+      return contextId === 'webgl2' ? null : (original as Function).apply(this, [contextId, ...args])
+    }
+  })
+  await runDefaultSimulation(page)
+  await openTactical(page)
+  await page.clock.install()
+
+  const panel = page.getByTestId('tactical-reconstruction-panel')
+  const caption = panel.getByTestId('tactical-caption')
+  await panel.getByLabel('Playback speed').selectOption('2')
+
+  const sourcePhaseSeconds = Number(await caption.getAttribute('data-source-duration-seconds'))
+  const sourceTimelineSeconds = Number(await panel.getAttribute('data-source-timeline-seconds'))
+  const displayTimelineMs = Number(await panel.getAttribute('data-display-timeline-ms'))
+  const expectedDelayMs = Math.max(250, Math.round((sourcePhaseSeconds / sourceTimelineSeconds) * displayTimelineMs / 2))
+  await expect(caption).toHaveAttribute('data-display-delay-ms', String(expectedDelayMs))
+
+  await panel.getByRole('button', { name: 'Play' }).click()
+  await page.evaluate(() => Promise.resolve())
+  expect(await panel.getByRole('button', { name: 'Pause' }).count()).toBe(1)
+  await page.clock.fastForward(Math.floor(expectedDelayMs / 2))
+  expect(await caption.innerText()).toContain('Phase 1 of 7')
+  await page.clock.fastForward(Math.ceil(expectedDelayMs / 2))
+  await page.evaluate(() => Promise.resolve())
+  expect(await caption.innerText()).toContain('Phase 2 of 7')
+})
+
 test('reduced-motion preference starts a tactical reconstruction paused', async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: 'reduce' })
   const page = await context.newPage()
@@ -133,6 +254,10 @@ test('reduced-motion preference starts a tactical reconstruction paused', async 
     const panel = page.getByTestId('tactical-reconstruction-panel')
     await expect(panel.getByRole('button', { name: 'Play' })).toBeDisabled()
     await expect(panel.getByRole('button', { name: 'Reduced motion' })).toHaveAttribute('aria-pressed', 'true')
+    await panel.focus()
+    await page.keyboard.press('Space')
+    await expect(panel.getByRole('button', { name: 'Play' })).toBeDisabled()
+    await expect(panel.getByTestId('tactical-caption')).toContainText('Phase 1 of 7')
   } finally {
     await context.close()
   }

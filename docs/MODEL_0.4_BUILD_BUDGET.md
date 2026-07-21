@@ -43,24 +43,28 @@ presentation and tactical categories make the isolated feature cost explicit.
 |---|---:|---:|---:|
 | Entry JavaScript | 450,718 | 455,000 | 4,282 |
 | Existing optional UI JavaScript | 18,632 | 21,000 | 2,368 |
-| Presentation JavaScript | 35,510 | 36,000 | 490 |
+| Presentation JavaScript | 39,849 | 45,000 | 5,151 |
 | Model-0.4 runtime JavaScript | 90,171 | 100,000 | 9,829 |
-| Lazy tactical runtime JavaScript | 894,157 | 950,000 | 55,843 |
+| Lazy tactical runtime JavaScript | 905,896 | 950,000 | 44,104 |
 | Original core JavaScript | 559,521 | 575,000 | 15,479 |
-| Total JavaScript | 1,489,188 | 1,550,000 | 60,812 |
+| Total JavaScript | 1,505,266 | 1,550,000 | 44,734 |
 | Creature roster | 120,725 | 125,000 | 4,275 |
 | Core CSS | 25,605 | 26,000 | 395 |
-| Lazy reconstruction CSS | 2,998 | 4,000 | 1,002 |
-| Total CSS | 28,603 | 31,000 | 2,397 |
+| Lazy reconstruction CSS | 3,751 | 4,000 | 249 |
+| Total CSS | 29,356 | 31,000 | 1,644 |
 | Original core deployable payload | 816,214 | 835,000 | 18,786 |
-| Deployable payload | 1,748,879 | 1,850,000 | 101,121 |
+| Deployable payload | 1,765,710 | 1,850,000 | 84,290 |
 | Social image | 238,563 | 300,000 | 61,437 |
 
-The 36 kB presentation ceiling covers the full storyboard builder, validator,
-narrative and both HTML presentation views. It is additive: the original
+The 45 kB presentation ceiling covers the full storyboard builder, validator,
+narrative, both HTML presentation views and optional phase-tone/scene-capture
+controls. It is additive: the original
 575 kB core-JavaScript and 835 kB core-deployable ceilings remain separately
 enforced. The budget audit verifies that `TacticalScene` is a dynamic entry outside the
 eager graph. Runtime limits are 80 visible actors, device-pixel ratio 1–1.5,
 no shadows, no external model assets and demand rendering whenever playback is
-paused or reduced motion is active. Physical-phone frame time and GPU memory
-remain manual release checks; their targets are 33 ms and 192 MB respectively.
+paused or reduced motion is active. Future selected assets are independently
+gated at 350 kB per archetype, 500 kB per environment, 250 kB per audio asset
+and 1.2 MB combined; all four measurements are zero in 0.5.0. Physical-phone
+frame time and GPU memory remain manual release checks; their targets are 33 ms
+and 192 MB respectively.

@@ -53,7 +53,7 @@ The exact production build completed the full desktop-Chromium suite with **40 p
 - Automated axe, keyboard, focus, 320 px reflow, user text-spacing, forced-colour and ARIA-tree checks: **passed** in the applicable browser matrix.
 - Likely-battle/tactical axe, captions, complete transcript, storyboard-timed playback, direct phase seeking, keyboard controls, reduced-motion start state, no-WebGL fallback, conceptual fallback and lazy-scene loading: **passed in all four projects**.
 - Share/history restoration and standalone result/storyboard export persistence: **passed**.
-- Tactical PNG and WebM scene capture: **passed in all four projects** with file signatures and story-seeded filenames where the browser exposed canvas recording. The existing result PNG passed with a PNG signature, non-empty size and exact 1200 × 630 dimensions; JSON exports also passed.
+- Tactical PNG and WebM scene capture: automated checks prove file signatures and story-seeded filenames where WebGL/canvas recording are exposed, and disabled controls where the no-WebGL fallback is active. The existing result PNG passed with a PNG signature, non-empty size and exact 1200 × 630 dimensions; JSON exports also passed.
 - Headed CLI visual evidence was captured from the 0.5.0 production build at `output/playwright/likely-battle-final.png` and `output/playwright/tactical-reconstruction-final.png`; both result experiences were legible and the browser console reported zero errors.
 - Physical Safari/iOS or other physical-device checks: **not performed**.
 - Real NVDA and VoiceOver checks: **not performed**.

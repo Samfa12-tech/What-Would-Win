@@ -128,6 +128,11 @@ test('the optional tactical canvas exports a labelled PNG without changing the s
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
+  if (await panel.getByTestId('no-webgl-fallback').isVisible().catch(() => false)) {
+    await expect(panel.getByRole('button', { name: 'Download scene PNG' })).toBeDisabled()
+    await expect(panel.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    return
+  }
   const canvas = panel.getByTestId('tactical-canvas')
   await expect(canvas).toBeVisible({ timeout: 15_000 })
   const originalCaption = await panel.getByTestId('tactical-caption').innerText()
@@ -150,6 +155,10 @@ test('the tactical canvas records WebM where the browser exposes canvas recordin
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
+  if (await panel.getByTestId('no-webgl-fallback').isVisible().catch(() => false)) {
+    await expect(panel.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    return
+  }
   await expect(panel.getByTestId('tactical-canvas')).toBeVisible({ timeout: 15_000 })
   const supported = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>('.tactical-canvas-shell canvas')
@@ -272,11 +281,18 @@ test('no-WebGL keeps the accessible tactical fallback and transcript', async ({ 
     }
   })
   const page = await context.newPage()
+  const requestedScripts: string[] = []
+  page.on('request', (request) => {
+    if (request.resourceType() === 'script') requestedScripts.push(request.url())
+  })
   try {
     await runDefaultSimulation(page)
     await openTactical(page)
     await expect(page.getByTestId('no-webgl-fallback')).toBeVisible()
     await expect(page.locator('.tactical-transcript li')).toHaveCount(7)
+    await expect(page.getByRole('button', { name: 'Download scene PNG' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    expect(requestedScripts.some((url) => /TacticalScene-[\w-]+\.js$/i.test(url))).toBe(false)
   } finally {
     await context.close()
   }
@@ -300,6 +316,10 @@ test('the TacticalScene chunk is deferred until tactical view is selected', asyn
   await openLikelyBattle(page)
   expect(requestedScripts.some((url) => /TacticalScene-[\w-]+\.js$/i.test(url))).toBe(false)
   await openTactical(page)
+  if (await page.getByTestId('no-webgl-fallback').isVisible().catch(() => false)) {
+    expect(requestedScripts.some((url) => /TacticalScene-[\w-]+\.js$/i.test(url))).toBe(false)
+    return
+  }
   await expect.poll(() => requestedScripts.some((url) => /TacticalScene-[\w-]+\.js$/i.test(url))).toBe(true)
 })
 

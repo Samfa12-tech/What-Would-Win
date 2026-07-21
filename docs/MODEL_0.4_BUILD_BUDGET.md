@@ -50,10 +50,10 @@ presentation and tactical categories make the isolated feature cost explicit.
 | Total JavaScript | 1,505,266 | 1,550,000 | 44,734 |
 | Creature roster | 120,725 | 125,000 | 4,275 |
 | Core CSS | 25,605 | 26,000 | 395 |
-| Lazy reconstruction CSS | 3,751 | 4,000 | 249 |
-| Total CSS | 29,356 | 31,000 | 1,644 |
+| Lazy reconstruction CSS | 3,752 | 4,000 | 248 |
+| Total CSS | 29,357 | 31,000 | 1,643 |
 | Original core deployable payload | 816,214 | 835,000 | 18,786 |
-| Deployable payload | 1,765,710 | 1,850,000 | 84,290 |
+| Deployable payload | 1,765,711 | 1,850,000 | 84,289 |
 | Social image | 238,563 | 300,000 | 61,437 |
 
 The 45 kB presentation ceiling covers the full storyboard builder, validator,

@@ -72,6 +72,14 @@ async function openSharedScenarioInCleanBrowser(browser: Browser, shareUrl: stri
   return { context, page }
 }
 
+async function selectResultView(page: Page, name: string) {
+  const button = page.getByRole('button', { name, exact: true })
+  await expect(async () => {
+    await button.click()
+    await expect(button).toHaveAttribute('aria-current', 'page')
+  }).toPass({ timeout: 15_000 })
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
 })
@@ -205,7 +213,7 @@ test('technical depth runs 15,000 trials and exposes the calculation record', as
   await page.getByLabel('Report detail').selectOption('technical')
   await expect(page.getByLabel('Report detail')).toHaveValue('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
 
   const record = page.locator('.technical-grid')
   await expect(page.getByText('Technical calculation record')).toBeVisible({ timeout: 15_000 })
@@ -225,7 +233,7 @@ test('shows rejected and countered abilities only in the technical resolution re
 
   await page.getByLabel('Report detail').selectOption('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
   const record = page.getByTestId('ability-resolution-record')
   await expect(record.locator('li[data-ability-status="ineligible"]', { hasText: 'Petrifying gaze' })).toBeVisible()
 
@@ -235,7 +243,7 @@ test('shows rejected and countered abilities only in the technical resolution re
   await expect(page.getByTestId('group-creature-select')).toHaveValue('western-dragon')
   await page.getByLabel('Starting distance (m)').fill('5')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
   await expect(record.locator('li[data-ability-status="countered"]', { hasText: 'Regeneration' })).toContainText('Counter channel: fire')
 })
 
@@ -247,7 +255,7 @@ test('shows depleted and out-of-range abilities as technical diagnostics', async
   await page.getByLabel('Starting distance (m)').fill('15')
   await page.getByLabel('Solo resources').fill('0')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
 
   const record = page.getByTestId('ability-resolution-record')
   await expect(record.locator('li[data-ability-status="resource-depleted"]', { hasText: 'Fire breath' })).toBeVisible()
@@ -270,7 +278,7 @@ test('audited cross-scaling scenario exposes stopping and frontage diagnostics',
   await page.getByRole('radio', { name: /Functional scaling/ }).check()
   await page.getByLabel('Report detail').selectOption('technical')
   await page.getByRole('button', { name: 'Run simulation' }).click()
-  await page.getByRole('button', { name: 'Technical record', exact: true }).click()
+  await selectResultView(page, 'Technical record')
 
   await expect(page.locator('.results').getByRole('heading', { name: 'House mouse', level: 2 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Applied factor ledger' })).toBeVisible()

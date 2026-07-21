@@ -111,7 +111,7 @@ test('likely battle and tactical reconstruction remain complete and axe-clean', 
   const tactical = page.getByTestId('tactical-reconstruction-panel')
   await expect(tactical).toBeVisible()
   await expect(tactical.locator('.tactical-transcript li')).toHaveCount(7)
-  await tactical.focus()
+  await tactical.evaluate((element) => element.focus({ preventScroll: true }))
   await page.keyboard.press('ArrowRight')
   await expect(tactical.getByTestId('tactical-caption')).toContainText('Phase 2 of 7')
   await expectNoSeriousAxeViolations(page)

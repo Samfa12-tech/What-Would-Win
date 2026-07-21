@@ -170,7 +170,7 @@
   height: 100% !important;
 }
 .reconstruction-panel {
-  scroll-margin-top: 84px;
+  scroll-margin-top: 180px;
 }
 .no-webgl-fallback {
   min-height: 180px;

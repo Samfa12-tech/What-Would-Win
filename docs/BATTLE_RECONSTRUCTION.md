@@ -175,9 +175,9 @@ Measured production output for 0.5.0:
 | original core JavaScript | 559,521 B | 575,000 B |
 | lazy tactical runtime | 905,896 B raw / 241,380 B gzip | 950,000 B raw |
 | core CSS | 25,605 B | 26,000 B |
-| lazy reconstruction CSS | 3,751 B | 4,000 B |
+| lazy reconstruction CSS | 3,752 B | 4,000 B |
 | original core deployable payload | 816,214 B | 835,000 B |
-| total deployable payload (excluding social preview) | 1,765,710 B | 1,850,000 B |
+| total deployable payload (excluding social preview) | 1,765,711 B | 1,850,000 B |
 
 Additional runtime limits: 80 visible instances, 350,000 B per archetype asset,
 500,000 B per environment asset, 250,000 B per audio asset and 1,200,000 B for

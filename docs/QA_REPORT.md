@@ -37,10 +37,10 @@ The passing suite covers the historical 16 calibration fixtures and model-0.3 ph
 | Total JavaScript | 1,505,266 bytes | 1,550,000 bytes |
 | Creature roster | 120,725 bytes | 125,000 bytes |
 | Core CSS | 25,605 bytes | 26,000 bytes |
-| Lazy reconstruction CSS | 3,751 bytes | 4,000 bytes |
-| Total CSS | 29,356 bytes | 31,000 bytes |
+| Lazy reconstruction CSS | 3,752 bytes | 4,000 bytes |
+| Total CSS | 29,357 bytes | 31,000 bytes |
 | Original core deployable payload | 816,214 bytes | 835,000 bytes |
-| Total deployable payload | 1,765,710 bytes | 1,850,000 bytes |
+| Total deployable payload | 1,765,711 bytes | 1,850,000 bytes |
 | Social image | 238,563 bytes | 300,000 bytes |
 
 Vite output included the 120.72 kB creature JSON, 25.61 kB core CSS, 3.75 kB lazy reconstruction CSS, 39.85 kB presentation UI/storyboard JavaScript, 90.17 kB model-0.4 runtime, 450.72 kB entry JavaScript and a 905.90 kB raw / 241.38 kB gzip lazy tactical chunk. The reviewed ceilings, optimization and headroom are recorded in `MODEL_0.4_BUILD_BUDGET.md`.

@@ -189,6 +189,10 @@ The UI exposes and the snapshot suite validates:
 All six UI fixtures explicitly select natural creature sizes; none inherits the
 novelty matchup's size presets.
 
+The deterministic full Story accounts contain 627, 615, 803, 803, 513 and 582
+words respectively. The two sparse pilots remain below 600 words instead of
+adding unsupported action.
+
 The historical 80 m Charybdis fixture remains a useful rejected/out-of-range
 case; the pilot uses the reviewed 40 m boundary so the hazard volume is active.
 
@@ -214,6 +218,15 @@ the validated visualisation; they do not create or modify events. The complete
 HTML transcript and storyboard JSON remain the portable authoritative exports.
 Composite captures include the scene or map, side legend, active beat callout,
 effective-count disclosure and mandatory reconstruction notice.
+
+The repeatable browser-evidence harness also sets both contestants to Natural
+size through the normal UI before every capture. It fails before writing an
+artifact unless dragon/archers retains the resolved 80 m bow range, 35 m fire
+range, 10 m fire radius and effective basis 132, and eagle/mice retains its
+locked quantity disclosure and flight/frontage/replacement narrative spine.
+The exact candidate evidence is tracked under `assets/evidence-0.6.0/` and
+indexed in the [QA report](QA_REPORT.md#browser-and-accessibility-evidence),
+rather than being available only in ignored Playwright output.
 
 ## Performance budgets
 
@@ -242,16 +255,16 @@ The reviewed application-0.6.0 snapshot after the clarity pass is:
 |---|---:|---:|
 | eager entry JavaScript | 450,865 B | 455,000 B |
 | existing optional UI JavaScript | 18,632 B | 21,000 B |
-| presentation JavaScript | 54,952 B | 55,000 B |
+| presentation JavaScript | 54,982 B | 55,000 B |
 | model-0.4 runtime JavaScript | 90,171 B | 100,000 B |
 | original core JavaScript | 559,668 B | 575,000 B |
-| lazy tactical runtime | 940,792 B | 950,000 B |
-| total JavaScript | 1,555,412 B | 1,570,000 B |
+| lazy tactical runtime | 942,421 B | 950,000 B |
+| total JavaScript | 1,557,071 B | 1,570,000 B |
 | core CSS | 25,733 B | 26,000 B |
-| lazy reconstruction CSS | 5,958 B | 6,000 B |
-| total CSS | 31,691 B | 32,000 B |
+| lazy reconstruction CSS | 5,978 B | 6,000 B |
+| total CSS | 31,711 B | 32,000 B |
 | original core deployable payload | 816,970 B | 835,000 B |
-| total deployable payload (excluding social preview) | 1,818,672 B | 1,850,000 B |
+| total deployable payload (excluding social preview) | 1,820,351 B | 1,850,000 B |
 
 Additional runtime limits: 80 visible instances, 350,000 B per archetype asset,
 500,000 B per environment asset, 250,000 B per audio asset and 1,200,000 B for
@@ -266,12 +279,21 @@ The build audit asserts that the tactical scene is a dynamic entry outside the
 eager verdict graph. Adding 3D did not raise the existing entry, optional-UI,
 model-runtime or core-CSS ceilings.
 
-Headless Chromium capture from the final production build observed 16.67 ms
-mean / 16.7 ms p95 animation-frame intervals and 19.3 MB used JavaScript heap
+Headless Chromium capture from the exact candidate build observed 16.6658 ms
+mean / 16.7 ms p95 animation-frame intervals and 17.1 MB used JavaScript heap
 for dragon/archers at 1440 × 1000. Eagle/mice at 412 × 915 touch observed
-16.67 ms mean / 16.7 ms p95 and 12.7 MB used JavaScript heap. These are
+16.6664 ms mean / 16.8 ms p95 and 11.2 MB used JavaScript heap. These are
 browser-pipeline observations, not total GPU/scene-memory or physical-device
 measurements.
+
+A prior near-final physical run on an SM-S948B (Android 16, Chrome 150,
+Adreno 840) passed native touch, Free look, pinch, pinned tooltips and the
+dragon/eagle callout assertions at a 16.8 ms p95 interval. It observed
+21.6/36.5 MB JavaScript heaps and about 145,004 KiB process private dirty
+memory. The user independently confirmed eagle actor/action/target/result/winner
+comprehension. Exact-final recapture and human dragon sign-off remain pending
+because ADB later stopped enumerating the phone. Those heap/process readings
+do not directly measure GPU-plus-scene memory.
 
 ## Known limits
 
@@ -282,7 +304,10 @@ measurements.
 - There are no authored audio assets, glTF assets or bespoke creature animations.
   PNG/WebM availability depends on
   canvas-capture support in the browser.
-- Performance is budgeted and browser-tested; physical phone GPU/memory/frame
-  timing remains a manual release check.
+- Performance is budgeted and browser-tested, and a prior near-final physical
+  phone run met the 33 ms frame-time target. Exact-final phone recapture and a
+  direct GPU-plus-scene-memory measurement remain manual release checks.
+- Real NVDA/TalkBack/VoiceOver, physical iOS/Safari and physical download
+  checks remain pending.
 - A story is a legal presentation of aggregate evidence, never a claim that the
   Monte Carlo trials contain event histories.

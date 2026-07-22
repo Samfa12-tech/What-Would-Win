@@ -5,15 +5,45 @@ import { chromium } from '@playwright/test'
 const baseUrl = process.env.WWW_CAPTURE_URL ?? 'http://127.0.0.1:4175'
 const outputDir = resolve(process.cwd(), '..', 'output', 'playwright', 'epic-battle-final')
 
+function assert(condition, message) {
+  if (!condition) throw new Error(message)
+}
+
 async function configure(page, pilot) {
   await page.goto(baseUrl)
   await page.getByTestId('solo-creature-select').selectOption(pilot.solo)
   await page.getByTestId('group-creature-select').selectOption(pilot.group)
+  const combatants = page.locator('section.combatant-panel')
+  const soloPanel = combatants.filter({ has: page.getByRole('heading', { name: 'The one', exact: true }) })
+  const groupPanel = combatants.filter({ has: page.getByRole('heading', { name: 'The many', exact: true }) })
+  await soloPanel.getByLabel('Size method').selectOption('normal')
+  await groupPanel.getByLabel('Size method').selectOption('normal')
+  assert(await soloPanel.getByLabel('Size method').inputValue() === 'normal', `${pilot.id}: solo size is not natural.`)
+  assert(await groupPanel.getByLabel('Size method').inputValue() === 'normal', `${pilot.id}: group size is not natural.`)
   await page.getByLabel('Quantity').fill(pilot.quantity)
   await page.getByLabel('Starting distance (m)').fill(pilot.distance)
   await page.locator(`input[name="scaling-mode"][value="${pilot.scaling}"]`).check({ force: true })
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await page.locator('.results').waitFor()
+}
+
+async function assertLockedPilot(page, pilot) {
+  const panel = page.getByTestId('likely-battle-panel')
+  const storyText = await panel.getByTestId('story-account').innerText()
+  const quantityText = await panel.getByLabel('Quantity representation disclosure').innerText()
+  if (pilot.id === 'dragon-archers') {
+    assert(/\b80 metres\b/.test(storyText), 'dragon-archers: locked 80 m bow range is missing.')
+    assert(/\b35 metres\b/.test(storyText), 'dragon-archers: locked 35 m fire range is missing.')
+    assert(/\b10-metre radius\b/.test(storyText), 'dragon-archers: locked 10 m fire area is missing.')
+    assert(/\b132 effective at active frontage\b/.test(quantityText), 'dragon-archers: locked effective basis 132 is missing.')
+  } else if (pilot.id === 'eagle-mice') {
+    assert(/1,000,000 declared/.test(quantityText), 'eagle-mice: declared quantity is not locked to one million.')
+    assert(/48 visible/.test(quantityText), 'eagle-mice: locked visible count 48 is missing.')
+    assert(/about 20,833 per figure/.test(quantityText), 'eagle-mice: locked compression ratio is missing.')
+    assert(/6 effective at active frontage/.test(quantityText), 'eagle-mice: locked active frontage 6 is missing.')
+    const brief = await panel.getByLabel('Three-part likely battle account').innerText()
+    assert(/supported flight route[\s\S]*usable front[\s\S]*replacement wave/i.test(brief), 'eagle-mice: locked flight/frontage/replacement spine is missing.')
+  }
 }
 
 async function openView(page, name, testId) {
@@ -53,6 +83,7 @@ async function capturePilot(browser, pilot) {
   const page = await context.newPage()
   await configure(page, pilot)
   await openView(page, 'Likely battle', 'likely-battle-panel')
+  await assertLockedPilot(page, pilot)
   const resultPanel = page.locator('section.results')
   await page.locator('.workspace-nav').evaluate((element) => { element.style.visibility = 'hidden' })
   await resultPanel.evaluate((element, height) => {

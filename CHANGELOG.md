@@ -8,6 +8,7 @@
 - Reworked tactical playback around explicit beats with Who / What / Target / Result / Why callouts, direct beat controls and a labelled phase-and-beat timeline.
 - Added Story camera, Tactical map and Free look modes; the synchronized 2D Canvas map, HTML legend and active explanation remain available when WebGL is absent or the optional scene fails.
 - Preserved the authoritative application boundary: model/data remain 0.4.1, share format remains v4, history/custom storage remain v2, and changing the story seed cannot alter the verdict or evidence ledger.
+- Added deterministic golden and mutation coverage for all six pilot chronicles plus a natural-size-locked dragon/eagle capture harness and tracked exact-candidate comparison evidence.
 
 ## 0.5.0 — 2026-07-20
 

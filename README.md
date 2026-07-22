@@ -32,7 +32,7 @@ npx playwright install chromium firefox webkit
 npm run test:e2e
 ```
 
-`npm run test:all` runs Vitest and Playwright together. Playwright artifacts are retained under `output/playwright/` and are not deployable files. The static production build is written to `app/dist/`.
+`npm run test:all` runs Vitest and Playwright together. Playwright working artifacts are retained under ignored `output/playwright/` and are not deployable files; the reviewed 0.6.0 comparison set is copied to tracked `docs/assets/evidence-0.6.0/`. The static production build is written to `app/dist/`.
 
 The production identity assets live under `app/public/icons/`; the full-resolution raster source is retained at `assets/brand/what-would-win-icon-master.png`. Icon, manifest and application asset paths are relative so the build remains compatible with static subdirectory hosting.
 
@@ -58,6 +58,7 @@ Application 0.6.0 uses storyboard v2 to add evidence-backed story beats, a reada
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — historical data-0.3.1 semantic audit and migration decisions.
 - `docs/MODEL_0.4_CALIBRATION_COMPARISON.md` — reproducible 16-fixture model-0.3 versus model-0.4 probability table and movement review.
 - `docs/BATTLE_RECONSTRUCTION.md` — storyboard legality, narrative, tactical renderer, quantity, accessibility and performance contracts.
+- `docs/assets/evidence-0.6.0/` — exact-candidate dragon/eagle comparison captures and browser runtime evidence.
 - `data/DATA_DICTIONARY.md` — canonical data semantics and editing rules.
 - `MANIFEST.md` — artifact inventory, verified snapshot and deliberate limits.
 
@@ -69,7 +70,7 @@ Private custom profiles use `custom:` IDs and remain in the current browser unle
 
 ## Hosting on samfa12.com
 
-Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward.
+Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward. Application 0.6.0 remains an undeployed candidate until that exact reviewed tree is deliberately synced and verified.
 
 ## Public-repository hygiene
 

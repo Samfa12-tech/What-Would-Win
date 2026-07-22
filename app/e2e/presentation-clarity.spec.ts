@@ -60,7 +60,18 @@ test('Story is the readable default and Analyst remains a complete evidence view
   await expect(storyButton).toHaveAttribute('aria-pressed', 'true')
   await expect(panel.getByTestId('story-account')).toBeVisible()
   await expect(panel.getByTestId('analyst-account')).toBeHidden()
-  expect((await panel.getByTestId('story-account').innerText()).trim().length).toBeGreaterThan(300)
+  const story = panel.getByTestId('story-account')
+  expect((await story.innerText()).trim().length).toBeGreaterThan(300)
+  await expect(story.locator('.story-chapter > header h4')).toHaveText([
+    'The measure of the field', 'Lines drawn', 'The distance closes', 'First contact',
+    'The contest deepens', 'The balance turns', 'The final balance',
+  ])
+  const visibleStoryText = await story.evaluate((element) => {
+    const copy = element.cloneNode(true) as HTMLElement
+    copy.querySelectorAll('.evidence-tooltip').forEach((tooltip) => tooltip.remove())
+    return copy.textContent ?? ''
+  })
+  expect(visibleStoryText).not.toMatch(/\b(?:log10|deterministic margin|group encirclement|authoritative resolution)\b|\b\d+\.0(?:-metre|\s+metres?|\s+m\b)/i)
 
   await analystButton.click()
   await expect(analystButton).toHaveAttribute('aria-pressed', 'true')
@@ -70,6 +81,24 @@ test('Story is the readable default and Analyst remains a complete evidence view
 
   await storyButton.click()
   await expect(panel.getByTestId('story-account')).toBeVisible()
+})
+
+test('Analyst mode remains selected after another reconstruction in the result session', async ({ page }) => {
+  await runDefaultSimulation(page)
+  await openLikelyBattle(page)
+
+  const panel = page.getByTestId('likely-battle-panel')
+  const analystButton = panel.getByRole('button', { name: 'Analyst', exact: true })
+  const seed = panel.getByText(/Story seed \d+ changes presentation only\./).locator('strong')
+  await analystButton.click()
+  await expect(analystButton).toHaveAttribute('aria-pressed', 'true')
+  const originalSeed = await seed.innerText()
+
+  await panel.getByRole('button', { name: 'Another reconstruction' }).click()
+  await expect(seed).not.toHaveText(originalSeed)
+  await expect(analystButton).toHaveAttribute('aria-pressed', 'true')
+  await expect(panel.getByTestId('analyst-account')).toBeVisible()
+  await expect(panel.getByTestId('story-account')).toBeHidden()
 })
 
 test('evidence markers work by hover, focus, pin, outside dismissal, and Escape', async ({ page }, testInfo) => {

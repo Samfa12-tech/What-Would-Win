@@ -1,7 +1,6 @@
 import { parseQuantity } from '../simulation/quantity'
 import {
   MAX_VISIBLE_ACTORS,
-  STORYBOARD_VERSION,
   type BattleEvent,
   type BattleReconstructionInput,
   type BattleStoryboard,
@@ -10,6 +9,7 @@ import {
 } from './contracts'
 import {
   buildQuantityRepresentation,
+  buildBattleStoryboard,
   abilityResolutionEventType,
   battleEventOrdering,
   battleEvidenceIntegrity,
@@ -64,8 +64,6 @@ export function validateBattleStoryboard(
   const addPhase = (code: string) => add(code, 'phases')
   const probability = input.result.winner === 'solo' ? input.result.soloWinProbability : input.result.groupWinProbability
   const margin = input.deterministicState.soloLogPower - input.deterministicState.groupLogPower
-
-  if (storyboard.version !== STORYBOARD_VERSION) add('version', 'version')
   if (storyboard.scenarioHash !== storyboardScenarioHash(input)) add('scenario-hash', 'scenarioHash')
   if (storyboard.resultHash !== storyboardResultHash(input)) add('result-hash', 'resultHash')
   if (storyboard.simulationSeed !== input.simulationSeed || storyboard.simulationSeed !== input.result.technical.seed) add('simulation-seed', 'simulationSeed')
@@ -73,6 +71,7 @@ export function validateBattleStoryboard(
   if (storyboard.winner !== input.result.winner) add('winner', 'winner')
   if (Math.abs(storyboard.winnerProbability - probability) > 1e-12) add('probability', 'winnerProbability')
   if (Math.abs(storyboard.deterministicMargin - margin) > 1e-12) add('margin', 'deterministicMargin')
+  if (stableStringify(storyboard) !== stableStringify(buildBattleStoryboard(input))) add('canonical', '')
   const quantity = storyboard.representedQuantity
   const quantityPath = 'representedQuantity'
   if (quantity.visibleActorCount > visibleActorCap) add('visible-cap', quantityPath)

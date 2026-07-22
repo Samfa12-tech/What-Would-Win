@@ -84,21 +84,21 @@ The final reviewed production snapshot is:
 |---|---:|---:|---:|
 | Entry JavaScript | 450,865 | 455,000 | 4,135 |
 | Existing optional UI JavaScript | 18,632 | 21,000 | 2,368 |
-| Presentation JavaScript | 54,952 | 55,000 | 48 |
+| Presentation JavaScript | 54,982 | 55,000 | 18 |
 | Model-0.4 runtime JavaScript | 90,171 | 100,000 | 9,829 |
-| Lazy tactical runtime JavaScript | 940,792 | 950,000 | 9,208 |
+| Lazy tactical runtime JavaScript | 942,421 | 950,000 | 7,579 |
 | Original core JavaScript | 559,668 | 575,000 | 15,332 |
-| Total JavaScript | 1,555,412 | 1,570,000 | 14,588 |
+| Total JavaScript | 1,557,071 | 1,570,000 | 12,929 |
 | Creature roster | 120,725 | 125,000 | 4,275 |
 | Core CSS | 25,733 | 26,000 | 267 |
-| Lazy reconstruction CSS | 5,958 | 6,000 | 42 |
-| Total CSS | 31,691 | 32,000 | 309 |
+| Lazy reconstruction CSS | 5,978 | 6,000 | 22 |
+| Total CSS | 31,711 | 32,000 | 289 |
 | Original core deployable payload | 816,970 | 835,000 | 18,030 |
-| Deployable payload | 1,818,672 | 1,850,000 | 31,328 |
+| Deployable payload | 1,820,351 | 1,850,000 | 29,649 |
 | Largest external tactical asset | 0 | category ceilings | unchanged |
 
-The lazy `TacticalScene` output is 902,229 bytes raw / 240.02 kB gzip; its
-supporting tactical modules bring the budgeted lazy category to 940,792 bytes.
+The lazy `TacticalScene` output is 903,858 bytes raw / 240.53 kB gzip; its
+supporting tactical modules bring the budgeted lazy category to 942,421 bytes.
 The 80-visible-actor cap, zero external visual assets, demand rendering while
 paused/reduced-motion, disabled shadows and the 1–1.5 WebGL pixel-ratio bound
 remain enforced. The synchronized 2D tactical map independently caps its
@@ -106,9 +106,15 @@ device-pixel ratio at 2. A custom pointer/touch camera keeps orbit, pan,
 pinch/wheel zoom and keyboard translation without adding another rendering
 dependency.
 
-Headless Chromium capture of dragon/archers at 1440 × 1000 recorded 16.67 ms
-mean / 16.7 ms p95 animation-frame intervals and 19.3 MB used JavaScript heap.
-Eagle/mice at 412 × 915 touch recorded 16.67 ms mean / 16.7 ms p95 and 12.7 MB
+Headless Chromium capture of dragon/archers at 1440 × 1000 recorded 16.6658 ms
+mean / 16.7 ms p95 animation-frame intervals and 17.1 MB used JavaScript heap.
+Eagle/mice at 412 × 915 touch recorded 16.6664 ms mean / 16.8 ms p95 and 11.2 MB
 used JavaScript heap. These are browser-pipeline observations, not physical-phone
-GPU or total scene-memory measurements; the 33 ms phone frame-time and 192 MB
-GPU-plus-scene-memory targets therefore remain explicit device release checks.
+GPU or total scene-memory measurements.
+
+A prior near-final SM-S948B run recorded a 16.8 ms p95 interval, 21.6/36.5 MB
+JavaScript heaps and about 145,004 KiB process private dirty memory while using
+Adreno 840 WebGL. It met the 33 ms frame-time target, but its heap/process
+readings do not directly establish the 192 MB GPU-plus-scene-memory target.
+Exact-final device recapture remains pending because ADB no longer enumerates
+the phone.

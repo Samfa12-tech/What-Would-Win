@@ -52,8 +52,9 @@ resolution.
 
 ## Verification
 
-- Vitest: **264/264 passed across 24 files**.
-- Playwright: **180 passed, 20 intentional project-scope skips, 0 failed**
+- Vitest: **280/280 passed across 24 files**; focused storyboard verification is
+  **62/62 passed**.
+- Playwright: **184 passed, 20 intentional project-scope skips, 0 failed**
   across desktop Chromium, touch/mobile Chromium, Firefox and WebKit.
 - Simulation duration gate: **1/1 passed**.
 - TypeScript project check: passed.
@@ -71,31 +72,34 @@ resolution.
 
 | Category | Measured | Ceiling |
 |---|---:|---:|
-| Presentation JavaScript | 54,952 B | 55,000 B |
-| Lazy tactical runtime | 940,792 B | 950,000 B |
-| Total JavaScript | 1,555,412 B | 1,570,000 B |
-| Reconstruction CSS | 5,958 B | 6,000 B |
-| Total CSS | 31,691 B | 32,000 B |
-| Total deployable | 1,818,672 B | 1,850,000 B |
+| Presentation JavaScript | 54,982 B | 55,000 B |
+| Lazy tactical runtime | 942,421 B | 950,000 B |
+| Total JavaScript | 1,557,071 B | 1,570,000 B |
+| Reconstruction CSS | 5,978 B | 6,000 B |
+| Total CSS | 31,711 B | 32,000 B |
+| Total deployable | 1,820,351 B | 1,850,000 B |
 | Visible actors | 80 max | 80 |
 | New external tactical assets | 0 B | 0 B for this iteration |
 
-The largest lazy scene output is 902,229 B raw / 240.02 kB gzip. Headless
-Chromium observed dragon/archers at 16.67 ms mean / 16.7 ms p95 with 19.3 MB
-used JavaScript heap, and eagle/mice at 16.67 ms mean / 16.7 ms p95 with
-12.7 MB. These are browser-pipeline observations, not physical GPU or total
+The largest lazy scene output is 903,858 B raw / 240.53 kB gzip. Headless
+Chromium observed dragon/archers at 16.6658 ms mean / 16.7 ms p95 with 17.1 MB
+used JavaScript heap, and eagle/mice at 16.6664 ms mean / 16.8 ms p95 with
+11.2 MB. These are browser-pipeline observations, not physical GPU or total
 scene-memory measurements.
 
 ## Captures
 
-- `output/playwright/epic-battle-final/dragon-archers-story-desktop.png`
-- `output/playwright/epic-battle-final/dragon-archers-guided-desktop.png`
-- `output/playwright/epic-battle-final/eagle-mice-story-mobile.png`
-- `output/playwright/epic-battle-final/eagle-mice-guided-mobile.png`
-- `output/playwright/epic-battle-final/runtime-evidence.json`
+- [`docs/assets/evidence-0.6.0/dragon-archers-story-desktop.png`](assets/evidence-0.6.0/dragon-archers-story-desktop.png)
+- [`docs/assets/evidence-0.6.0/dragon-archers-guided-desktop.png`](assets/evidence-0.6.0/dragon-archers-guided-desktop.png)
+- [`docs/assets/evidence-0.6.0/eagle-mice-story-mobile.png`](assets/evidence-0.6.0/eagle-mice-story-mobile.png)
+- [`docs/assets/evidence-0.6.0/eagle-mice-guided-mobile.png`](assets/evidence-0.6.0/eagle-mice-guided-mobile.png)
+- [`docs/assets/evidence-0.6.0/runtime-evidence.json`](assets/evidence-0.6.0/runtime-evidence.json)
 
-These ignored QA artifacts were generated from the exact final production
-build; they are not deployable files.
+These tracked QA artifacts were generated from the exact candidate build at
+`2026-07-22T23:18:56.209Z`; they are documentation evidence, not deployable
+application files. The harness selects Natural size for both contestants
+through the UI and fails before capture unless the locked dragon and eagle
+mechanics remain present.
 
 ## Accessibility
 
@@ -112,11 +116,17 @@ build; they are not deployable files.
 
 ## Manual limits
 
-- Windows did not enumerate the connected SM-S948B through ADB or Plug-and-Play.
-  Physical phone interaction, frame timing, GPU/scene memory and comprehension
-  testing remain pending.
-- Real NVDA, TalkBack and VoiceOver validation remains pending.
-- No independent human comprehension tester has signed off yet.
+- A prior near-final SM-S948B run on Android 16 / Chrome 150 passed native
+  touch, Free look, pinch, pinned tooltips, dragon/eagle callout assertions and
+  Adreno 840 WebGL rendering. It observed 16.8 ms p95, 21.6/36.5 MB JavaScript
+  heaps and about 145,004 KiB process private dirty memory.
+- The user independently confirmed eagle actor/action/target/result/winner
+  comprehension. Human dragon comprehension sign-off remains pending.
+- Exact-final physical recapture remains pending because ADB no longer
+  enumerates the SM-S948B. The prior device run is not exact-final evidence,
+  and its heap/process figures are not a direct GPU-plus-scene-memory measure.
+- Real NVDA, TalkBack and VoiceOver, physical iOS/Safari and physical download
+  validation remain pending.
 - Primitive archetypes are explanatory tactical tokens; no polished creature
   models, authored animations or audio assets are included.
 - This branch is not a public deployment and has not been synced to the website
@@ -131,6 +141,8 @@ build; they are not deployable files.
 - [x] Six pilot choreographies and deterministic goldens implemented.
 - [x] Automated release, browser, accessibility and budget gates passed.
 - [x] Comparative desktop/mobile evidence captured.
-- [ ] Physical SM-S948B, real screen-reader and independent comprehension passes.
+- [x] Prior near-final SM-S948B touch/performance pass and human eagle comprehension check.
+- [ ] Exact-final SM-S948B recapture and human dragon comprehension sign-off.
+- [ ] Real screen-reader, physical iOS/Safari and physical download passes.
 
 Starting commit: `9a50a29`

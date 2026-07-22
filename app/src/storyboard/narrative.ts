@@ -67,7 +67,7 @@ export function buildBattleNarrative(storyboard: BattleStoryboard): BattleNarrat
   const alternateOutcome = storyboard.alternateOutcome as BattleAlternateOutcome
   const storyChapters = storyboard.phases.map((phase) => ({
     id: phase.id,
-    title: PHASE_TITLES[phase.id],
+    title: phase.storyBeats[0]?.title ?? PHASE_TITLES[phase.id],
     advantage: phase.advantage,
     text: phase.storyBeats.map(battleStoryBeatText).join(' '),
     beatIds: phase.storyBeats.map((beat) => beat.id),

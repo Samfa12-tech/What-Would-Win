@@ -2,7 +2,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import type { Group, InstancedMesh } from 'three'
 import { CanvasTexture, Color, LinearFilter, Object3D, Vector3 } from 'three'
-import type { BattleEvent } from '../../storyboard'
+import type { BattleEvent, CameraCue } from '../../storyboard'
 import type { CreatureVisualAttachment, TacticalActorPlan, TacticalActorStateTransition, TacticalEnvironmentFamily, TacticalSceneProps } from './contracts'
 import { actorPositionAtProgress, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, shouldRenderTacticalPath, tacticalPathPresentation } from './contracts'
 
@@ -108,50 +108,60 @@ function AttachmentInstances({ actor }: { actor: TacticalActorPlan }) {
   }}>{attachmentGeometry(attachment)}<meshStandardMaterial roughness={materialRoughness(actor)} transparent={actor.visualProfile.materialPreset === 'spectral'} opacity={actor.visualProfile.materialPreset === 'spectral' ? 0.55 : 1} /></instancedMesh>)}</>
 }
 
-export function tacticalLabelPlacement(side: TacticalActorPlan['side'], visibleCount: number) {
+export function tacticalLabelPlacement(side: TacticalActorPlan['side'], visibleCount: number, crowded = false, actorHeight = 0) {
+  const collisionLift = crowded && side === 'group' ? 0.68 : 0
   return {
-    offsetZ: side === 'solo' ? -1.2 : 1.2,
-    offsetY: side === 'solo' ? 1.22 : 1.82,
-    scale: [2.15, 0.52, 1] as [number, number, number],
+    offsetX: crowded ? (side === 'solo' ? -0.9 : 0.9) : 0,
+    offsetZ: side === 'solo' ? -1.05 : 1.05,
+    offsetY: Math.max(side === 'solo' ? 1.28 : 1.58, actorHeight + 0.5) + collisionLift,
+    scale: [1.82, 0.44, 1] as [number, number, number],
+    sideMarker: side === 'solo' ? '◆' : '■',
     singletonHalo: visibleCount === 1,
   }
 }
 
-function ActorLabel({ actor }: { actor: TacticalActorPlan }) {
-  const placement = tacticalLabelPlacement(actor.side, actor.visibleCount)
+export function tacticalLabelsCrowded(left: [number, number, number], right: [number, number, number]): boolean {
+  return Math.hypot(left[0] - right[0], left[2] - right[2]) < 5 && Math.abs(left[1] - right[1]) < 3.5
+}
+
+function ActorLabel({ actor, crowded, actorHeight }: { actor: TacticalActorPlan; crowded: boolean; actorHeight: number }) {
+  const placement = tacticalLabelPlacement(actor.side, actor.visibleCount, crowded, actorHeight)
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 512
-    canvas.height = 96
+    canvas.width = 384
+    canvas.height = 80
     const context = canvas.getContext('2d')
     if (context) {
       context.fillStyle = 'rgba(4, 12, 22, 0.88)'
       context.fillRect(0, 0, canvas.width, canvas.height)
       context.strokeStyle = actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'
-      context.lineWidth = 6
+      context.lineWidth = 4
       context.strokeRect(4, 4, canvas.width - 8, canvas.height - 8)
       context.fillStyle = '#ffffff'
-      context.font = '700 28px system-ui, sans-serif'
+      context.font = '700 22px system-ui, sans-serif'
       context.textAlign = 'center'
       context.textBaseline = 'middle'
-      context.fillText(`${actor.side === 'solo' ? 'SOLO ◆' : 'GROUP ■'} ${actor.id}`, 256, 48, 470)
+      context.fillText(`${actor.side === 'solo' ? 'SOLO' : 'GROUP'} ${placement.sideMarker}  ${actor.id.replace(/[-_]+/g, ' ')}`, 192, 40, 352)
     }
     const next = new CanvasTexture(canvas)
     next.minFilter = LinearFilter
     return next
-  }, [actor.id, actor.side])
+  }, [actor.id, actor.side, placement.sideMarker])
   useEffect(() => () => texture.dispose(), [texture])
   const position = actor.positions[0] ?? [0, 0, 0]
+  const lineColor = actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'
   return <group position={[position[0], position[1], position[2]]}>
-    <mesh position-y={placement.offsetY / 2}><boxGeometry args={[0.025, placement.offsetY, 0.025]} /><meshBasicMaterial color={actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'} transparent opacity={0.72} /></mesh>
-    <mesh position={[0, placement.offsetY, placement.offsetZ / 2]}><boxGeometry args={[0.025, 0.025, Math.abs(placement.offsetZ)]} /><meshBasicMaterial color={actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'} transparent opacity={0.72} /></mesh>
-    <sprite position={[0, placement.offsetY, placement.offsetZ]} scale={placement.scale}><spriteMaterial map={texture} transparent depthTest /></sprite>
+    <mesh renderOrder={19} position-y={placement.offsetY / 2}><boxGeometry args={[0.025, placement.offsetY, 0.025]} /><meshBasicMaterial color={lineColor} transparent opacity={0.86} depthTest={false} depthWrite={false} /></mesh>
+    {placement.offsetX !== 0 && <mesh renderOrder={19} position={[placement.offsetX / 2, placement.offsetY, 0]}><boxGeometry args={[Math.abs(placement.offsetX), 0.025, 0.025]} /><meshBasicMaterial color={lineColor} transparent opacity={0.86} depthTest={false} depthWrite={false} /></mesh>}
+    <mesh renderOrder={19} position={[placement.offsetX, placement.offsetY, placement.offsetZ / 2]}><boxGeometry args={[0.025, 0.025, Math.abs(placement.offsetZ)]} /><meshBasicMaterial color={lineColor} transparent opacity={0.86} depthTest={false} depthWrite={false} /></mesh>
+    <sprite renderOrder={20} position={[placement.offsetX, placement.offsetY, placement.offsetZ]} scale={placement.scale}><spriteMaterial map={texture} transparent depthTest={false} depthWrite={false} /></sprite>
   </group>
 }
 
-function Formation({ actor, showLabels, event, playing, reducedMotion, plan, transition, progress }: {
+function Formation({ actor, showLabels, labelsCrowded, event, playing, reducedMotion, plan, transition, progress }: {
   actor: TacticalActorPlan
   showLabels: boolean
+  labelsCrowded: boolean
   event?: BattleEvent
   playing: boolean
   reducedMotion: boolean
@@ -162,9 +172,9 @@ function Formation({ actor, showLabels, event, playing, reducedMotion, plan, tra
   const mesh = useRef<InstancedMesh>(null)
   const group = useRef<Group>(null)
   const temp = useMemo(() => new Object3D(), [])
+  const scale = useMemo(() => actorScale(actor, actor.side === 'solo' ? 1.2 : 0.42), [actor])
   useEffect(() => {
     if (!mesh.current) return
-    const scale = actorScale(actor, actor.side === 'solo' ? 1.2 : 0.42)
     actor.positions.forEach((position, index) => {
       const active = index < (actor.visibleActiveCount ?? actor.visibleCount)
       temp.position.set(...position)
@@ -176,7 +186,7 @@ function Formation({ actor, showLabels, event, playing, reducedMotion, plan, tra
     })
     mesh.current.instanceMatrix.needsUpdate = true
     if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true
-  }, [actor, temp])
+  }, [actor, scale, temp])
   useEffect(() => {
     if (!group.current) return
     const position = actorPositionAtProgress(transition, progress)
@@ -191,8 +201,11 @@ function Formation({ actor, showLabels, event, playing, reducedMotion, plan, tra
   return <group ref={group}>
     <instancedMesh ref={mesh} args={[undefined, undefined, actor.visibleCount]}>{primitiveFor(actor)}<meshStandardMaterial roughness={materialRoughness(actor)} transparent={actor.visualProfile.materialPreset === 'spectral'} opacity={actor.visualProfile.materialPreset === 'spectral' ? 0.6 : 1} /></instancedMesh>
     <AttachmentInstances actor={actor} />
-    {actor.visibleCount === 1 && <mesh position-y={0.025} rotation-x={-Math.PI / 2}><ringGeometry args={[0.72, 0.88, 24]} /><meshBasicMaterial color={actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'} transparent opacity={0.88} /></mesh>}
-    {showLabels && <ActorLabel actor={actor} />}
+    {actor.visibleCount === 1 && <group>
+      <mesh position-y={0.025} rotation-x={-Math.PI / 2}><ringGeometry args={[Math.max(0.78, scale[0] * 0.66, scale[2] * 0.66), Math.max(0.96, scale[0] * 0.66 + 0.18, scale[2] * 0.66 + 0.18), 32]} /><meshBasicMaterial color={actor.side === 'solo' ? '#f4cf73' : '#9dd5ff'} transparent opacity={0.92} /></mesh>
+      <mesh position-y={0.03} rotation-x={-Math.PI / 2}><ringGeometry args={[Math.max(1.08, scale[0] * 0.66 + 0.32, scale[2] * 0.66 + 0.32), Math.max(1.14, scale[0] * 0.66 + 0.39, scale[2] * 0.66 + 0.39), 32]} /><meshBasicMaterial color="#ffffff" transparent opacity={0.56} /></mesh>
+    </group>}
+    {showLabels && <ActorLabel actor={actor} crowded={labelsCrowded} actorHeight={scale[1]} />}
     {actor.side === 'group' && <FormationZones plan={plan} />}
   </group>
 }
@@ -206,6 +219,48 @@ const SCENE_UNITS_PER_METRE = 0.22
 /** Exact metre-to-scene conversion for effect bounds. */
 export function tacticalSceneRadius(radiusM: number): number {
   return radiusM * SCENE_UNITS_PER_METRE
+}
+
+/** Pure calculation used by the directed renderer and its camera-fit tests. */
+export function directedCameraFit({
+  cue,
+  event,
+  focusPositions,
+  followedActorPosition,
+  orbitAngle = 0,
+}: {
+  cue: CameraCue
+  event?: BattleEvent
+  focusPositions: Array<[number, number, number]>
+  followedActorPosition?: [number, number, number] | null
+  orbitAngle?: number
+}): { target: [number, number, number]; offset: [number, number, number]; actionSpan: number; following: boolean } {
+  const focus = focusPositions.length > 0
+    ? focusPositions
+    : event ? [event.startPosition, eventDestination(event) ?? event.startPosition] : [[0, 0, 0] as [number, number, number]]
+  const points = focus.map((position) => new Vector3(...scenePoint(position)))
+  const centre = points.reduce((sum, point) => sum.add(point), new Vector3()).multiplyScalar(1 / points.length)
+  const following = cue.type === 'follow' && Boolean(event)
+  const desiredTarget = following && event
+    ? new Vector3(...scenePoint(cue.type === 'follow' && cue.side === event.actingSide
+      ? followedActorPosition ?? event.startPosition
+      : eventDestination(event) ?? event.startPosition))
+    : centre
+  const actionSpan = Math.max(6, ...points.map((point) => point.distanceTo(centre) * 2.6), (event?.areaRadiusM ?? 0) * 0.44)
+  const offset = cue.type === 'overhead' ? new Vector3(0.1, 18, 0.1)
+    : cue.type === 'frontage-view' ? new Vector3(actionSpan, 4, 0.1)
+      : cue.type === 'follow' ? new Vector3(7, 5, 7)
+        : cue.type === 'orbit' ? new Vector3(Math.cos(orbitAngle) * actionSpan, Math.max(6, actionSpan * 0.65), Math.sin(orbitAngle) * actionSpan)
+          : cue.type === 'close-up' ? new Vector3(5, 4, 6)
+            : cue.type === 'hazard-view' ? new Vector3(10, 10, 10)
+              : cue.type === 'resolution-wide' ? new Vector3(14, 13, 16)
+                : new Vector3(actionSpan, Math.max(8, actionSpan * 0.78), actionSpan * 1.08)
+  return {
+    target: desiredTarget.toArray() as [number, number, number],
+    offset: offset.toArray() as [number, number, number],
+    actionSpan,
+    following,
+  }
 }
 
 function EventPaths({ events, completed = false }: { events: BattleEvent[]; completed?: boolean }) {
@@ -330,26 +385,12 @@ function DirectedCamera({ props }: { props: TacticalSceneProps }) {
   useFrame(({ clock }) => {
     if (props.cameraMode !== 'story') return
     const event = props.storyboard.phases[props.activePhaseIndex]?.events.find((candidate) => props.activeEventIds.includes(candidate.id))
-    const focus = props.focusPositions.length > 0 ? props.focusPositions : event ? [event.startPosition, eventDestination(event) ?? event.startPosition] : [[0, 0, 0] as [number, number, number]]
-    const points = focus.map((position) => new Vector3(...scenePoint(position)))
-    const cue = props.cameraCue
-    const centre = points.reduce((sum, point) => sum.add(point), new Vector3()).multiplyScalar(1 / points.length)
-    if (cue.type === 'follow' && event) {
-      const actorPosition = actorPositionAtProgress(props.actorStateTransitions[event.actingSide], props.beatProgress)
-      const position = cue.side === event.actingSide ? actorPosition ?? event.startPosition : eventDestination(event) ?? event.startPosition
-      const followed = new Vector3(...scenePoint(position))
-      props.playing ? target.lerp(followed, 0.035) : target.copy(followed)
-    } else target.copy(centre)
-    const actionSpan = Math.max(6, ...points.map((point) => point.distanceTo(centre) * 2.6), (event?.areaRadiusM ?? 0) * 0.44)
-    const angle = clock.elapsedTime * 0.28
-    const offset = cue.type === 'overhead' ? new Vector3(0.1, 18, 0.1)
-      : cue.type === 'frontage-view' ? new Vector3(actionSpan, 4, 0.1)
-        : cue.type === 'follow' ? new Vector3(7, 5, 7)
-          : cue.type === 'orbit' ? new Vector3(Math.cos(angle) * actionSpan, Math.max(6, actionSpan * 0.65), Math.sin(angle) * actionSpan)
-            : cue.type === 'close-up' ? new Vector3(5, 4, 6)
-              : cue.type === 'hazard-view' ? new Vector3(10, 10, 10)
-                : cue.type === 'resolution-wide' ? new Vector3(14, 13, 16)
-                  : new Vector3(actionSpan, Math.max(8, actionSpan * 0.78), actionSpan * 1.08)
+    const actorPosition = event ? actorPositionAtProgress(props.actorStateTransitions[event.actingSide], props.beatProgress) : null
+    const fit = directedCameraFit({ cue: props.cameraCue, event, focusPositions: props.focusPositions, followedActorPosition: actorPosition, orbitAngle: clock.elapsedTime * 0.28 })
+    const desiredTarget = new Vector3(...fit.target)
+    if (fit.following && props.playing) target.lerp(desiredTarget, 0.035)
+    else target.copy(desiredTarget)
+    const offset = new Vector3(...fit.offset)
     camera.position.lerp(target.clone().add(offset), props.reducedMotion || !props.playing ? 1 : 0.08)
     camera.lookAt(target)
   })
@@ -440,11 +481,18 @@ function SceneContents({ props }: { props: TacticalSceneProps }) {
   const events = allEvents.filter((event) => props.activeEventIds.includes(event.id))
   const completedEvents = allEvents.filter((event) => props.completedEventIds.includes(event.id))
   if (plan.conceptual) return <Environment terrain={props.scenario.terrain} />
+  const labelAnchors = plan.actors.filter((actor) => actor.visibleCount > 0).map((actor) => {
+    const currentPosition = actorPositionAtProgress(props.actorStateTransitions[actor.side], props.beatProgress)
+    const origin = currentPosition ? scenePoint(currentPosition) : actor.origin
+    const local = actor.positions[0] ?? [0, 0, 0]
+    return [origin[0] + local[0], origin[1] + local[1], origin[2] + local[2]] as [number, number, number]
+  })
+  const labelsCrowded = labelAnchors.length > 1 && tacticalLabelsCrowded(labelAnchors[0], labelAnchors[1])
   return <>
     <Environment terrain={props.scenario.terrain} />
     {plan.actors.filter((actor) => actor.visibleCount > 0).map((actor) => {
       const activeEvent = events.find((event) => event.actingSide === actor.side)
-      return <Formation key={`${actor.side}:${actor.id}`} actor={actor} showLabels={props.showLabels} event={activeEvent} playing={props.playing} reducedMotion={props.reducedMotion} plan={plan} transition={props.actorStateTransitions[actor.side]} progress={props.beatProgress} />
+      return <Formation key={`${actor.side}:${actor.id}`} actor={actor} showLabels={props.showLabels} labelsCrowded={labelsCrowded} event={activeEvent} playing={props.playing} reducedMotion={props.reducedMotion} plan={plan} transition={props.actorStateTransitions[actor.side]} progress={props.beatProgress} />
     })}
     {plan.aggregatePressure && plan.actors.find((actor) => actor.side === 'group' && actor.visibleCount === 0) && <AggregatePressureVolume plan={plan} position={scenePoint(plan.actors.find((actor) => actor.side === 'group')!.origin)} />}
     <Overlays plan={plan} showRanges={props.showRanges} events={events} completedEvents={completedEvents} />

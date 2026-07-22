@@ -127,8 +127,14 @@ test('tactical controls are keyboard-operable and expose a complete transcript',
   await expect(panel.getByRole('button', { name: 'Pause reconstruction' })).toBeVisible()
   await panel.getByLabel('Speed').selectOption('2')
   await expect(panel.getByLabel('Speed')).toHaveValue('2')
-  await panel.getByRole('button', { name: 'Free look' }).click()
-  await expect(panel.getByRole('button', { name: 'Reset view' })).toBeVisible()
+  const freeLook = panel.getByRole('button', { name: 'Free look' })
+  if (await freeLook.isEnabled()) {
+    await freeLook.click()
+    await expect(panel.getByRole('button', { name: 'Reset view' })).toBeVisible()
+  } else {
+    await expect(panel.getByTestId('no-webgl-fallback')).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Tactical map' })).toHaveAttribute('aria-pressed', 'true')
+  }
   await panel.getByText('Display and capture', { exact: true }).click()
   for (const name of ['Actor labels', 'Range and area overlays', 'Factor annotations', 'Reduced motion', 'Download guided PNG', 'Record guided WebM']) {
     await expect(panel.getByRole('button', { name })).toBeVisible()

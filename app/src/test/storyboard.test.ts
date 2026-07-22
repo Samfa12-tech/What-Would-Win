@@ -6,12 +6,17 @@ import { cloneAsCustom } from '../customCreatures'
 import type { Creature, Scenario } from '../types'
 import {
   MAX_VISIBLE_ACTORS,
+  RECONSTRUCTION_NOTICE,
   STORYBOARD_VERSION,
+  battleEvidenceIntegrity,
   buildBattleNarrative,
   buildBattleStoryboard,
   battleStoryBeatIntegrity,
   exportStoryboardJson,
   stableHash,
+  narrativeSentenceIntegrity,
+  storyboardResultHash,
+  storyboardScenarioHash,
   validateBattleStoryboard,
   type BattleReconstructionInput,
 } from '../storyboard'
@@ -56,6 +61,11 @@ function abilityEvents(story: ReturnType<typeof buildBattleStoryboard>) {
   return story.phases.flatMap((phase) => phase.events).filter((event) => event.abilityId)
 }
 
+function refreshExportedHashes(story: ReturnType<typeof buildBattleStoryboard>, reconstruction: BattleReconstructionInput) {
+  story.scenarioHash = storyboardScenarioHash(reconstruction)
+  story.resultHash = storyboardResultHash(reconstruction)
+}
+
 describe('validated likely-battle storyboard pilots', () => {
   test('matches the locked compact snapshots for all six pilots', () => {
     const snapshots = Object.fromEntries(Object.entries(pilots).map(([name, pilot]) => {
@@ -92,12 +102,12 @@ describe('validated likely-battle storyboard pilots', () => {
       }]
     }))
     expect(signatures).toEqual({
-      elephantWolves: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 19, storyHash: '89aabedcc7390db5' },
-      eagleMice: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 19, storyHash: '9645736fd43c2fcd' },
-      dragonArchers: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 23, storyHash: 'f39b0cbaa158944b' },
-      medusaSpears: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 23, storyHash: '57cc5feed740f101' },
-      spiderRhino: { version: 2, beats: 11, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 4, sentenceTemplates: 15, storyHash: 'b2223d94f9e6e176' },
-      charybdisOrca: { version: 2, beats: 12, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 5, sentenceTemplates: 17, storyHash: '25881f8600924159' },
+      elephantWolves: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 20, storyHash: '02e99ec6f561cd55' },
+      eagleMice: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 20, storyHash: '5a6ea13474a7bc25' },
+      dragonArchers: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 24, storyHash: '84306df5f0748519' },
+      medusaSpears: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 24, storyHash: '076f01c0b55aad8f' },
+      spiderRhino: { version: 2, beats: 11, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 4, sentenceTemplates: 16, storyHash: '170ee23f97cddbed' },
+      charybdisOrca: { version: 2, beats: 12, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 5, sentenceTemplates: 18, storyHash: 'b05319cee88650e5' },
     })
     expect(STORYBOARD_VERSION).toBe(2)
   })
@@ -111,6 +121,8 @@ describe('validated likely-battle storyboard pilots', () => {
     const beatEventIds = beats.flatMap((beat) => beat.eventIds).sort()
     const evidenceIds = new Set(story.evidence.map((record) => record.id))
     const fullText = account.storyChapters.map((chapter) => chapter.text).join(' ')
+    const briefing = story.phases[0].storyBeats[0]
+    const closing = story.phases.at(-1)!.storyBeats.find((beat) => beat.eventIds.includes('authoritative-resolution'))!
 
     expect(beats.length).toBeGreaterThanOrEqual(10)
     expect(beats.length).toBeLessThanOrEqual(18)
@@ -120,6 +132,12 @@ describe('validated likely-battle storyboard pilots', () => {
     expect(account.analystPhases).toHaveLength(7)
     expect(account.brief.map((section) => section.id)).toEqual(['opening', 'decisive-interactions', 'resolution'])
     expect(account.alternateOutcome).toEqual(story.alternateOutcome)
+    expect(briefing.sentences.flatMap((sentence) => sentence.fragments.map((fragment) => fragment.evidenceId)))
+      .toEqual(['scenario:matchup', 'quantity:group'])
+    expect(closing.evidenceIds[0]).toBe('verdict:outcome')
+    expect(closing.sentences.every((sentence) => sentence.fragments.some((fragment) => fragment.evidenceId === 'verdict:outcome'))).toBe(true)
+    expect(story.representedQuantity.abstractionLabel).not.toMatch(/log10|reserve gap/i)
+    expect(story.alternateOutcome.text).not.toMatch(/deterministic margin|log10|\d+\.\d+%/i)
     for (const section of [...account.brief, account.alternateOutcome]) {
       expect(section.evidenceIds.length).toBeGreaterThan(0)
       expect(section.text).toBe(section.sentences.map((sentence) => sentence.fragments.map((fragment) => fragment.text).join('')).join(' '))
@@ -141,6 +159,36 @@ describe('validated likely-battle storyboard pilots', () => {
     }
     expect(validateBattleStoryboard(story, reconstruction)).toEqual({ valid: true, issues: [] })
   })
+
+  test.each(Object.entries(pilots))('%s keeps its chronicle varied, natural and final', (_name, pilot) => {
+    for (const storySeed of [90210, 90211]) {
+      const reconstruction = input(pilot, storySeed)
+      const account = buildBattleNarrative(buildBattleStoryboard(reconstruction))
+      const fullText = account.storyChapters.map((chapter) => chapter.text).join(' ')
+      const sentences = fullText.match(/(?:\d+\.\d+|[^.!?])+[.!?]+/g)?.map((sentence) => sentence.trim()) ?? []
+      const repeated = [...new Set(sentences.filter((sentence, index) => sentences.indexOf(sentence) !== index))]
+      const sidePattern = new RegExp(Object.values(reconstruction.contestants).map((contestant) => contestant.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi')
+      const normalized = sentences.map((sentence) => sentence.toLowerCase()
+        .replace(sidePattern, '<side>')
+        .replace(/\b(?:briefing|deployment|approach|contact|pressure|turning point|resolution)\b/g, '<phase>')
+        .replace(/\d+(?:[.,]\d+)*/g, '<n>')
+        .replace(/^.*?;/, '<lead>;')
+        .replace(/^.*? changes what /, '<lead> changes what '))
+      const normalizedCounts = normalized.reduce((counts, sentence) => counts.set(sentence, (counts.get(sentence) ?? 0) + 1), new Map<string, number>())
+      const resolution = account.storyChapters.find((chapter) => chapter.id === 'resolution')!.text
+      const finality = 'finally closes the contest.'
+
+      expect(repeated).toEqual([])
+      expect(Math.max(...normalizedCounts.values())).toBeLessThanOrEqual(2)
+      expect(fullText).not.toMatch(/the next supported exchange tests|the other side still has a legal answer|the ending stays open as pressure carries|what this .+ establishes carries into the next beat|changes what .+ must answer next|carries that exact result into the next beat/i)
+      expect(fullText).not.toMatch(/\d+\.\d{2,}\s+(?:effective|resolved|modelled) uses?\b/i)
+      expect(fullText).not.toMatch(/(?:^|\s)1(?:\.0)? effective uses\b|Only the active front bears at once/i)
+      expect(resolution).toContain(finality)
+      expect(resolution.slice(resolution.indexOf(finality) + finality.length)).toMatch(/^ This plausible path ends with .+ resolved verdict places it\.$/)
+      expect(resolution.slice(resolution.indexOf(finality) + finality.length)).not.toMatch(/\b(next|continues|answer|exchange)\b/i)
+    }
+  })
+
   test.each(Object.entries(pilots))('%s is reproducible, legal, and has stable JSON', (_name, pilot) => {
     const reconstruction = input(pilot)
     const first = buildBattleStoryboard(reconstruction)
@@ -184,6 +232,14 @@ describe('validated likely-battle storyboard pilots', () => {
       .find((beat) => beat.title === 'Altitude and shadow')?.evidenceIds).toEqual(expect.arrayContaining([
         'ability-resolution:solo:legacy-flight', 'quantity:group',
       ]))
+    const eagleAccount = buildBattleNarrative(eagle)
+    const eagleText = eagleAccount.storyChapters.map((chapter) => chapter.text).join(' ')
+    const eagleSpine = eagleAccount.brief.find((section) => section.id === 'decisive-interactions')!.text
+    expect(eagleText).toContain('about 20,833 opponents')
+    expect(eagleText).toContain('at contact reach')
+    expect(eagleText).not.toMatch(/20,833\.3|0\.0 metres/)
+    expect(eagleSpine).toMatch(/supported flight route[\s\S]+usable front[\s\S]+replacement wave/i)
+    expect(eagleSpine).not.toMatch(/contact strike/i)
 
     const dragonInput = input(pilots.dragonArchers)
     const dragon = buildBattleStoryboard(dragonInput)
@@ -442,7 +498,8 @@ describe('validated likely-battle storyboard pilots', () => {
     const story = buildBattleStoryboard(reconstruction)
     expect(story.reconstructionType).not.toBe('conceptual-scale')
     expect(story.representedQuantity.visibleActorCount).toBe(0)
-    expect(story.representedQuantity.abstractionLabel).toContain('aggregate pressure volume')
+    expect(story.representedQuantity.abstractionLabel).toMatch(/no literal figures.+effective active\/frontage pressure.+remainder contributes only from reserve/i)
+    expect(story.representedQuantity.abstractionLabel).not.toMatch(/log10|reserve gap/i)
     expect(story.phases.flatMap((phase) => phase.events).filter((event) => event.actingSide === 'group').every((event) => event.activeActorCount === 0)).toBe(true)
     expect(validateBattleStoryboard(story, reconstruction)).toEqual({ valid: true, issues: [] })
   })
@@ -602,6 +659,36 @@ describe('validated likely-battle storyboard pilots', () => {
       .toContain('ability-resolution:solo:legacy-contact')
   })
 
+  test.each(Object.entries(pilots))('%s keeps Story labels and measurements natural while preserving exact evidence', (_name, pilot) => {
+    const story = buildBattleStoryboard(input(pilot))
+    const account = buildBattleNarrative(story)
+    const storyText = account.storyChapters.map((chapter) => `${chapter.title} ${chapter.text}`).join(' ')
+    const matchup = story.evidence.find((record) => record.id === 'scenario:matchup')!
+    const arena = story.evidence.find((record) => record.id === 'scenario:arena')!
+    const eventBeats = story.phases.flatMap((phase) => phase.storyBeats).filter((beat) => beat.eventIds.length)
+
+    expect(account.storyChapters.map((chapter) => chapter.title))
+      .toEqual(story.phases.map((phase) => phase.storyBeats[0]?.title))
+    expect(account.analystPhases.map((phase) => phase.title))
+      .toEqual(['Briefing', 'Deployment', 'Approach', 'Contact', 'Pressure', 'Turning point', 'Resolution'])
+    expect(matchup.sourceIds).toContain('scenario.groupQuantity')
+    expect(`${storyText} ${arena.plainText}`).not.toMatch(/\b\d+\.0(?:-metre|\s+metres?|\s+m\b)/i)
+    expect(storyText).not.toMatch(/\b(?:group encirclement|resolved group frontage|resolved replacement wave|authoritative resolution)\b/i)
+    for (const eventId of ['resolved-group-frontage', 'resolved-replacement-wave']) {
+      const beat = eventBeats.find((candidate) => candidate.eventIds.includes(eventId))
+      if (beat) expect(beat.title).not.toMatch(/group encirclement|resolved|replacement wave/i)
+    }
+  })
+
+  test('a zero-distance Story says contact reach instead of 0.0 metres', () => {
+    const reconstruction = input({ ...pilots.elephantWolves, startingDistanceM: 0 })
+    const story = buildBattleStoryboard(reconstruction)
+    const account = buildBattleNarrative(story)
+    const text = `${account.storyChapters.map((chapter) => chapter.text).join(' ')} ${story.evidence.find((record) => record.id === 'scenario:arena')?.plainText}`
+    expect(text).toMatch(/at contact reach/i)
+    expect(text).not.toMatch(/\b0(?:\.0)?\s+(?:m|metres?)\b/i)
+  })
+
   test('validator rejects mutated evidence, unsupported prose, broken chronology and duplicate beat coverage', () => {
     const reconstruction = input(pilots.dragonArchers)
     const source = buildBattleStoryboard(reconstruction)
@@ -636,6 +723,67 @@ describe('validated likely-battle storyboard pilots', () => {
     wrongQuantity.representedQuantity.visibleActorCount -= 1
     expect(validateBattleStoryboard(wrongQuantity, reconstruction).issues.map((issue) => issue.code))
       .toEqual(expect.arrayContaining(['quantity-authority']))
+  })
+
+  test('canonical authority rejects presentation mutations even after callers recompute exported hashes', () => {
+    const reconstruction = input(pilots.dragonArchers)
+    const source = buildBattleStoryboard(reconstruction)
+
+    for (const field of ['plainText', 'technicalText'] as const) {
+      const changed = structuredClone(source)
+      const evidence = changed.evidence.find((record) => record.id === 'verdict:outcome')!
+      evidence[field] += ' Forged but rehashed.'
+      const { integrityHash: _integrityHash, ...evidenceContent } = evidence
+      evidence.integrityHash = battleEvidenceIntegrity(evidenceContent)
+      refreshExportedHashes(changed, reconstruction)
+      expect(validateBattleStoryboard(changed, reconstruction).issues.map((issue) => issue.code))
+        .toContain('canonical')
+    }
+
+    const changedNarrative = structuredClone(source)
+    const changedBeat = changedNarrative.phases.find((phase) => phase.id === 'approach')!.storyBeats[0]
+    const changedSentence = changedBeat.sentences[0]
+    changedSentence.fragments[0].text += ' A forged weapon decides the battle.'
+    const { integrityHash: _sentenceHash, ...sentenceContent } = changedSentence
+    changedSentence.integrityHash = narrativeSentenceIntegrity(sentenceContent)
+    const { integrityHash: _beatHash, ...beatContent } = changedBeat
+    changedBeat.integrityHash = battleStoryBeatIntegrity(beatContent)
+    refreshExportedHashes(changedNarrative, reconstruction)
+    expect(validateBattleStoryboard(changedNarrative, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
+
+    const changedIdentity = structuredClone(source)
+    ;(changedIdentity as unknown as { version: number }).version = 99
+    changedIdentity.modelVersion = 'forged-model'
+    changedIdentity.dataVersion = 'forged-data'
+    refreshExportedHashes(changedIdentity, reconstruction)
+    expect(validateBattleStoryboard(changedIdentity, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
+
+    const changedCaveats = structuredClone(source)
+    changedCaveats.caveats = changedCaveats.caveats.filter((caveat) => caveat !== RECONSTRUCTION_NOTICE)
+    changedCaveats.caveats.push('A forged reconstruction caveat.')
+    refreshExportedHashes(changedCaveats, reconstruction)
+    expect(validateBattleStoryboard(changedCaveats, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
+
+    const changedCaption = structuredClone(source)
+    changedCaption.phases.flatMap((phase) => phase.events).find((event) => event.abilityId === 'fire-breath')!.caption = 'A forged caption.'
+    refreshExportedHashes(changedCaption, reconstruction)
+    expect(validateBattleStoryboard(changedCaption, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
+
+    const changedNarration = structuredClone(source)
+    changedNarration.phases.find((phase) => phase.id === 'approach')!.narration = 'A forged phase account.'
+    refreshExportedHashes(changedNarration, reconstruction)
+    expect(validateBattleStoryboard(changedNarration, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
+
+    const changedSummary = structuredClone(source)
+    changedSummary.summary = 'A forged verdict summary.'
+    refreshExportedHashes(changedSummary, reconstruction)
+    expect(validateBattleStoryboard(changedSummary, reconstruction).issues.map((issue) => issue.code))
+      .toContain('canonical')
   })
 
   test('brief and alternate passages fail closed when evidence is missing, unknown or outside passage scope', () => {

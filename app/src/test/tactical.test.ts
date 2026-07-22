@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, hazardRadiusM, mediumFor, rangedLineFormationPositions, representationFor, shouldRenderTacticalPath, tacticalPathPresentation, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
-import { tacticalLabelPlacement, tacticalSceneRadius } from '../components/tactical/TacticalScene'
-import type { BattleStoryboard } from '../storyboard'
+import { directedCameraFit, tacticalLabelPlacement, tacticalLabelsCrowded, tacticalSceneRadius } from '../components/tactical/TacticalScene'
+import type { BattleEvent, BattleStoryboard } from '../storyboard'
 import type { Ability, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
 
 const scenario = { terrain: 'open', groupQuantity: '1000000', startingDistanceM: 25, coordinationDoctrine: 'instinctive' } as ScenarioV4Draft
@@ -110,6 +110,51 @@ describe('tactical planning', () => {
     expect(solo.offsetY).not.toBe(group.offsetY)
     expect(solo.singletonHalo).toBe(true)
     expect(group.singletonHalo).toBe(false)
+  })
+  it('moves nearby labels into deterministic collision-avoidance lanes', () => {
+    expect(tacticalLabelsCrowded([0, 0, 0], [2, 0, 1])).toBe(true)
+    expect(tacticalLabelsCrowded([0, 0, 0], [8, 0, 1])).toBe(false)
+    const solo = tacticalLabelPlacement('solo', 1, true, 2)
+    const group = tacticalLabelPlacement('group', 20, true, 2)
+    expect(solo.offsetX).toBeLessThan(0)
+    expect(group.offsetX).toBeGreaterThan(0)
+    expect(group.offsetY).toBeGreaterThan(solo.offsetY)
+    expect([solo.sideMarker, group.sideMarker]).toEqual(['◆', '■'])
+    expect(solo.scale[0]).toBeLessThan(2)
+  })
+  it('fits the directed camera to authored focus geometry and the followed actor target', () => {
+    const base = storyboard().phases[0].events[0]
+    const event: BattleEvent = {
+      ...base,
+      type: 'area-attack',
+      actingSide: 'group',
+      targetSide: 'solo',
+      startPosition: [-10, 0, 0],
+      endPosition: [30, 0, 0],
+      areaRadiusM: 10,
+    }
+    const overhead = directedCameraFit({ cue: { type: 'overhead', showRanges: true }, event, focusPositions: [] })
+    expect(overhead.target[0]).toBeCloseTo(2.2, 10)
+    expect(overhead.target.slice(1)).toEqual([0, 0])
+    expect(overhead.actionSpan).toBeCloseTo(11.44, 10)
+    expect(overhead.offset).toEqual([0.1, 18, 0.1])
+    expect(overhead.following).toBe(false)
+
+    const followed = directedCameraFit({
+      cue: { type: 'follow', side: 'group' },
+      event,
+      focusPositions: [[-10, 0, 0], [30, 0, 0]],
+      followedActorPosition: [5, 4, 3],
+    })
+    expect(followed.target[0]).toBeCloseTo(1.1, 10)
+    expect(followed.target[1]).toBe(4)
+    expect(followed.target[2]).toBeCloseTo(0.66, 10)
+    expect(followed.offset).toEqual([7, 5, 7])
+    expect(followed.following).toBe(true)
+
+    const targetSide = directedCameraFit({ cue: { type: 'follow', side: 'solo' }, event, focusPositions: [] })
+    expect(targetSide.target[0]).toBeCloseTo(6.6, 10)
+    expect(targetSide.target.slice(1)).toEqual([0, 0])
   })
   it('shows the elephant/wolves pilot as six frontage representatives plus reserves without changing its effective count', () => {
     const pilot = storyboard()

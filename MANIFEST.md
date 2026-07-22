@@ -22,10 +22,12 @@
 - `docs/BATTLE_RECONSTRUCTION.md` — application-0.6 storyboard, narrative, quantity, guided tactical renderer, accessibility and performance contract.
 - `docs/QA_REPORT.md` and `docs/MODEL_0.4_BUILD_BUDGET.md` — exact application-0.6.0 verification, accessibility, runtime and artifact-budget evidence.
 - `docs/PR_0.6.0_DRAFT.md` — draft pull-request summary, invariants, test evidence and explicit manual limits.
+- `docs/assets/evidence-0.6.0/` — tracked exact-candidate dragon/eagle desktop/mobile captures and browser runtime evidence; source Playwright output remains ignored.
 - `app/src/storyboard/` — deterministic storyboard contracts, hashes, builder, validator, narrative templates and stable JSON export.
 - `app/src/components/tactical/` — lazy primitive React Three Fiber diorama, synchronized Canvas `TacticalMap`, shared `beatPlan`, and reusable archetype/fallback planning.
 - `app/e2e/presentation-clarity.spec.ts` and `app/src/test/tacticalChoreography.test.ts` — Story/Analyst, tooltip, beat, camera, map, accessibility and choreography regressions.
 - `app/scripts/capture-epic-battle-evidence.mjs` — repeatable desktop/mobile dragon/eagle capture and headless runtime sampler.
+- `app/scripts/capture-android-device-evidence.mjs` — prepared SM-S948B touch, tooltip, camera, comprehension-field and runtime evidence workflow for exact-final recapture.
 - `scripts/audit_model04_ability_coverage.mjs` — release-blocking structured-mechanic coverage audit.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
 - `SHA256SUMS.txt` and `scripts/generate_sha256s.py` — deterministic checksums of the exact Git-index file bytes.
@@ -56,9 +58,9 @@
 - Searchable roster filtering, optional field briefings, sticky workspace navigation, the single run action and revise-and-rerun verdict loop are covered by browser and visual QA.
 - Every result can expose a validated seven-phase likely-battle storyboard, readable Story account, complete Analyst account, typed evidence explanations, alternate path and stable JSON without re-running the simulation. Conceptual results create no literal actors or battlefield.
 - The optional tactical reconstruction is fully lazy, beat-driven, capped at 80 visible actors, uses modular profiles across 15 primitive archetypes and 14 environments plus a four-step visual fallback, and retains active callouts, Tactical map, captions/transcript/reduced-motion/no-WebGL access and optional PNG/WebM capture.
-- Final comparative story/reconstruction captures and runtime observations are retained under ignored `output/playwright/epic-battle-final/`; deployable artifacts remain confined to `app/dist/`.
+- Final comparative story/reconstruction captures and runtime observations are retained under tracked `docs/assets/evidence-0.6.0/`, with their working copies under ignored `output/playwright/epic-battle-final/`; deployable artifacts remain confined to `app/dist/`.
 - Markdown is the canonical documentation format; duplicate binary document derivatives are not repository deliverables.
 
 ## Deliberate limits
 
-The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Licensing provenance now covers all 134 profiles, while stronger primary sourcing and expert review remain future scientific-quality work. Explicit amphibious/land-capable traits improve environment routing but are still authored classifications requiring review. Frontage, reserves, stopping, arena feasibility, duration and losses remain model abstractions. Screen-reader testing on real assistive technology remains manual. Custom profiles are deliberately private/local unless explicitly exported or shared.
+The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Licensing provenance now covers all 134 profiles, while stronger primary sourcing and expert review remain future scientific-quality work. Explicit amphibious/land-capable traits improve environment routing but are still authored classifications requiring review. Frontage, reserves, stopping, arena feasibility, duration and losses remain model abstractions. Exact-final SM-S948B recapture, human dragon comprehension sign-off, real assistive-technology checks, physical iOS/Safari and physical downloads remain manual. Application 0.6.0 is not publicly deployed. Custom profiles are deliberately private/local unless explicitly exported or shared.

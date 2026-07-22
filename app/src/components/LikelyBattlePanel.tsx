@@ -46,7 +46,7 @@ function StoryChapter({ phase, evidenceById }: {
     <section className="story-chapter" aria-labelledby={`story-phase-${phase.id}`}>
       <header>
         <div>
-          <h4 id={`story-phase-${phase.id}`}>{titleCase(phase.id)}</h4>
+          <h4 id={`story-phase-${phase.id}`}>{phase.storyBeats[0]?.title ?? titleCase(phase.id)}</h4>
         </div>
         <span className="story-advantage">{sideLabel(phase.advantage)}</span>
       </header>

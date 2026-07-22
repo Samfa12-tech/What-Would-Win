@@ -254,6 +254,7 @@ export interface HistoryItem {
   soloName: string
   groupName: string
   soloWinProbability: number
+  storySeed?: number
 }
 
 export interface HistoryStore {

@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-07-22T23:18:56.209Z",
+  "baseUrl": "http://127.0.0.1:4175",
+  "results": [
+    {
+      "pilot": "dragon-archers",
+      "viewport": "1440x1000",
+      "meanFrameMs": 16.66583193277311,
+      "p95FrameMs": 16.700000000000728,
+      "maxFrameMs": 16.800000000000182,
+      "jsHeapUsedBytes": 17100000,
+      "jsHeapLimitBytes": 3760000000
+    },
+    {
+      "pilot": "eagle-mice",
+      "viewport": "412x915 touch",
+      "meanFrameMs": 16.666386554621848,
+      "p95FrameMs": 16.799999999999272,
+      "maxFrameMs": 16.800000000000182,
+      "jsHeapUsedBytes": 11200000,
+      "jsHeapLimitBytes": 3760000000
+    }
+  ]
+}

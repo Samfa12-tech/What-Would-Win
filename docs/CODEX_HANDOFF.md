@@ -12,15 +12,15 @@ npm run build
 node scripts/check-build-budgets.mjs
 node scripts/check-static-subpath.mjs
 npx playwright install chromium firefox webkit
-npm run test:e2e -- --workers=2
+npm run test:e2e -- --workers=3
 ```
 
 Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/dist/` to `/apps/what-would-win/` on `samfa12.com`; do not hand-edit the hosted artifact.
 
 ## Current state
 
-- React/TypeScript/Vite static application, version **0.4.1**.
-- Active reproducibility identity: **model 0.4.1, data 0.4.1, share format v4**; custom/history storage formats **v2**.
+- React/TypeScript/Vite static application, version **0.6.0**.
+- Active reproducibility identity: **model 0.4.1, data 0.4.1, share format v4**; storyboard **v2**; custom/history storage formats **v2**.
 - 134 canonical profiles and an audited model-0.3 physical aggregate foundation.
 - Structured model-0.4 abilities with explicit delivery, geometry scaling, activation, effects, facing/eligibility, counters, bounded uses/recharge and bilateral channel resolution.
 - Contact reach is distinct from ability range. Scenarios have separate solo/group resources and optional per-ability overrides.
@@ -32,10 +32,11 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 - Strict, functional and magical resizing; bilateral stopping/access; frontage/reserves; area control; and bounded-arena occupancy remain from model 0.3.
 - V4 shares and v2 custom/history persistence include recovery and migrations from supported v3, v2, v1 and unversioned inputs.
 - Ordinary results use seven factor-backed explanatory phases; conceptual results use three aggregate phases and withhold physical duration/loss estimates.
+- The validated presentation layer expands either result into seven evidence-backed storyboard chapters, deterministic Story/Analyst accounts and an optional beat-driven 3D/Canvas reconstruction without re-running the simulation.
 - Four report depths, URL sharing, PNG/JSON export and local browser history remain available.
 - Static hosting requires no account, database or server-side simulation service.
 
-`app/src/version.ts` exposes the active 0.4.1/v4 identity and separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
+`app/src/version.ts` exposes application 0.6.0 plus the active model/data 0.4.1 and share-v4 identity, alongside separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
 
 ## Read these files in order
 
@@ -54,6 +55,11 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 13. `app/e2e/app.spec.ts` and `app/e2e/accessibility.spec.ts`
 14. `data/DATA_DICTIONARY.md` and `data/test_scenarios.json`
 15. `docs/MODEL_AUDIT_0.3.md` and `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` as historical decision records
+16. `docs/BATTLE_RECONSTRUCTION.md`
+17. `app/src/storyboard/contracts.ts`, `builder.ts`, `validator.ts` and `narrative.ts`
+18. `app/src/components/LikelyBattlePanel.tsx` and `app/src/components/tactical/`
+19. `app/src/test/storyboard.test.ts`, `app/src/test/tactical.test.ts` and `app/e2e/presentation-clarity.spec.ts`
+20. `docs/QA_REPORT.md` and `docs/PR_0.6.0_DRAFT.md`
 
 ## Product invariants
 
@@ -95,19 +101,21 @@ The explanation and sensitivity panel cannot independently change the winner. Do
 - Conceptual results omit logistics, heat, food, travel and planetary constraints.
 - Thunderbird and Bunyip remain fictional cryptozoological composites pending cultural-sensitivity review; Charybdis is an explicitly modelled environmental-hazard abstraction.
 - Custom profiles are browser-local and need explicit JSON export or a share link for backup/transfer.
-- Physical Safari/iOS and real NVDA/VoiceOver checks have not been evidenced for the model-0.4 release.
-- The released 0.4.0 build was published at `https://samfa12.com/apps/what-would-win/` through Samfa12 website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6`; the Pages workflow, rendered 0.4.0 identity, simulation and v4 share-link flow were verified on the live route. This 0.4.1 rectification remains a candidate until its exact tested `app/dist/` tree is reviewed and synced; do not describe it as deployed from this repository alone.
-- Automated browser coverage is complete for the exact candidate artifact (93 passed, 3 expected project-scope skips); this is not evidence of physical-device or real screen-reader behaviour.
+- Physical Safari/iOS and real NVDA/TalkBack/VoiceOver checks have not been evidenced for application 0.6.0.
+- A prior near-final SM-S948B run on Android 16 / Chrome 150 passed native touch, Free look, pinch, pinned tooltips, dragon/eagle assertions and Adreno 840 WebGL at 16.8 ms p95. The user independently confirmed eagle comprehension. Exact-final device recapture and human dragon sign-off remain pending because ADB later stopped enumerating the phone.
+- The released 0.4.0 build was published at `https://samfa12.com/apps/what-would-win/` through Samfa12 website commit `5ebc76a6c6f4464acba9e3810aa75c945d7841d6`; the Pages workflow, rendered 0.4.0 identity, simulation and v4 share-link flow were verified on the live route. Application 0.6.0 remains a candidate until its exact tested `app/dist/` tree is reviewed and synced; do not describe 0.6.0 as publicly deployed.
+- Automated browser coverage is complete for the exact candidate application artifact (**184 passed, 20 intentional project-scope skips, 0 failed**); this does not replace exact-final physical-device, real screen-reader, physical-download or independent dragon-comprehension evidence.
 
 ## Recommended next tasks
 
 Prepare and verify a model-0.4 user-test candidate without silently retuning it:
 
-1. run exploratory physical-device and real NVDA/VoiceOver checks;
-2. exercise v4 sharing, v2 custom/history recovery and supported legacy migrations on representative physical devices;
-3. independently review high-use profile data and migrated structured abilities, including cultural-sensitivity cases;
-4. test PNG/JSON downloads on representative devices; and
-5. collect structured feedback before changing coefficients or ability magnitudes.
+1. recapture dragon and eagle on the exact final candidate when the SM-S948B is visible to ADB, and obtain the remaining human dragon comprehension sign-off;
+2. run real NVDA/TalkBack/VoiceOver plus physical iOS/Safari checks;
+3. exercise v4 sharing, v2 custom/history recovery, supported legacy migrations and PNG/JSON/WebM downloads on representative physical devices;
+4. independently review high-use profile data and migrated structured abilities, including cultural-sensitivity cases;
+5. sync and smoke-test the exact reviewed `app/dist/` only after the remaining release decisions; and
+6. collect structured feedback before changing coefficients or ability magnitudes.
 
 ## Verification commands
 
@@ -121,11 +129,11 @@ npm run test:simulation-budget
 npm run build
 node scripts/check-build-budgets.mjs
 node scripts/check-static-subpath.mjs
-npm run test:e2e -- --workers=2
+npm run test:e2e -- --workers=3
 ```
 
 Run commands from `app/`. Record exact current counts and build sizes in `docs/QA_REPORT.md` only after the commands complete. A timed-out or interrupted browser run is not a pass. The 16 fixture bands are behavioural guardrails, not biological truth.
 
 ## Handoff prompt for Codex
 
-> Continue What Would Win from app/model/data 0.4.1, share format v4 and custom/history storage v2. Read the 0.4.1 rectification audit, product plan, model notes and `app/src/model04/` contracts, engine, runtime and persistence before editing; treat model 0.3 and data 0.3.1 as historical foundation records. Preserve deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, static subpath hosting and factor-ledger truth. Keep contact reach separate from versioned ability geometry; preserve explicit physiology, senses, locomotion, facing, effect-level stopping/access, bounded uses, counters and complete technical rejection records. Run ability coverage, the full physical regression suite, persistence migrations, build budgets and browser gates for every material change.
+> Continue What Would Win from application 0.6.0, model/data 0.4.1, storyboard v2, share format v4 and custom/history storage v2. Read the 0.4.1 rectification audit, product plan, model notes, battle-reconstruction contract, `app/src/model04/` runtime contracts and `app/src/storyboard/` contracts/builder/validator before editing; treat model 0.3 and data 0.3.1 as historical foundation records. Preserve deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, static subpath hosting and factor-ledger truth. Narrative and tactical reconstruction may present only validated evidence and must never imply a Monte Carlo trial replay. Keep contact reach separate from versioned ability geometry; preserve explicit physiology, senses, locomotion, facing, effect-level stopping/access, bounded uses, counters, quantity compression, fixed hazards and complete technical rejection records. Run ability coverage, the full physical and storyboard regression suites, persistence migrations, build budgets and the complete browser matrix for every material change.

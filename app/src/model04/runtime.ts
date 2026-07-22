@@ -11,7 +11,7 @@ import {
   type ScenarioV4Draft,
   type SideResources,
 } from './contracts'
-import { simulateModel04, type Model04SensitivityPoint } from './engineV4'
+import { simulateModel04, type Model04DeterministicState, type Model04SensitivityPoint } from './engineV4'
 import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from './migrateV3'
 import { decodeModel04Scenario, encodeModel04Scenario } from './persistence'
 import {
@@ -35,6 +35,7 @@ export interface Model04RuntimeResources {
 
 export interface Model04RuntimeResult {
   result: SimulationResult
+  deterministicState: Model04DeterministicState
   sensitivity: Model04SensitivityPoint[]
   abilityResolutions: AbilityResolution[]
   scenario: ScenarioV4Draft
@@ -63,6 +64,7 @@ export interface DecodedModel04ForUi {
 export interface Model04HistoryInputs {
   scenario: Scenario
   resources: Model04RuntimeResources
+  storySeed?: number
 }
 
 function v4ToV3(creature: CreatureV4Draft): CustomCreature {
@@ -212,6 +214,7 @@ export class Model04Runtime {
     if (!solo || !group) throw new Error('Scenario references an unknown model 0.4 profile.')
     return {
       result: simulated.result,
+      deterministicState: structuredClone(simulated.deterministicState),
       sensitivity: structuredClone(simulated.sensitivity),
       abilityResolutions: structuredClone(simulated.abilityResolutions),
       scenario: structuredClone(canonicalScenario),
@@ -303,6 +306,7 @@ export class Model04Runtime {
           soloName: item.soloName,
           groupName: item.groupName,
           soloWinProbability: snapshot.soloWinProbability,
+          ...(item.presentation ? { storySeed: item.presentation.storySeed } : {}),
         }
       }),
       warning: loaded.warning,
@@ -312,14 +316,20 @@ export class Model04Runtime {
   historyInputs(storage: Storage, historyItemId: string): Model04HistoryInputs | null {
     const available = new Set(this.creatures.map((creature) => creature.id))
     const item = loadModel04History(storage, available).items.find((candidate) => candidate.id === historyItemId)
-    return item ? scenarioV4ForUi(item.scenario) : null
+    return item ? { ...scenarioV4ForUi(item.scenario), ...(item.presentation ? { storySeed: item.presentation.storySeed } : {}) } : null
   }
 
   saveHistory(storage: Storage, items: HistoryItem[], newestResources: Model04RuntimeResources): void {
     const available = new Set(this.creatures.map((creature) => creature.id))
     const existing = loadModel04History(storage, available).items
     const existingById = new Map(existing.map((item) => [item.id, item]))
-    const v2 = items.map((item, index): HistoryItemV2 => existingById.get(item.id) ?? ({
+    const v2 = items.map((item, index): HistoryItemV2 => {
+      const existingItem = existingById.get(item.id)
+      if (existingItem) return {
+        ...existingItem,
+        ...(item.storySeed === undefined ? {} : { presentation: { storySeed: item.storySeed >>> 0 } }),
+      }
+      return {
       formatVersion: 2,
       source: { shareFormat: 'storage-v2', modelVersion: MODEL_04_VERSION, dataVersion: MODEL_04_DATA_VERSION },
       id: item.id,
@@ -334,8 +344,10 @@ export class Model04Runtime {
         status: 'current', modelVersion: MODEL_04_VERSION, dataVersion: MODEL_04_DATA_VERSION,
         winnerName: item.winnerName, soloWinProbability: item.soloWinProbability,
       },
+      ...(item.storySeed === undefined ? {} : { presentation: { storySeed: item.storySeed >>> 0 } }),
       migrationNotices: [],
-    }))
+      }
+    })
     saveModel04History(storage, v2)
   }
 

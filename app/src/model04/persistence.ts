@@ -480,6 +480,7 @@ export interface HistoryItemV2 {
   soloName: string
   groupName: string
   result: HistoryResultV2
+  presentation?: { storySeed: number }
   migrationNotices: Model04MigrationNotice[]
 }
 
@@ -502,6 +503,10 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
   if (!isRecord(value) || value.formatVersion !== 2 || !isRecord(value.source) || !isScenarioV4Draft(value.scenario)) return null
   if (!validHistoryText(value.id) || !validDate(value.createdAt) || !validHistoryText(value.soloName) || !validHistoryText(value.groupName)) return null
   if (!isRecord(value.result) || !Array.isArray(value.migrationNotices)) return null
+  if (value.presentation !== undefined) {
+    if (!isRecord(value.presentation) || !Number.isInteger(value.presentation.storySeed)
+      || (value.presentation.storySeed as number) < 0 || (value.presentation.storySeed as number) > 0xffff_ffff) return null
+  }
   if (value.result.status === 'current') {
     if (value.result.modelVersion !== MODEL_04_VERSION || value.result.dataVersion !== MODEL_04_DATA_VERSION || !validHistoryText(value.result.winnerName)) return null
     if (typeof value.result.soloWinProbability !== 'number' || value.result.soloWinProbability < 0 || value.result.soloWinProbability > 1) return null

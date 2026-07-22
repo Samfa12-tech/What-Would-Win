@@ -16,7 +16,7 @@ import {
 import { Model04Runtime, type Model04RuntimeResult } from '../model04/runtime'
 import { defaultScenario } from '../simulation/engine'
 import type { Creature, Scenario } from '../types'
-import { DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
+import { APPLICATION_VERSION, DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
 
 const creatures = creaturesJson as Creature[]
 const runtime = new Model04Runtime(creatures)
@@ -59,8 +59,9 @@ function resultIdentity(run: Model04RuntimeResult) {
 }
 
 describe('model 0.4 atomic activation contract', () => {
-  test('locks package and active model, data, share, custom and history identities together', () => {
-    expect(packageJson.version).toBe(MODEL_04_VERSION)
+  test('locks application and active model, data, share, custom and history identities explicitly', () => {
+    expect(packageJson.version).toBe(APPLICATION_VERSION)
+    expect(String(APPLICATION_VERSION)).toBe('0.6.0')
     expect(String(MODEL_VERSION)).toBe(MODEL_04_VERSION)
     expect(String(DATA_VERSION)).toBe(MODEL_04_DATA_VERSION)
     expect(Number(SHARE_FORMAT_VERSION)).toBe(MODEL_04_SHARE_FORMAT_VERSION)

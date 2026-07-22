@@ -1423,19 +1423,51 @@ footer strong {
   }
 }
 
+.result-view-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(6, 10, 18, 0.5);
+}
+
+.result-view-nav button,
+.tactical-controls button,
+.tactical-controls select {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--panel-soft);
+}
+
+.result-view-nav button {
+  flex: 1 1 150px;
+  padding: 9px 14px;
+}
+
+.result-view-nav button.active,
+.result-view-nav button[aria-current="page"] {
+  border-color: var(--gold);
+  color: #0b1220;
+  background: var(--gold-light);
+  font-weight: 800;
+}
+
+.result-view,
+.reconstruction-panel {
+  min-width: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
     transition: none !important;
-  }
-}
-
-@media (forced-colors: active) {
-  .versus-mark span {
-    background: Canvas;
-    color: CanvasText;
   }
 }
 
@@ -1489,6 +1521,23 @@ footer strong {
 .workspace-links span {
   color: var(--gold);
   font-size: 10px;
+}
+
+@media (forced-colors: active) {
+  .versus-mark span {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .workspace-links a {
+    forced-color-adjust: none;
+    color: CanvasText;
+    background: Canvas;
+  }
+
+  .workspace-links span {
+    color: CanvasText;
+  }
 }
 
 .nav-case {
@@ -1802,7 +1851,7 @@ footer strong {
   }
 
   .workspace-nav {
-    top: 0;
+    position: static;
     gap: 8px;
     margin-left: -2px;
     margin-right: -2px;

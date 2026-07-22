@@ -19,9 +19,13 @@
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — reviewed profile decisions, exact calibration comparison, versioning and compatibility evidence.
 - `docs/MODEL_0.4.1_RECTIFICATION_AUDIT.md` — active rectification decisions, calibration movement, build evidence and remaining limits.
-- `docs/BATTLE_RECONSTRUCTION.md` — application-0.5 storyboard, narrative, quantity, tactical renderer, accessibility and performance contract.
+- `docs/BATTLE_RECONSTRUCTION.md` — application-0.6 storyboard, narrative, quantity, guided tactical renderer, accessibility and performance contract.
+- `docs/QA_REPORT.md` and `docs/MODEL_0.4_BUILD_BUDGET.md` — exact application-0.6.0 verification, accessibility, runtime and artifact-budget evidence.
+- `docs/PR_0.6.0_DRAFT.md` — draft pull-request summary, invariants, test evidence and explicit manual limits.
 - `app/src/storyboard/` — deterministic storyboard contracts, hashes, builder, validator, narrative templates and stable JSON export.
-- `app/src/components/tactical/` — lazy primitive React Three Fiber diorama and reusable archetype/fallback planning.
+- `app/src/components/tactical/` — lazy primitive React Three Fiber diorama, synchronized Canvas `TacticalMap`, shared `beatPlan`, and reusable archetype/fallback planning.
+- `app/e2e/presentation-clarity.spec.ts` and `app/src/test/tacticalChoreography.test.ts` — Story/Analyst, tooltip, beat, camera, map, accessibility and choreography regressions.
+- `app/scripts/capture-epic-battle-evidence.mjs` — repeatable desktop/mobile dragon/eagle capture and headless runtime sampler.
 - `scripts/audit_model04_ability_coverage.mjs` — release-blocking structured-mechanic coverage audit.
 - `SECURITY.md` — public responsible-reporting guidance and supported security scope.
 - `SHA256SUMS.txt` and `scripts/generate_sha256s.py` — deterministic checksums of the exact Git-index file bytes.
@@ -36,7 +40,7 @@
 - Vite production build passing.
 - Creature JSON validated against the supplied Draft 2020-12 schema.
 - CSV and JSON profile IDs/order match.
-- Application 0.5.0, model/data 0.4.1, storyboard v1, share format v4 and custom/history storage v2 are explicit. Frozen v3/v2/v1/unversioned migrations, unavailable-profile recovery and incompatible-share rejection are covered.
+- Application 0.6.0, model/data 0.4.1, storyboard v2, share format v4 and custom/history storage v2 are explicit. Frozen v3/v2/v1/unversioned migrations, unavailable-profile recovery and incompatible-share rejection are covered.
 - Ability coverage verifies 118 mechanical source tokens across all 134 profiles; 29 profiles use reviewed explicit overrides and the remaining conservative migrations retain an auditable route.
 - Every original 16-fixture model-0.3 calibration scenario runs through the active v4 engine with reviewed expectations, ledger reconstruction and written movement rationale.
 - Named private custom profiles validated, saved locally, imported/exported and embedded in clean-browser reproducible shares.
@@ -50,8 +54,9 @@
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
 - Production build interaction and overflow checked at desktop and mobile widths.
 - Searchable roster filtering, optional field briefings, sticky workspace navigation, the single run action and revise-and-rerun verdict loop are covered by browser and visual QA.
-- Every result can expose a validated seven-phase likely-battle storyboard, three-part account, evidence annotations, alternate path and stable JSON without re-running the simulation. Conceptual results create no literal actors or battlefield.
-- The optional tactical reconstruction is fully lazy, storyboard-driven, capped at 80 visible actors, uses modular profiles across 15 primitive archetypes and 14 environments plus a four-step visual fallback, and retains captions/transcript/reduced-motion/no-WebGL access and optional PNG/WebM capture.
+- Every result can expose a validated seven-phase likely-battle storyboard, readable Story account, complete Analyst account, typed evidence explanations, alternate path and stable JSON without re-running the simulation. Conceptual results create no literal actors or battlefield.
+- The optional tactical reconstruction is fully lazy, beat-driven, capped at 80 visible actors, uses modular profiles across 15 primitive archetypes and 14 environments plus a four-step visual fallback, and retains active callouts, Tactical map, captions/transcript/reduced-motion/no-WebGL access and optional PNG/WebM capture.
+- Final comparative story/reconstruction captures and runtime observations are retained under ignored `output/playwright/epic-battle-final/`; deployable artifacts remain confined to `app/dist/`.
 - Markdown is the canonical documentation format; duplicate binary document derivatives are not repository deliverables.
 
 ## Deliberate limits

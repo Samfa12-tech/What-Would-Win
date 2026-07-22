@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, mediumFor, rangedLineFormationPositions, representationFor, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
+import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, hazardRadiusM, mediumFor, rangedLineFormationPositions, representationFor, shouldRenderTacticalPath, tacticalPathPresentation, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
+import { tacticalLabelPlacement, tacticalSceneRadius } from '../components/tactical/TacticalScene'
 import type { BattleStoryboard } from '../storyboard'
 import type { Ability, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
 
@@ -61,6 +62,10 @@ describe('tactical planning', () => {
   it('caps formations and keeps layouts deterministic', () => {
     expect(formationPositions(1000, 12, 'group', 'ground')).toHaveLength(TACTICAL_MAX_VISIBLE_ACTORS)
     expect(formationPositions(20, 12, 'group', 'ground')).toEqual(formationPositions(20, 12, 'group', 'ground'))
+    const capped = storyboard()
+    capped.representedQuantity.visibleActorCount = TACTICAL_MAX_VISIBLE_ACTORS
+    const plan = buildTacticalPlan(capped, { solo: creature('dragon'), group: creature('mouse') }, scenario)
+    expect(plan.actors.reduce((total, actor) => total + actor.visibleCount, 0)).toBe(TACTICAL_MAX_VISIBLE_ACTORS)
   })
   it('uses a shallow ranged line only when the creature profile supports the declared distance', () => {
     const archer = creature('prepared archer', { abilities: [ability('bow-shot', { delivery: 'ranged', rangeM: 80 })] })
@@ -96,6 +101,28 @@ describe('tactical planning', () => {
     const event = storyboard().phases[0].events[0]
     expect(eventDestination(event)).toEqual([1, 0, 1])
   })
+  it('uses compact, side-separated labels and retains singleton halos', () => {
+    const solo = tacticalLabelPlacement('solo', 1)
+    const group = tacticalLabelPlacement('group', 20)
+    expect(solo.offsetZ).toBeLessThan(0)
+    expect(group.offsetZ).toBeGreaterThan(0)
+    expect(solo.scale[0]).toBeLessThan(3)
+    expect(solo.offsetY).not.toBe(group.offsetY)
+    expect(solo.singletonHalo).toBe(true)
+    expect(group.singletonHalo).toBe(false)
+  })
+  it('shows the elephant/wolves pilot as six frontage representatives plus reserves without changing its effective count', () => {
+    const pilot = storyboard()
+    pilot.representedQuantity = { declaredQuantityLog10: 2, visibleActorCount: 50, representedActorsPerVisibleActor: 2, effectiveActiveCountLog10: Math.log10(78), abstractionLabel: '50 shown.' }
+    const plan = buildTacticalPlan(pilot, {
+      solo: creature('african-bush-elephant', { representative_peak_mass_kg: 4_000 }),
+      group: creature('gray-wolf'),
+    }, { ...scenario, groupQuantity: '100' })
+    const wolves = plan.actors.find((actor) => actor.side === 'group')!
+    expect(wolves).toMatchObject({ activeCount: 78, reserveCount: 22, visibleCount: 50, visibleActiveCount: 6, visibleReserveCount: 44 })
+    expect(wolves.positions.slice(0, 6).every((position) => position[0] < 0)).toBe(true)
+    expect(wolves.positions.slice(6).every((position) => position[0] > 0)).toBe(true)
+  })
   it('uses aggregate pressure without actors above one million and ignores rejected hazards', () => {
     const aggregate = storyboard()
     aggregate.representedQuantity = { ...aggregate.representedQuantity, declaredQuantityLog10: 7, visibleActorCount: 0, representedActorsPerVisibleActor: null }
@@ -107,5 +134,30 @@ describe('tactical planning', () => {
     expect(buildTacticalPlan(rejected, { solo: creature('hazard'), group: creature('orca') }, scenario).hazards).toEqual([])
     const fixedHazard = creature('Charybdis', { physiology: 'environmental-hazard', locomotion: { land: false, flight: false, aquatic: true, amphibious: false } })
     expect(buildTacticalPlan(storyboard(), { solo: fixedHazard, group: creature('orca') }, { ...scenario, terrain: 'ocean' }).actors.find((actor) => actor.side === 'solo')?.visibleCount).toBe(0)
+  })
+  it('uses only positive resolved hazard geometry and retains zero-visible aggregate pressure', () => {
+    const exact = storyboard()
+    exact.phases[0].events[0].areaRadiusM = 0.01
+    exact.phases[0].events[0].rangeM = 999
+    const exactPlan = buildTacticalPlan(exact, { solo: creature('hazard'), group: creature('orca') }, scenario)
+    expect(exactPlan.hazards).toMatchObject([{ radius: 0.01 }])
+    expect(hazardRadiusM({ ...exact.phases[0].events[0], areaRadiusM: 0, rangeM: 0 })).toBeUndefined()
+    expect(tacticalSceneRadius(0.01)).toBe(0.0022)
+    expect(tacticalSceneRadius(1_000_000)).toBe(220000)
+    const aggregate = storyboard()
+    aggregate.representedQuantity = { ...aggregate.representedQuantity, visibleActorCount: 0 }
+    const aggregatePlan = buildTacticalPlan(aggregate, { solo: creature('eagle'), group: creature('mouse') }, scenario)
+    expect(aggregatePlan).toMatchObject({ aggregatePressure: true })
+    expect(aggregatePlan.actors.find((actor) => actor.side === 'group')).toMatchObject({ visibleCount: 0, origin: expect.any(Array) })
+  })
+  it('distinguishes unavailable, intercepted, and full trajectories without turning denials into impacts', () => {
+    const base = storyboard().phases[0].events[0]
+    expect(tacticalPathPresentation({ ...base, outcome: 'ineligible' })).toBe('unavailable')
+    expect(tacticalPathPresentation({ ...base, outcome: 'blocked' })).toBe('intercepted')
+    expect(tacticalPathPresentation({ ...base, outcome: 'countered' })).toBe('intercepted')
+    expect(tacticalPathPresentation({ ...base, outcome: 'missed' })).toBe('full')
+    expect(shouldRenderTacticalPath({ ...base, type: 'restraint', outcome: 'ineligible', endPosition: undefined })).toBe(true)
+    expect(shouldRenderTacticalPath({ ...base, type: 'restraint', outcome: 'effective', endPosition: undefined })).toBe(false)
+    expect(shouldRenderTacticalPath({ ...base, type: 'hazard-pulse', outcome: 'ineligible', endPosition: undefined })).toBe(false)
   })
 })

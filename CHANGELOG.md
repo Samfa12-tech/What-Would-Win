@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-07-22
+
+- Advanced the presentation contract to storyboard v2 with typed evidence records, deterministic sentence fragments and validated story beats linked to the existing legal event ledger.
+- Reworked Likely battle into a readable, grounded-epic Story account and a complete Analyst account; the three-part summary is no longer assembled by concatenating technical phase captions.
+- Added accessible inline evidence explanations for important abilities, ranges, counts and model terms using native hover/focus/tap triggers, Escape dismissal and a complete non-tooltip evidence fallback.
+- Reworked tactical playback around explicit beats with Who / What / Target / Result / Why callouts, direct beat controls and a labelled phase-and-beat timeline.
+- Added Story camera, Tactical map and Free look modes; the synchronized 2D Canvas map, HTML legend and active explanation remain available when WebGL is absent or the optional scene fails.
+- Preserved the authoritative application boundary: model/data remain 0.4.1, share format remains v4, history/custom storage remain v2, and changing the story seed cannot alter the verdict or evidence ledger.
+
 ## 0.5.0 — 2026-07-20
 
 - Added the versioned `BattleStoryboard`, seven fixed phases, deterministic story seeds, stable scenario/result hashes, validated factor/ability references and standalone JSON export without changing model 0.4.1.

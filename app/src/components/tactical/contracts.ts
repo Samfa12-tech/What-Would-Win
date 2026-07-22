@@ -1,4 +1,4 @@
-import type { BattleEvent, BattleStoryboard, StoryboardSide } from '../../storyboard'
+import type { BattleEvent, BattleStoryboard, CameraCue, StoryboardSide } from '../../storyboard'
 import type { CreatureV4Draft, ScenarioV4Draft } from '../../model04/contracts'
 
 export const TACTICAL_MAX_VISIBLE_ACTORS = 80
@@ -67,6 +67,8 @@ export interface TacticalActorPlan {
   origin: [number, number, number]
   activeCount: number
   reserveCount: number | null
+  visibleActiveCount?: number
+  visibleReserveCount?: number
 }
 
 export interface TacticalHazardPlan {
@@ -86,14 +88,61 @@ export interface TacticalPlan {
   aggregatePressure: boolean
 }
 
+export interface TacticalActorStateTransition {
+  side: StoryboardSide
+  sourceEventId: string | null
+  beforePosition: [number, number, number] | null
+  afterPosition: [number, number, number] | null
+  moving: boolean
+}
+
+export type TacticalActorStateTransitions = Record<StoryboardSide, TacticalActorStateTransition>
+
+/** Interpolates an authored beat transition without resolving or altering an event. */
+export function actorPositionAtProgress(transition: TacticalActorStateTransition, progress: number): [number, number, number] | null {
+  const from = transition.beforePosition
+  const to = transition.afterPosition
+  if (!from || !to) return from ?? to
+  const ratio = Math.max(0, Math.min(1, progress))
+  return from.map((value, index) => value + (to[index] - value) * ratio) as [number, number, number]
+}
+
+/** Returns only authored, resolved hazard geometry; presentation never invents a radius. */
+export function hazardRadiusM(event: BattleEvent): number | undefined {
+  if ((event.areaRadiusM ?? 0) > 0) return event.areaRadiusM
+  if ((event.rangeM ?? 0) > 0) return event.rangeM
+  return undefined
+}
+
+export type TacticalPathPresentation = 'unavailable' | 'intercepted' | 'full'
+
+/** Rejections have no trajectory; denials are intercepted, while misses complete their trajectory. */
+export function tacticalPathPresentation(event: BattleEvent): TacticalPathPresentation {
+  if (event.outcome === 'ineligible') return 'unavailable'
+  if (event.outcome === 'blocked' || event.outcome === 'countered') return 'intercepted'
+  return 'full'
+}
+
+/** An unavailable action still needs a source marker even though it has no legal trajectory. */
+export function shouldRenderTacticalPath(event: BattleEvent): boolean {
+  return event.type !== 'hazard-pulse' && (tacticalPathPresentation(event) === 'unavailable' || Boolean(event.endPosition))
+}
+
 export interface TacticalSceneProps {
   storyboard: BattleStoryboard
   contestants: { solo: CreatureV4Draft; group: CreatureV4Draft }
   scenario: ScenarioV4Draft
   activePhaseIndex: number
+  activeEventIds: string[]
+  completedEventIds: string[]
+  cameraCue: CameraCue
+  focusPositions: Array<[number, number, number]>
+  actorStateTransitions: TacticalActorStateTransitions
+  beatProgress: number
   playing: boolean
   reducedMotion: boolean
-  cameraMode: 'directed' | 'free'
+  cameraMode: 'story' | 'free'
+  cameraResetKey: number
   showRanges: boolean
   showLabels: boolean
 }
@@ -253,37 +302,67 @@ function seeded(seed: number, index: number, salt: number): number {
   return ((value ^ (value >>> 16)) >>> 0) / 0x1_0000_0000
 }
 
-export function formationPositions(count: number, seed: number, side: StoryboardSide, medium: TacticalMedium): Array<[number, number, number]> {
+export function formationPositions(count: number, seed: number, side: StoryboardSide, _medium: TacticalMedium): Array<[number, number, number]> {
   const clamped = Math.max(0, Math.min(TACTICAL_MAX_VISIBLE_ACTORS, count))
+  if (clamped === 1) return [[0, 0, 0]]
   return Array.from({ length: clamped }, (_, index) => {
     const angle = seeded(seed, index, side === 'solo' ? 11 : 23) * Math.PI * 2
     const ring = 1.1 + Math.floor(index / 8) * 1.25 + seeded(seed, index, 37) * 0.35
     return [
       Number((Math.cos(angle) * ring).toFixed(3)),
-      medium === 'air' ? Number((3 + seeded(seed, index, 41) * 2).toFixed(3)) : medium === 'water' ? -0.4 : 0,
+      0,
       Number((Math.sin(angle) * ring).toFixed(3)),
     ]
   })
 }
 
-function disciplinedFormationPositions(count: number, medium: TacticalMedium): Array<[number, number, number]> {
+function disciplinedFormationPositions(count: number, _medium: TacticalMedium): Array<[number, number, number]> {
   const clamped = Math.max(0, Math.min(TACTICAL_MAX_VISIBLE_ACTORS, count))
   const columns = Math.max(1, Math.ceil(Math.sqrt(clamped)))
   return Array.from({ length: clamped }, (_, index) => [
     Number(((index % columns) * 0.75 - (columns - 1) * 0.375).toFixed(3)),
-    medium === 'air' ? 3.5 : medium === 'water' ? -0.4 : 0,
+    0,
     Number((Math.floor(index / columns) * 0.65 - 1.3).toFixed(3)),
   ])
 }
 
-export function rangedLineFormationPositions(count: number, medium: TacticalMedium): Array<[number, number, number]> {
+export function rangedLineFormationPositions(count: number, _medium: TacticalMedium): Array<[number, number, number]> {
   const clamped = Math.max(0, Math.min(TACTICAL_MAX_VISIBLE_ACTORS, count))
   const columns = Math.max(1, Math.ceil(clamped / 2))
   return Array.from({ length: clamped }, (_, index) => [
     Number(((index % columns) * 0.7 - (columns - 1) * 0.35).toFixed(3)),
-    medium === 'air' ? 3.5 : medium === 'water' ? -0.4 : 0,
+    0,
     index < columns ? -0.42 : 0.42,
   ])
+}
+
+export function frontageReserveFormationPositions(
+  count: number,
+  activeCount: number,
+  _medium: TacticalMedium,
+  ranged = false,
+): Array<[number, number, number]> {
+  const clamped = Math.max(0, Math.min(TACTICAL_MAX_VISIBLE_ACTORS, count))
+  const active = Math.max(0, Math.min(clamped, activeCount))
+  const height = 0
+  const activePositions = Array.from({ length: active }, (_, index): [number, number, number] => {
+    const ratio = active <= 1 ? 0.5 : index / (active - 1)
+    const z = (ratio - 0.5) * Math.min(10, Math.max(1.4, active * (ranged ? 0.62 : 0.75)))
+    const x = ranged ? -1.5 + (index % 2) * 0.48 : -1.35 + Math.abs(z) * 0.08
+    return [Number(x.toFixed(3)), height, Number(z.toFixed(3))]
+  })
+  const reserveCount = clamped - active
+  const columns = Math.max(1, Math.min(10, Math.ceil(Math.sqrt(reserveCount))))
+  const reservePositions = Array.from({ length: reserveCount }, (_, index): [number, number, number] => {
+    const row = Math.floor(index / columns)
+    const column = index % columns
+    return [
+      Number((0.45 + row * 0.72).toFixed(3)),
+      height,
+      Number(((column - (columns - 1) / 2) * 0.72).toFixed(3)),
+    ]
+  })
+  return [...activePositions, ...reservePositions]
 }
 
 export function usesRangedLine(creature: CreatureV4Draft, scenario: ScenarioV4Draft): boolean {
@@ -292,25 +371,36 @@ export function usesRangedLine(creature: CreatureV4Draft, scenario: ScenarioV4Dr
 
 export function buildTacticalPlan(storyboard: BattleStoryboard, contestants: TacticalSceneProps['contestants'], scenario: ScenarioV4Draft): TacticalPlan {
   if (storyboard.reconstructionType === 'conceptual-scale') return { conceptual: true, actors: [], hazards: [], activeFrontRadius: 0, reserveRadius: 0, aggregatePressure: true }
-  const groupVisible = Math.min(TACTICAL_MAX_VISIBLE_ACTORS, storyboard.representedQuantity.visibleActorCount)
   const groupMedium = mediumFor(contestants.group, scenario)
   const soloMedium = mediumFor(contestants.solo, scenario)
   const soloProfile = visualProfileFor(contestants.solo)
   const groupProfile = visualProfileFor(contestants.group)
-  const declared = 10 ** Math.min(12, storyboard.representedQuantity.declaredQuantityLog10)
-  const active = storyboard.representedQuantity.effectiveActiveCountLog10 === null ? groupVisible : Math.min(groupVisible, Math.max(1, Math.round(10 ** Math.min(3, storyboard.representedQuantity.effectiveActiveCountLog10))))
   const soloVisible = archetypeFor(contestants.solo) === 'environmental-hazard' ? 0 : 1
+  const groupVisible = Math.min(TACTICAL_MAX_VISIBLE_ACTORS - soloVisible, storyboard.representedQuantity.visibleActorCount)
+  const declared = 10 ** Math.min(12, storyboard.representedQuantity.declaredQuantityLog10)
+  const active = storyboard.representedQuantity.effectiveActiveCountLog10 === null
+    ? groupVisible
+    : Math.min(declared, Math.max(1, Math.round(10 ** Math.min(12, storyboard.representedQuantity.effectiveActiveCountLog10))))
+  // This is a representative visual partition only. The elephant/wolves pilot deliberately
+  // shows six wolves at the contact frontage while retaining the authoritative active count.
+  const visibleActive = contestants.solo.id === 'african-bush-elephant' && contestants.group.id === 'gray-wolf'
+    ? Math.min(6, groupVisible)
+    : Math.min(groupVisible, active)
+  const rangedFormation = usesRangedLine(contestants.group, scenario)
   const hazards = storyboard.phases.flatMap((phase) => phase.events)
     .filter((event) => event.type === 'hazard-pulse' && (event.outcome === 'effective' || event.outcome === 'partially-effective'))
-    .map((event) => ({ eventId: event.id, side: event.actingSide, position: event.startPosition, radius: Math.max(0.75, event.areaRadiusM ?? event.rangeM ?? 2), stationary: true as const }))
+    .flatMap((event) => {
+      const radius = hazardRadiusM(event)
+      return radius === undefined ? [] : [{ eventId: event.id, side: event.actingSide, position: event.startPosition, radius, stationary: true as const }]
+    })
   return {
     conceptual: false,
     actors: [
-      { id: contestants.solo.id, side: 'solo', archetype: soloProfile.archetype, visualProfile: soloProfile, representation: soloMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.solo), medium: soloMedium, visibleCount: soloVisible, representedPerActor: 1, positions: formationPositions(soloVisible, storyboard.storySeed, 'solo', soloMedium), origin: [-Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), soloMedium === 'air' ? 4 : soloMedium === 'water' ? -0.4 : 0, 0], activeCount: soloVisible, reserveCount: 0 },
-      { id: contestants.group.id, side: 'group', archetype: groupProfile.archetype, visualProfile: groupProfile, representation: groupMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.group), medium: groupMedium, visibleCount: groupVisible, representedPerActor: storyboard.representedQuantity.representedActorsPerVisibleActor, positions: usesRangedLine(contestants.group, scenario) ? rangedLineFormationPositions(groupVisible, groupMedium) : scenario.coordinationDoctrine === 'disciplined' && groupProfile.archetype === 'humanoid' ? disciplinedFormationPositions(groupVisible, groupMedium) : formationPositions(groupVisible, storyboard.storySeed, 'group', groupMedium), origin: [Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), groupMedium === 'air' ? 4 : groupMedium === 'water' ? -0.4 : 0, 0], activeCount: active, reserveCount: Math.max(0, Math.round(declared) - active) },
+      { id: contestants.solo.id, side: 'solo', archetype: soloProfile.archetype, visualProfile: soloProfile, representation: soloMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.solo), medium: soloMedium, visibleCount: soloVisible, representedPerActor: 1, positions: formationPositions(soloVisible, storyboard.storySeed, 'solo', soloMedium), origin: [-Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), soloMedium === 'air' ? 4 : soloMedium === 'water' ? -0.4 : 0, 0], activeCount: soloVisible, reserveCount: 0, visibleActiveCount: soloVisible, visibleReserveCount: 0 },
+      { id: contestants.group.id, side: 'group', archetype: groupProfile.archetype, visualProfile: groupProfile, representation: groupMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.group), medium: groupMedium, visibleCount: groupVisible, representedPerActor: storyboard.representedQuantity.representedActorsPerVisibleActor, positions: rangedFormation && visibleActive >= groupVisible ? rangedLineFormationPositions(groupVisible, groupMedium) : frontageReserveFormationPositions(groupVisible, visibleActive, groupMedium, rangedFormation), origin: [Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), groupMedium === 'air' ? 4 : groupMedium === 'water' ? -0.4 : 0, 0], activeCount: active, reserveCount: Math.max(0, Math.round(declared) - active), visibleActiveCount: visibleActive, visibleReserveCount: Math.max(0, groupVisible - visibleActive) },
     ],
     hazards,
-    activeFrontRadius: Math.max(2, Math.sqrt(active) * 0.7),
+    activeFrontRadius: Math.max(2, Math.sqrt(Math.min(active, 1_000)) * 0.7),
     reserveRadius: Math.max(3, Math.sqrt(groupVisible) * 1.1),
     aggregatePressure: groupVisible === 0 || (storyboard.representedQuantity.representedActorsPerVisibleActor ?? 1) > 1,
   }

@@ -3,7 +3,7 @@ import type { Model04DeterministicState, Model04SensitivityPoint } from '../mode
 import type { SimulationResult } from '../types'
 
 export const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
-export const STORYBOARD_VERSION = 1 as const
+export const STORYBOARD_VERSION = 2 as const
 export const MAX_VISIBLE_ACTORS = 80
 
 export type StoryboardSide = 'solo' | 'group'
@@ -28,6 +28,10 @@ export type CameraCue =
 
 export interface BattleEvent {
   id: string
+  /** Stable, story-seed-independent position in the phase's causal choreography. */
+  precedence?: number
+  /** Only events with the same non-empty group may exchange order between story seeds. */
+  equivalenceGroupId?: string
   type:
     | 'advance'
     | 'retreat'
@@ -60,6 +64,105 @@ export interface BattleEvent {
   cameraCue?: CameraCue
 }
 
+export type BattleEvidenceSourceType =
+  | 'scenario-condition'
+  | 'quantity'
+  | 'applied-factor'
+  | 'ability-resolution'
+  | 'verdict'
+  | 'sensitivity'
+
+export interface BattleEvidenceRecord {
+  id: string
+  sourceType: BattleEvidenceSourceType
+  label: string
+  plainText: string
+  technicalText: string
+  side?: StoryboardSide
+  sourceIds: string[]
+  values: Record<string, unknown>
+  /** Detects catalogue mutations without retaining a duplicate catalogue. */
+  integrityHash: string
+}
+
+export type BattleStoryBeatRole =
+  | 'scene'
+  | 'movement'
+  | 'action'
+  | 'reaction'
+  | 'denial'
+  | 'pressure'
+  | 'reversal'
+  | 'resolution'
+
+export type BattleStoryBeatProminence = 'decisive' | 'major' | 'supporting'
+
+export interface NarrativeSentenceFragment {
+  kind: 'text' | 'evidence'
+  text: string
+  evidenceId?: string
+}
+
+export interface NarrativeSentence {
+  id: string
+  templateId: string
+  variantId: string
+  fragments: NarrativeSentenceFragment[]
+  /** Detects any prose or evidence mutation without regenerating narrative templates. */
+  integrityHash: string
+}
+
+export type BattleBriefSectionId = 'opening' | 'decisive-interactions' | 'resolution'
+
+/**
+ * A compact narrative passage whose prose is assembled from the same typed,
+ * evidence-linked fragments as the full account. `text` is retained as a
+ * compatibility/read convenience and must equal the rendered sentences.
+ */
+export interface EvidenceBackedNarrativePassage<TId extends string = string> {
+  id: TId
+  title: string
+  text: string
+  evidenceIds: string[]
+  sentences: NarrativeSentence[]
+}
+
+export type BattleBriefSection = EvidenceBackedNarrativePassage<BattleBriefSectionId>
+export type BattleAlternateOutcome = EvidenceBackedNarrativePassage<'alternate-outcome'>
+
+export interface BattleBeatCallout {
+  who: string
+  what: string
+  target: string | null
+  result: string
+  why: string
+}
+
+export interface BattleBeatTacticalCue {
+  durationSeconds: number
+  cameraCue: CameraCue
+  focusPositions: Array<[number, number, number]>
+  overlayEventIds: string[]
+  callout: BattleBeatCallout
+}
+
+export interface BattleStoryBeat {
+  id: string
+  phaseId: StoryboardPhaseId
+  title: string
+  role: BattleStoryBeatRole
+  prominence: BattleStoryBeatProminence
+  actingSide?: StoryboardSide
+  targetSide?: StoryboardSide
+  outcome: BattleEvent['outcome'] | 'established' | 'contested' | 'resolved'
+  eventIds: string[]
+  evidenceIds: string[]
+  sentences: NarrativeSentence[]
+  tacticalCue: BattleBeatTacticalCue
+  /** Covers narrative and tactical choreography metadata for mutation checks. */
+  integrityHash: string
+}
+
 export interface BattleStoryboardPhase {
   id: StoryboardPhaseId
   startSeconds: number
@@ -68,6 +171,7 @@ export interface BattleStoryboardPhase {
   narration: string
   events: BattleEvent[]
   supportingFactorIds: string[]
+  storyBeats: BattleStoryBeat[]
 }
 
 export interface BattleStoryboard {
@@ -90,8 +194,12 @@ export interface BattleStoryboard {
     effectiveActiveCountLog10: number | null
     abstractionLabel: string
   }
+  evidence: BattleEvidenceRecord[]
   phases: BattleStoryboardPhase[]
+  briefAccount: BattleBriefSection[]
+  alternateOutcome: BattleAlternateOutcome
   summary: string
+  /** @deprecated Use `alternateOutcome` for evidence-linked narrative data. */
   alternateOutcomeNote: string
   caveats: string[]
 }
@@ -120,7 +228,26 @@ export interface StoryboardValidationResult {
 
 export interface BattleNarrativeAccount {
   notice: typeof RECONSTRUCTION_NOTICE
-  brief: Array<{ id: 'opening' | 'decisive-interactions' | 'resolution'; title: string; text: string }>
+  brief: BattleBriefSection[]
+  storyChapters: Array<{
+    id: StoryboardPhaseId
+    title: string
+    advantage: BattleStoryboardPhase['advantage']
+    text: string
+    beatIds: string[]
+    evidenceIds: string[]
+  }>
+  analystPhases: Array<{
+    id: StoryboardPhaseId
+    title: string
+    advantage: BattleStoryboardPhase['advantage']
+    summary: string
+    eventIds: string[]
+    factorIds: string[]
+    evidenceIds: string[]
+  }>
   phases: BattleStoryboardPhase[]
+  alternateOutcome: BattleAlternateOutcome
+  /** @deprecated Use `alternateOutcome`. */
   alternateOutcomeNote: string
 }

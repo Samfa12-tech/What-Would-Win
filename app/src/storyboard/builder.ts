@@ -6,10 +6,16 @@ import {
   RECONSTRUCTION_NOTICE,
   STORYBOARD_VERSION,
   type BattleEvent,
+  type BattleAlternateOutcome,
+  type BattleBriefSection,
+  type BattleEvidenceRecord,
   type BattleReconstructionInput,
+  type BattleStoryBeat,
   type BattleStoryboard,
   type BattleStoryboardPhase,
   type CameraCue,
+  type NarrativeSentence,
+  type NarrativeSentenceFragment,
   type StoryboardPhaseId,
   type StoryboardSide,
 } from './contracts'
@@ -20,6 +26,100 @@ const PHASES: StoryboardPhaseId[] = [
 ]
 
 const WATER_TERRAINS = new Set(['river', 'swamp', 'ocean', 'deep-ocean'])
+const CHARYBDIS_HAZARD_RADIUS_M = 40
+const ORCA_TRAJECTORY_ENTRY_M = 39
+const ORCA_MOBILITY_ENTRY_M = 38
+const FIXED_HAZARD_ORIGIN: [number, number, number] = [0, 0, 0]
+
+const PHASE_TITLES: Record<StoryboardPhaseId, string> = {
+  briefing: 'The measure of the field',
+  deployment: 'Lines drawn',
+  approach: 'The distance closes',
+  contact: 'First contact',
+  pressure: 'The contest deepens',
+  'turning-point': 'The balance turns',
+  resolution: 'The final balance',
+}
+
+const FEATURED_ABILITY_TITLES: Record<string, string> = {
+  'bow-shot': 'Finite opening volley',
+  flight: 'Flight and approach angle',
+  'fire-breath': 'Resolved fire area',
+  'web-restraint': 'Finite web restraint attempt',
+}
+
+const FEATURED_EVENT_TITLES: Record<string, string> = {
+  'scenario-medusa-facing-formation': 'Facing and line of sight',
+  'scenario-medusa-disciplined-advance': 'Disciplined post-gaze advance',
+}
+
+const OUTCOME_WHY: Partial<Record<BattleEvent['outcome'], string>> = {
+  effective: 'The action adds meaningful pressure',
+  'partially-effective': 'The action matters without deciding the battle',
+  countered: 'An active counter denies the ability',
+  blocked: 'An applicable immunity blocks the ability',
+  ineligible: 'The required conditions are unavailable',
+}
+
+const SPECIAL_EVENT_ORDER: Record<string, [number, string]> = {
+  'scenario-medusa-facing-formation': [10, 'deployment:medusa-facing'],
+  'scenario-medusa-disciplined-advance': [30, 'approach:medusa-disciplined-advance'],
+  'resolved-group-frontage': [10, 'deployment:frontage'],
+  'scenario-elephant-charge': [10, 'contact:elephant-charge'],
+  'scenario-orca-trajectory': [10, 'approach:orca-boundary-trajectory'],
+  'resolved-replacement-wave': [30, 'pressure:replacement-wave'],
+  'authoritative-resolution': [100, 'resolution:authoritative'],
+}
+
+const STORY_TURNS = [
+  'Balance shifts', 'Momentum gathers', 'The field narrows',
+  'Position becomes pressure', 'The opening changes', 'Distance tightens',
+  'The advantage holds', 'For one beat, it holds', 'Choices compound',
+]
+const STORY_REPLIES = [
+  'the next supported exchange tests whether it can hold under pressure.',
+  'the other side still has a legal answer under the same limits.',
+  'the ending stays open as pressure carries into the next beat.',
+]
+const STORY_BRIDGES = STORY_TURNS.map((turn, index) => `${turn}; ${STORY_REPLIES[index % STORY_REPLIES.length]}`)
+
+function ordinalCompare(left: string, right: string): number {
+  return left === right ? 0 : left < right ? -1 : 1
+}
+
+export function isCharybdisOrcaBoundaryScenario(input: BattleReconstructionInput): boolean {
+  return input.contestants.solo.id === 'charybdis'
+    && input.contestants.group.id === 'orca'
+    && Math.abs(input.scenario.startingDistanceM - CHARYBDIS_HAZARD_RADIUS_M) < 1e-9
+}
+
+function fixedOriginPoint(distanceM: number): [number, number, number] {
+  return [Number(distanceM.toFixed(3)), 0, 0]
+}
+
+function humaniseId(value: string): string {
+  const tail = value.split(':').at(-1) ?? value
+  return tail.replace(/[-_]+/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function factorEvidenceId(factorId: string): string {
+  return `factor:${factorId}`
+}
+
+function abilityEvidenceId(side: StoryboardSide, abilityId: string): string {
+  return `ability-resolution:${side}:${abilityId}`
+}
+
+function renderQuantityForStory(quantity: BattleStoryboard['representedQuantity']): string {
+  if (quantity.visibleActorCount === 0) {
+    return quantity.effectiveActiveCountLog10 === null
+      ? 'The declared scale remains conceptual, so no literal formation is placed on a battlefield.'
+      : 'The declared force is shown as aggregate pressure, with its active frontage kept distinct from the weight of its reserves.'
+  }
+  const compression = quantity.representedActorsPerVisibleActor ?? 1
+  if (compression <= 1) return `All ${quantity.visibleActorCount.toLocaleString('en-AU')} declared opponents can appear as individuals.`
+  return `${quantity.visibleActorCount.toLocaleString('en-AU')} representative figures carry the declared force, each standing for about ${compression.toLocaleString('en-AU', { maximumFractionDigits: 1 })} opponents.`
+}
 
 function sideName(input: BattleReconstructionInput, side: StoryboardSide): string {
   return input.contestants[side].name
@@ -34,7 +134,7 @@ function factorIds(resolution: AbilityResolution): string[] {
   return applied.length > 0 ? applied : [resolution.factorId]
 }
 
-function eventType(ability: Ability | undefined, resolution: AbilityResolution): BattleEvent['type'] {
+export function abilityResolutionEventType(ability: Ability | undefined, resolution: AbilityResolution): BattleEvent['type'] {
   if (!resolution.active) return 'counter'
   if (ability?.kind === 'hazard' || ability?.delivery === 'environmental') return 'hazard-pulse'
   if (resolution.effects.some((effect) => effect.kind === 'revival')) return 'revival'
@@ -55,6 +155,9 @@ function phaseForAbility(ability: Ability | undefined, resolution: AbilityResolu
 }
 
 function positionFor(input: BattleReconstructionInput, side: StoryboardSide, salt: string): [number, number, number] {
+  if (isCharybdisOrcaBoundaryScenario(input)) {
+    return side === 'solo' ? FIXED_HAZARD_ORIGIN : fixedOriginPoint(CHARYBDIS_HAZARD_RADIUS_M)
+  }
   const profile = input.contestants[side]
   const distance = Math.min(60, Math.max(6, input.scenario.startingDistanceM))
   const x = side === 'solo' ? -distance / 2 : distance / 2
@@ -80,34 +183,17 @@ function targetPositionFor(input: BattleReconstructionInput, side: StoryboardSid
 function rejectedCaption(input: BattleReconstructionInput, resolution: AbilityResolution, ability: Ability | undefined): string {
   const reason = resolution.rejectionReason ?? 'condition-unmet'
   const detail = reason === 'countered' && resolution.counterChannel
-    ? `it is countered by the active ${resolution.counterChannel} channel`
+    ? `countered by ${resolution.counterChannel}`
     : reason === 'out-of-range'
-      ? `the resolved ${resolution.resolvedRangeM.toFixed(1)} m range is not available at the required moment`
+      ? `${resolution.resolvedRangeM.toFixed(1)} m range unavailable`
       : reason === 'resource-depleted'
-        ? 'its declared resource is depleted'
+        ? 'resource depleted'
         : reason === 'target-immune'
-          ? 'the target has an applicable immunity'
+          ? 'target immune'
           : reason === 'delivery-inaccessible'
-            ? 'the required delivery route is inaccessible'
-            : (resolution.conditionFailures?.length ? resolution.conditionFailures.join('; ') : 'a declared condition is unmet')
-  return `${ability?.name ?? resolution.abilityId} does not take effect because ${detail}.`
-}
-
-function resolvedUsesCaption(value: number | null): string {
-  if (value === null) return ''
-  const rounded = Math.round(value * 10) / 10
-  if (Number.isInteger(rounded)) return `; ${rounded} resolved use${rounded === 1 ? '' : 's'} remain available`
-  return `; ${rounded.toFixed(1)} resolved-use equivalents remain available`
-}
-
-function activeCaption(input: BattleReconstructionInput, resolution: AbilityResolution, ability: Ability | undefined): string {
-  const actor = sideName(input, resolution.side)
-  const name = ability?.name ?? resolution.abilityId
-  const geometry = resolution.resolvedRangeM > 0
-    ? ` at up to ${resolution.resolvedRangeM.toFixed(1)} m${resolution.resolvedAreaRadiusM > 0 ? ` with a ${resolution.resolvedAreaRadiusM.toFixed(1)} m area` : ''}`
-    : ''
-  const uses = resolvedUsesCaption(resolution.resolvedUses)
-  return `${actor} can apply ${name}${geometry}${uses}. Its ${Math.round(resolution.coverageFactor * 100)}% coverage and ${Math.round(resolution.accessFactor * 100)}% access are taken directly from the resolved ability ledger.`
+            ? 'delivery inaccessible'
+            : (resolution.conditionFailures?.join('; ') || 'condition unmet')
+  return `${ability?.name ?? resolution.abilityId}: unavailable—${detail}.`
 }
 
 function cameraCue(input: BattleReconstructionInput, resolution: AbilityResolution, ability: Ability | undefined): CameraCue {
@@ -118,30 +204,108 @@ function cameraCue(input: BattleReconstructionInput, resolution: AbilityResoluti
   return { type: 'follow', side: resolution.side }
 }
 
+function resolutionOutcome(resolution: AbilityResolution): BattleEvent['outcome'] {
+  return !resolution.active
+    ? resolution.rejectionReason === 'countered' ? 'countered'
+      : resolution.rejectionReason === 'target-immune' ? 'blocked' : 'ineligible'
+    : resolution.logDelta > 0 ? 'effective' : 'partially-effective'
+}
+
+/**
+ * Story-seed variance is deliberately constrained to events that share both a
+ * causal slot and an explicit equivalence group. Distinct causal actions always
+ * retain their stable ordering.
+ */
+export function battleEventOrdering(
+  input: BattleReconstructionInput,
+  phase: StoryboardPhaseId,
+  event: Pick<BattleEvent, 'id' | 'type' | 'actingSide' | 'abilityId' | 'outcome'>,
+): { precedence: number; equivalenceGroupId: string } {
+  const special = SPECIAL_EVENT_ORDER[event.id]
+  if (special) return { precedence: special[0], equivalenceGroupId: special[1] }
+
+  const precedenceByType: Partial<Record<BattleEvent['type'], number>> = phase === 'approach'
+    ? {
+        counter: 5,
+        'ranged-attack': 10,
+        restraint: 10,
+        advance: 20,
+        'flight-manoeuvre': 20,
+        'area-attack': 30,
+      }
+    : phase === 'contact'
+      ? { charge: 10, 'contact-attack': 20, counter: 20 }
+      : phase === 'pressure'
+        ? { 'hazard-pulse': 10, 'group-encirclement': 20, 'replacement-wave': 30 }
+        : phase === 'turning-point'
+          ? { counter: 10, recovery: 20, revival: 30 }
+          : {}
+  const precedence = precedenceByType[event.type] ?? 50
+
+  // Opposed contact attacks occupy one simultaneous exchange. All other
+  // actions are intentionally unique until the model supplies stronger proof
+  // that their chronology is interchangeable.
+  const equivalenceGroupId = phase === 'contact' && event.type === 'contact-attack' && event.outcome === 'effective'
+    ? 'contact:simultaneous-effective-exchange'
+    : `${phase}:event:${event.actingSide}:${event.abilityId ?? event.id}`
+  return { precedence, equivalenceGroupId }
+}
+
+export function compareBattleEvents(
+  input: BattleReconstructionInput,
+  phase: StoryboardPhaseId,
+  left: BattleEvent,
+  right: BattleEvent,
+): number {
+  const leftOrder = battleEventOrdering(input, phase, left)
+  const rightOrder = battleEventOrdering(input, phase, right)
+  if (leftOrder.precedence !== rightOrder.precedence) return leftOrder.precedence - rightOrder.precedence
+  if (leftOrder.equivalenceGroupId !== rightOrder.equivalenceGroupId) {
+    return ordinalCompare(leftOrder.equivalenceGroupId, rightOrder.equivalenceGroupId)
+  }
+  const leftSeedOrder = seededUnit(input.storySeed, `equivalent:${leftOrder.equivalenceGroupId}:${left.id}`)
+  const rightSeedOrder = seededUnit(input.storySeed, `equivalent:${rightOrder.equivalenceGroupId}:${right.id}`)
+  return leftSeedOrder - rightSeedOrder || ordinalCompare(left.id, right.id)
+}
+
+function withBattleEventOrdering(
+  input: BattleReconstructionInput,
+  phase: StoryboardPhaseId,
+  event: Omit<BattleEvent, 'precedence' | 'equivalenceGroupId'>,
+): BattleEvent {
+  return { ...event, ...battleEventOrdering(input, phase, event) }
+}
+
 function buildAbilityEvents(input: BattleReconstructionInput): Map<StoryboardPhaseId, BattleEvent[]> {
   const byPhase = new Map(PHASES.map((phase) => [phase, [] as BattleEvent[]]))
-  const equivalentOrder = [...input.abilityResolutions].sort((left, right) => {
-    const leftPhase = PHASES.indexOf(phaseForAbility(abilityFor(input, left), left))
-    const rightPhase = PHASES.indexOf(phaseForAbility(abilityFor(input, right), right))
-    if (leftPhase !== rightPhase) return leftPhase - rightPhase
-    const leftOrder = seededUnit(input.storySeed, `order:${left.factorId}`)
-    const rightOrder = seededUnit(input.storySeed, `order:${right.factorId}`)
-    return leftOrder - rightOrder || left.factorId.localeCompare(right.factorId)
-  })
+  const equivalentOrder = [...input.abilityResolutions].sort((left, right) =>
+    ordinalCompare(`${left.side}:${left.factorId}`, `${right.side}:${right.factorId}`))
 
-  for (const [index, resolution] of equivalentOrder.entries()) {
+  for (const resolution of equivalentOrder) {
     const ability = abilityFor(input, resolution)
     const phase = phaseForAbility(ability, resolution)
-    const type = eventType(ability, resolution)
+    const type = abilityResolutionEventType(ability, resolution)
     const stationary = ability?.kind === 'hazard' || ability?.delivery === 'environmental'
     const hasMovementPath = resolution.active && (stationary || ability?.kind === 'mobility' || resolution.resolvedRangeM > 0)
-    const start = positionFor(input, resolution.side, resolution.factorId)
-    const outcome: BattleEvent['outcome'] = !resolution.active
-      ? resolution.rejectionReason === 'countered' ? 'countered'
-        : resolution.rejectionReason === 'target-immune' ? 'blocked' : 'ineligible'
-      : resolution.logDelta > 0 ? 'effective' : 'partially-effective'
-    byPhase.get(phase)?.push({
-      id: `ability-${index + 1}-${stableHash(resolution.factorId).slice(0, 8)}`,
+    const charybdisOrcaBoundary = isCharybdisOrcaBoundaryScenario(input)
+    const orcaMobility = charybdisOrcaBoundary && resolution.side === 'group' && resolution.abilityId === 'legacy-aquatic-mobility'
+    const orcaContact = charybdisOrcaBoundary && resolution.side === 'group' && resolution.abilityId === 'legacy-contact'
+    const start = stationary ? FIXED_HAZARD_ORIGIN
+      : orcaMobility ? fixedOriginPoint(ORCA_TRAJECTORY_ENTRY_M)
+        : orcaContact ? fixedOriginPoint(ORCA_MOBILITY_ENTRY_M)
+          : positionFor(input, resolution.side, resolution.factorId)
+    const outcome = resolutionOutcome(resolution)
+    const endPosition = stationary && resolution.active
+      ? FIXED_HAZARD_ORIGIN
+      : orcaMobility && resolution.active
+        ? fixedOriginPoint(ORCA_MOBILITY_ENTRY_M)
+        : orcaContact && resolution.active
+          ? fixedOriginPoint(Math.max(0, ORCA_MOBILITY_ENTRY_M - resolution.resolvedRangeM))
+          : hasMovementPath
+            ? targetPositionFor(input, resolution.side, resolution.factorId, resolution.resolvedRangeM > 0 ? resolution.resolvedRangeM : undefined)
+            : undefined
+    byPhase.get(phase)?.push(withBattleEventOrdering(input, phase, {
+      id: `ability-${resolution.side}-${stableHash(resolution.factorId).slice(0, 8)}`,
       type,
       actingSide: resolution.side,
       targetSide: resolution.side === 'solo' ? 'group' : 'solo',
@@ -149,23 +313,19 @@ function buildAbilityEvents(input: BattleReconstructionInput): Map<StoryboardPha
       factorIds: factorIds(resolution),
       activeActorCount: resolution.side === 'solo' ? 1 : parseQuantity(input.scenario.groupQuantity).log10 > 6 ? 0 : Math.max(1, Math.min(MAX_VISIBLE_ACTORS, Math.round(10 ** Math.min(4, input.deterministicState.groupEffectiveQuantityLog10)))),
       ...(resolution.side === 'group' ? { representedActorCountLog10: input.deterministicState.groupEffectiveQuantityLog10 } : {}),
-      startPosition: stationary ? [0, start[1], 0] : start,
-      ...(stationary && resolution.active
-        ? { endPosition: [0, start[1], 0] as [number, number, number] }
-        : hasMovementPath
-          ? { endPosition: targetPositionFor(input, resolution.side, resolution.factorId, resolution.resolvedRangeM > 0 ? resolution.resolvedRangeM : undefined) }
-          : {}),
+      startPosition: start,
+      ...(endPosition ? { endPosition } : {}),
       ...(resolution.resolvedRangeM > 0 ? { rangeM: resolution.resolvedRangeM } : {}),
       ...(resolution.resolvedAreaRadiusM > 0 ? { areaRadiusM: resolution.resolvedAreaRadiusM } : {}),
       outcome,
-      caption: resolution.active ? activeCaption(input, resolution, ability) : rejectedCaption(input, resolution, ability),
+      caption: resolution.active ? `${sideName(input, resolution.side)}: ${ability?.name ?? resolution.abilityId} resolves.` : rejectedCaption(input, resolution, ability),
       cameraCue: cameraCue(input, resolution, ability),
-    })
+    }))
   }
   return byPhase
 }
 
-function quantityRepresentation(input: BattleReconstructionInput): BattleStoryboard['representedQuantity'] {
+export function buildQuantityRepresentation(input: BattleReconstructionInput): BattleStoryboard['representedQuantity'] {
   const quantity = parseQuantity(input.scenario.groupQuantity)
   if (!quantity.valid) throw new Error('Cannot build a storyboard for an invalid quantity.')
   if (quantity.conceptual || input.deterministicState.conceptual) {
@@ -225,56 +385,27 @@ function factorAdvantage(factors: AppliedModelFactor[]): BattleStoryboardPhase['
   return solo > group ? 'solo' : 'group'
 }
 
-function phaseNarration(
-  input: BattleReconstructionInput,
-  phase: StoryboardPhaseId,
-  quantity: BattleStoryboard['representedQuantity'],
-  factors: AppliedModelFactor[],
-  events: BattleEvent[],
-): string {
-  const solo = sideName(input, 'solo')
-  const group = sideName(input, 'group')
-  const factor = factors[0]
-  if (input.deterministicState.conceptual) {
-    if (phase === 'briefing') return `${quantity.abstractionLabel} The reconstruction remains an abstract comparison rather than individual combat.`
-    if (phase === 'deployment') return `${input.scenario.terrain} conditions define access and capacity, but no literal formation is created at conceptual scale.`
-    if (phase === 'approach') return 'Resolved access and movement-medium constraints determine which aggregate pressure can reach the opposing side.'
-    if (phase === 'contact') return 'Contact is represented as a bounded factor ledger, not as individual attacks or casualties.'
-    if (phase === 'pressure') return `${factor?.explanation ?? 'Frontage and reserve pressure are applied logarithmically.'}`
-    if (phase === 'turning-point') return `The deterministic margin favours ${sideName(input, input.result.winner)} once the resolved factors are combined.`
-    return `${input.result.winnerName} remains the favoured model outcome; no physical duration or literal battlefield is claimed.`
-  }
-  if (phase === 'briefing') return `${solo} faces ${formatLogQuantity(quantity.declaredQuantityLog10)} × ${group} under the declared ${input.scenario.winCondition} condition. ${quantity.abstractionLabel}`
-  if (phase === 'deployment') return `The sides deploy in ${input.scenario.terrain} terrain at ${input.scenario.startingDistanceM.toFixed(1)} m, with ${input.scenario.coordinationDoctrine} group coordination and ${input.scenario.arenaBoundary} arena geometry.`
-  if (phase === 'approach') return events.length ? events.map((event) => event.caption).join(' ') : (factor?.explanation ?? 'The declared geometry permits a direct approach without a separate resolved ability event.')
-  if (phase === 'contact') return events.length ? events.map((event) => event.caption).join(' ') : (factor?.explanation ?? 'The physical contact ledger resolves the first effective interaction.')
-  if (phase === 'pressure') return `${events.map((event) => event.caption).join(' ')} ${factor?.explanation ?? 'Active frontage and reserves remain bounded by the resolved count basis.'}`.trim()
-  if (phase === 'turning-point') return `${events.map((event) => event.caption).join(' ')} ${factor?.explanation ?? `The combined deterministic ledger moves the advantage toward ${sideName(input, input.result.winner)}.`}`.trim()
-  const close = winningProbability(input) < 0.6 ? 'The result is close and assumption-sensitive. ' : ''
-  return `${close}${input.result.winnerName} is favoured at ${(winningProbability(input) * 100).toFixed(1)}%. The ending follows the declared ${input.scenario.winCondition} condition without inventing a trial history.`
-}
-
 function pressureEvents(input: BattleReconstructionInput, quantity: BattleStoryboard['representedQuantity']): BattleEvent[] {
   if (input.deterministicState.conceptual) return []
   const factor = input.result.appliedFactors.find((candidate) => candidate.id === 'group-aggregation-v4')
   if (!factor || quantity.effectiveActiveCountLog10 === null) return []
   const active = quantity.visibleActorCount === 0 ? 0 : Math.max(1, Math.min(quantity.visibleActorCount, Math.round(10 ** Math.min(3, quantity.effectiveActiveCountLog10))))
   const start = positionFor(input, 'group', 'group-pressure')
-  const events: BattleEvent[] = [{
+  const events: BattleEvent[] = [withBattleEventOrdering(input, 'pressure', {
     id: 'resolved-group-frontage', type: 'group-encirclement', actingSide: 'group', targetSide: 'solo',
     factorIds: [factor.id], activeActorCount: active, representedActorCountLog10: quantity.effectiveActiveCountLog10,
     startPosition: start, endPosition: targetPositionFor(input, 'group', 'group-pressure'), outcome: 'partially-effective',
-    caption: `The group spreads across the resolved active frontage: ${formatLogQuantity(quantity.effectiveActiveCountLog10)} effective opponents from ${formatLogQuantity(quantity.declaredQuantityLog10)} declared.`,
+    caption: `Active frontage: ${formatLogQuantity(quantity.effectiveActiveCountLog10)} of ${formatLogQuantity(quantity.declaredQuantityLog10)}.`,
     cameraCue: { type: 'frontage-view' },
-  }]
+  })]
   if (quantity.declaredQuantityLog10 - quantity.effectiveActiveCountLog10 > 0.05) {
-    events.push({
+    events.push(withBattleEventOrdering(input, 'pressure', {
       id: 'resolved-replacement-wave', type: 'replacement-wave', actingSide: 'group', targetSide: 'solo',
       factorIds: [factor.id], activeActorCount: active, representedActorCountLog10: quantity.declaredQuantityLog10,
       startPosition: start, endPosition: start, outcome: 'partially-effective',
-      caption: 'Opponents outside the active frontage contribute only through the bounded reserve-pressure term and representative replacement waves.',
+      caption: 'Rear ranks contribute through bounded reserve pressure and replacement waves.',
       cameraCue: { type: 'overhead', showRanges: false },
-    })
+    }))
   }
   return events
 }
@@ -282,31 +413,51 @@ function pressureEvents(input: BattleReconstructionInput, quantity: BattleStoryb
 function scenarioEvents(input: BattleReconstructionInput): Map<StoryboardPhaseId, BattleEvent[]> {
   const events = new Map(PHASES.map((phase) => [phase, [] as BattleEvent[]]))
   if (input.deterministicState.conceptual) return events
-  if (input.contestants.solo.id === 'african-bush-elephant' && input.contestants.group.id === 'gray-wolf') {
+  const matchup = `${input.contestants.solo.id}:${input.contestants.group.id}`
+  const add = (phase: StoryboardPhaseId, event: Omit<BattleEvent, 'precedence' | 'equivalenceGroupId'>) =>
+    events.get(phase)?.push(withBattleEventOrdering(input, phase, event))
+  const elephantContact = input.abilityResolutions.find((resolution) =>
+    resolution.side === 'solo' && resolution.abilityId === 'legacy-contact' && resolution.active)
+  if (matchup === 'african-bush-elephant:gray-wolf'
+    && input.contestants.solo.attack_modes.includes('charge') && elephantContact) {
     const start = positionFor(input, 'solo', 'pilot-elephant-charge')
-    events.get('contact')?.push({
-      id: 'scenario-elephant-charge', type: 'charge', actingSide: 'solo', targetSide: 'group', factorIds: [],
+    add('contact', {
+      id: 'scenario-elephant-charge', type: 'charge', actingSide: 'solo', targetSide: 'group', factorIds: [elephantContact.factorId],
       activeActorCount: 1, startPosition: start, endPosition: targetPositionFor(input, 'solo', 'pilot-elephant-charge'), outcome: 'partially-effective',
-      caption: 'The elephant follows a scripted charge path through the resolved active ring; this movement does not add an attack beyond the contact ledger.',
+      caption: 'The elephant charge uses its resolved contact factor.',
       cameraCue: { type: 'follow', side: 'solo' },
     })
   }
-  if (input.contestants.solo.id === 'medusa' && input.contestants.group.id === 'armoured-spear-carrier') {
+  if (matchup === 'medusa:armoured-spear-carrier') {
+    const activeActorCount = Math.min(MAX_VISIBLE_ACTORS, Math.max(1, Number(input.scenario.groupQuantity)))
     const position = positionFor(input, 'group', 'pilot-medusa-facing')
-    events.get('deployment')?.push({
+    add('deployment', {
       id: 'scenario-medusa-facing-formation', type: 'advance', actingSide: 'group', targetSide: 'solo', factorIds: [],
-      activeActorCount: Math.min(MAX_VISIBLE_ACTORS, Math.max(1, Number(input.scenario.groupQuantity))), startPosition: position, endPosition: position,
-      outcome: 'partially-effective', caption: `The spear carriers hold a ${input.scenario.coordinationDoctrine} facing formation; gaze eligibility still comes only from the resolved ability ledger.`,
+      activeActorCount, startPosition: position, endPosition: position,
+      outcome: 'partially-effective', caption: `Spear carriers hold a ${input.scenario.coordinationDoctrine} facing formation; gaze eligibility is unchanged.`,
       cameraCue: { type: 'frontage-view' },
     })
+    if (input.scenario.coordinationDoctrine === 'disciplined') {
+      const advanceStart = positionFor(input, 'group', 'pilot-medusa-disciplined-advance')
+      add('approach', {
+        id: 'scenario-medusa-disciplined-advance', type: 'advance', actingSide: 'group', targetSide: 'solo', factorIds: [],
+        activeActorCount,
+        startPosition: advanceStart, endPosition: targetPositionFor(input, 'group', 'pilot-medusa-disciplined-advance'),
+        outcome: 'partially-effective', caption: 'After the gaze resolves, the spear carriers continue their disciplined advance; this movement adds no new attack.',
+        cameraCue: { type: 'follow', side: 'group' },
+      })
+    }
   }
-  if (input.contestants.solo.id === 'charybdis' && input.contestants.group.id === 'orca') {
-    const start = positionFor(input, 'group', 'pilot-orca-trajectory')
-    const end: [number, number, number] = [Number((start[0] * 0.3).toFixed(3)), start[1], Number((start[2] * 0.3).toFixed(3))]
-    events.get('approach')?.push({
+  if (isCharybdisOrcaBoundaryScenario(input)) {
+    const resolvedBoundary = input.abilityResolutions.find((resolution) =>
+      resolution.side === 'solo' && resolution.abilityId === 'maelstrom' && resolution.active)?.resolvedAreaRadiusM
+    const boundaryRadius = resolvedBoundary ?? CHARYBDIS_HAZARD_RADIUS_M
+    const start = fixedOriginPoint(input.scenario.startingDistanceM)
+    const end = fixedOriginPoint(Math.min(ORCA_TRAJECTORY_ENTRY_M, Math.max(0, boundaryRadius - 1)))
+    add('approach', {
       id: 'scenario-orca-trajectory', type: 'advance', actingSide: 'group', targetSide: 'solo', factorIds: [],
       activeActorCount: 1, startPosition: start, endPosition: end, outcome: 'partially-effective',
-      caption: 'The orca follows a scripted entry trajectory toward the fixed hazard boundary; Charybdis remains stationary and does not pursue.',
+      caption: 'The orca crosses inward from the fixed hazard boundary; Charybdis does not pursue.',
       cameraCue: { type: 'hazard-view' },
     })
   }
@@ -316,7 +467,7 @@ function scenarioEvents(input: BattleReconstructionInput): Map<StoryboardPhaseId
 function resolutionEvent(input: BattleReconstructionInput, factorIdsForWinner: string[], visibleActorCount: number): BattleEvent {
   const winner = input.result.winner
   const loser: StoryboardSide = winner === 'solo' ? 'group' : 'solo'
-  return {
+  return withBattleEventOrdering(input, 'resolution', {
     id: 'authoritative-resolution',
     type: input.scenario.winCondition === 'retreat' ? 'rout' : 'incapacitation',
     actingSide: winner,
@@ -325,22 +476,481 @@ function resolutionEvent(input: BattleReconstructionInput, factorIdsForWinner: s
     activeActorCount: winner === 'solo' ? 1 : visibleActorCount === 0 ? 0 : Math.max(1, Math.min(MAX_VISIBLE_ACTORS, Math.round(10 ** Math.min(3, input.deterministicState.groupEffectiveQuantityLog10)))),
     startPosition: positionFor(input, winner, 'resolution'),
     outcome: 'effective',
-    caption: `${input.result.winnerName} reaches the authoritative ${input.scenario.winCondition} resolution. This is a model-backed closing state, not a simulated event record.`,
+    caption: `${input.result.winnerName} reaches the ${input.scenario.winCondition} closing state.`,
     cameraCue: { type: 'resolution-wide' },
-  }
+  })
 }
 
-function alternateOutcome(input: BattleReconstructionInput): string {
+function renderedSentences(sentences: NarrativeSentence[]): string {
+  return sentences.map((sentence) => sentence.fragments.map((fragment) => fragment.text).join('')).join(' ')
+}
+
+export function narrativeSentenceIntegrity(
+  sentence: Pick<NarrativeSentence, 'templateId' | 'variantId' | 'fragments'>,
+): string {
+  return stableHash({
+    templateId: sentence.templateId,
+    variantId: sentence.variantId,
+    fragments: sentence.fragments,
+  })
+}
+
+export function battleStoryBeatIntegrity(beat: Omit<BattleStoryBeat, 'integrityHash'>): string {
+  return stableHash(beat)
+}
+
+function sealBattleStoryBeat(beat: Omit<BattleStoryBeat, 'integrityHash'>): BattleStoryBeat {
+  return { ...beat, integrityHash: battleStoryBeatIntegrity(beat) }
+}
+
+function alternateOutcome(input: BattleReconstructionInput): BattleAlternateOutcome {
   const minority = 1 - winningProbability(input)
   const sensitivity = [...input.sensitivity]
     .sort((left, right) => Math.abs(right.marginDelta) - Math.abs(left.marginDelta) || left.id.localeCompare(right.id))[0]
   const other = input.result.winner === 'solo' ? sideName(input, 'group') : sideName(input, 'solo')
-  if (winningProbability(input) <= 0.52) {
-    return `This result is essentially even. Plausible closing branch A follows the authoritative favoured outcome for ${input.result.winnerName}; plausible closing branch B follows the ${(minority * 100).toFixed(1)}% model path for ${other}. These are bounded presentation branches, not Monte Carlo trial histories.`
+  const close = winningProbability(input) <= 0.52
+  const fragments: NarrativeSentenceFragment[] = close
+    ? [
+        { kind: 'evidence', evidenceId: 'verdict:outcome', text: `This result is essentially even. Plausible closing branch A ends with ${input.result.winnerName}; branch B follows the ${(minority * 100).toFixed(1)}% path for ` },
+        { kind: 'evidence', evidenceId: 'scenario:matchup', text: `${other}.` },
+      ]
+    : [
+        { kind: 'evidence', evidenceId: 'scenario:matchup', text: other },
+        { kind: 'evidence', evidenceId: 'verdict:outcome', text: ` retains a ${(minority * 100).toFixed(1)}% minority path.` },
+      ]
+  if (sensitivity) fragments.push({
+    kind: 'evidence', evidenceId: `sensitivity:${sensitivity.id}`,
+    text: ` The largest tested variation—${sensitivity.label.toLowerCase()}—moves the deterministic margin by ${sensitivity.marginDelta >= 0 ? '+' : ''}${sensitivity.marginDelta.toFixed(3)}${sensitivity.reversesDeterministicLeader ? ' and reverses the deterministic leader' : ''}.`,
+  })
+  const sentenceWithoutIntegrity = {
+    id: 'alternate-outcome-1', templateId: close ? 'alternate.close' : 'alternate.minority',
+    variantId: `${close ? 'alternate.close' : 'alternate.minority'}:1`, fragments,
   }
-  if (!sensitivity) return `${other} retains a ${(minority * 100).toFixed(1)}% minority model path, but no bounded sensitivity point was available to describe a specific margin shift.`
-  const reversal = sensitivity.reversesDeterministicLeader ? ' and reverses the deterministic leader' : ''
-  return `${other} retains a ${(minority * 100).toFixed(1)}% minority model path. The largest tested bounded variation—${sensitivity.label.toLowerCase()}—moves the deterministic margin by ${sensitivity.marginDelta >= 0 ? '+' : ''}${sensitivity.marginDelta.toFixed(3)}${reversal}; it does not replace the baseline verdict.`
+  const sentence: NarrativeSentence = {
+    ...sentenceWithoutIntegrity,
+    integrityHash: narrativeSentenceIntegrity(sentenceWithoutIntegrity),
+  }
+  return { id: 'alternate-outcome', title: 'Alternate path', text: renderedSentences([sentence]), evidenceIds: fragments.map((item) => item.evidenceId!), sentences: [sentence] }
+}
+
+export function buildBattleEvidenceCatalogue(
+  input: BattleReconstructionInput,
+  quantity: BattleStoryboard['representedQuantity'],
+): BattleEvidenceRecord[] {
+  const solo = sideName(input, 'solo')
+  const group = sideName(input, 'group')
+  const declared = formatLogQuantity(quantity.declaredQuantityLog10)
+  const probability = winningProbability(input)
+  const records: Array<Omit<BattleEvidenceRecord, 'integrityHash'>> = []
+  const add = (
+    id: string,
+    sourceType: BattleEvidenceRecord['sourceType'],
+    label: string,
+    plainText: string,
+    sourceIds: string[],
+    values: Record<string, unknown>,
+    side?: StoryboardSide,
+  ) => {
+    const technicalText = JSON.stringify(values)
+    records.push({ id, sourceType, label, plainText, technicalText, ...(side ? { side } : {}), sourceIds, values })
+  }
+
+  add('scenario:matchup', 'scenario-condition', `${solo} versus ${group}`,
+    `${solo} faces ${declared} × ${group} under the submitted scenario.`,
+    [input.contestants.solo.id, input.contestants.group.id, 'scenario.winCondition'], {
+      soloName: solo, groupName: group, soloId: input.contestants.solo.id, groupId: input.contestants.group.id,
+      declaredQuantityLog10: quantity.declaredQuantityLog10, winCondition: input.scenario.winCondition,
+    })
+  add('scenario:arena', 'scenario-condition', 'Arena and starting geometry',
+    `The sides begin ${input.scenario.startingDistanceM.toFixed(1)} metres apart in ${input.scenario.terrain} terrain, using ${input.scenario.coordinationDoctrine} group coordination.`,
+    ['scenario'], { ...input.scenario })
+  add('scenario:win-condition', 'scenario-condition', 'Victory condition',
+    `The encounter ends only when the declared ${input.scenario.winCondition} condition is met.`,
+    ['scenario.winCondition'], { winCondition: input.scenario.winCondition })
+  add('quantity:group', 'quantity', 'Quantity representation', renderQuantityForStory(quantity),
+    ['scenario.groupQuantity', 'group-aggregation-v4'], { ...quantity }, 'group')
+
+  const factors = new Map<string, AppliedModelFactor>()
+  for (const factor of [...input.result.appliedFactors, ...input.deterministicState.factors]) {
+    if (!factors.has(factor.id)) factors.set(factor.id, factor)
+  }
+  for (const factor of [...factors.values()].sort((left, right) => ordinalCompare(left.id, right.id))) {
+    add(factorEvidenceId(factor.id), 'applied-factor', humaniseId(factor.id), factor.explanation,
+      [factor.id], { ...factor, caveat: factor.caveat ?? null }, factor.side === 'solo' || factor.side === 'group' ? factor.side : undefined)
+  }
+
+  const resolutions = [...input.abilityResolutions].sort((left, right) =>
+    ordinalCompare(`${left.side}:${left.abilityId}`, `${right.side}:${right.abilityId}`))
+  for (const resolution of resolutions) {
+    const ability = abilityFor(input, resolution)
+    const name = ability?.name ?? resolution.abilityId
+    const actor = sideName(input, resolution.side)
+    const state = resolution.active
+      ? `${name} is available to ${actor} under the resolved conditions.`
+      : rejectedCaption(input, resolution, ability)
+    const constraintDetails = [
+      ability?.conditions?.requiresLineOfSight ? 'requires line of sight' : '',
+      ability?.conditions?.requiresMutualFacing ? 'requires mutual facing' : '',
+      ability?.conditions?.maximumTargetMassKg !== undefined ? `target mass ceiling=${ability.conditions.maximumTargetMassKg.toFixed(1)} kg` : '',
+      ability ? (ability.resource.pool !== 'none' ? `resource=${ability.resource.pool}${ability.resource.capacity !== undefined ? `/${ability.resource.capacity}` : ''}` : 'resource=unlimited') : '',
+    ].filter(Boolean)
+    add(abilityEvidenceId(resolution.side, resolution.abilityId), 'ability-resolution', name, `${state} ${constraintDetails.join('; ')}.`,
+      [resolution.abilityId, resolution.factorId, ...resolution.effects.map((effect) => effect.factorId)], {
+        ...resolution,
+        requiresLineOfSight: ability?.conditions?.requiresLineOfSight ?? false,
+        requiresMutualFacing: ability?.conditions?.requiresMutualFacing ?? false,
+        maximumTargetMassKg: ability?.conditions?.maximumTargetMassKg ?? null,
+        resourcePool: ability?.resource.pool ?? null,
+        resourceCapacity: ability?.resource.capacity ?? null,
+      }, resolution.side)
+  }
+
+  add('verdict:outcome', 'verdict', 'Authoritative outcome',
+    `${input.result.winnerName} is favoured at ${(probability * 100).toFixed(1)}% under the submitted scenario.`,
+    ['result.winner', 'result.probability', 'deterministicState'], {
+      winner: input.result.winner,
+      winnerName: input.result.winnerName,
+      winnerProbability: probability,
+      deterministicMargin: input.deterministicState.soloLogPower - input.deterministicState.groupLogPower,
+      confidenceLabel: input.result.confidenceLabel,
+    }, input.result.winner)
+
+  for (const point of [...input.sensitivity].sort((left, right) => ordinalCompare(left.id, right.id))) {
+    add(`sensitivity:${point.id}`, 'sensitivity', point.label, point.caveat,
+      [point.id, ...(point.factorId ? [point.factorId] : [])], { ...point })
+  }
+  return records.map((record) => ({ ...record, integrityHash: battleEvidenceIntegrity(record) }))
+}
+
+export function battleEvidenceIntegrity(record: Omit<BattleEvidenceRecord, 'integrityHash'>): string {
+  return stableHash(record)
+}
+
+function sourcedSentence(
+  input: BattleReconstructionInput,
+  id: string,
+  templateId: string,
+  variants: readonly string[],
+  evidenceId: string,
+): NarrativeSentence {
+  const variantIndex = Math.min(variants.length - 1, Math.floor(seededUnit(input.storySeed, `narrative:${id}`) * variants.length))
+  const sentence: Omit<NarrativeSentence, 'integrityHash'> = {
+    id,
+    templateId,
+    variantId: `${templateId}:${variantIndex + 1}`,
+    fragments: [{ kind: 'evidence', text: variants[variantIndex], evidenceId }],
+  }
+  return { ...sentence, integrityHash: narrativeSentenceIntegrity(sentence) }
+}
+
+function phasePrimaryEvidenceId(factors: AppliedModelFactor[], fallback: string): string {
+  return factors[0] ? factorEvidenceId(factors[0].id) : fallback
+}
+
+function phaseContextSentences(
+  input: BattleReconstructionInput,
+  phase: BattleStoryboardPhase,
+  quantityText: string,
+  primaryFactorId: string,
+): NarrativeSentence[] {
+  const solo = sideName(input, 'solo')
+  const group = sideName(input, 'group')
+  const winner = sideName(input, input.result.winner)
+  let text: string
+  let evidenceId: string
+  if (input.deterministicState.conceptual) {
+    switch (phase.id) {
+      case 'briefing': text = `Scale outruns any literal field; aggregate pressure, access and capacity carry the comparison toward ${input.scenario.winCondition}, with no individual combat implied.`; evidenceId = 'quantity:group'; break
+      case 'deployment': text = `The ${input.scenario.arenaBoundary} boundary cuts a usable front through ${input.scenario.terrain}; scale beyond it remains reserve pressure, never a formation of figures.`; evidenceId = 'scenario:arena'; break
+      case 'approach': text = 'Distance and movement medium narrow the accessible share; only pressure able to cross those limits enters the comparison.'; evidenceId = 'scenario:arena'; break
+      case 'contact': text = 'At the contact boundary, reachable pressure meets opposing capacity through bounded factors, without individual blows or casualties.'; evidenceId = primaryFactorId; break
+      case 'pressure': text = 'Active pressure fills usable frontage; everything beyond it contributes only as bounded reserve influence, never literal participants.'; evidenceId = 'quantity:group'; break
+      case 'turning-point': text = `Access, frontage and reserve weight combine, and the aggregate balance turns toward ${winner}.`; evidenceId = 'verdict:outcome'; break
+      case 'resolution': text = `${winner} holds the favoured ${input.scenario.winCondition} outcome at ${(winningProbability(input) * 100).toFixed(1)}%, without a literal battlefield ending.`; evidenceId = 'verdict:outcome'; break
+    }
+    return [sourcedSentence(input, `${phase.id}-context-1`, `conceptual.${phase.id}`, [text], evidenceId)]
+  }
+
+  switch (phase.id) {
+    case 'briefing': text = `The field opens between ${solo} and ${group}. ${quantityText} Only the active front bears at once; the rest waits in reserve until ${input.scenario.winCondition}.`; evidenceId = 'scenario:matchup'; break
+    case 'deployment': text = `In ${input.scenario.terrain}, the sides form ${input.scenario.startingDistanceM.toFixed(1)} metres apart under ${input.scenario.coordinationDoctrine} coordination. ${input.scenario.weather}, ${input.scenario.timeOfDay}, ${input.scenario.awareness} awareness and ${input.scenario.facing} facing govern the open routes.`; evidenceId = 'scenario:arena'; break
+    case 'approach': text = 'The empty ground begins to vanish. Starting distance and movement access make position the first contest, narrowing the routes before contact.'; evidenceId = 'scenario:arena'; break
+    case 'contact': text = 'The last distance collapses. The first supported exchange shifts the balance without settling it, leaving reach, resilience and remaining openings in tension.'; evidenceId = primaryFactorId; break
+    case 'pressure': text = `The battle widens. Active frontage bears immediate pressure while every figure beyond it remains reserve contribution; ${phase.advantage === 'contested' ? 'neither side owns the passage' : `${phase.advantage} pressure leads`}.`; evidenceId = 'quantity:group'; break
+    case 'turning-point': text = `The scattered advantages meet in one balance. Their combined weight opens the favoured path toward ${winner}, without erasing the opposing pressure.`; evidenceId = 'verdict:outcome'; break
+    case 'resolution': text = `${winner} reaches the favoured ${input.scenario.winCondition} outcome at ${(winningProbability(input) * 100).toFixed(1)}%. ${reconstructionType(input) === 'close-contest' ? 'The result is close and assumption-sensitive, never an easy victory.' : 'The favoured branch is clear, though uncertainty remains.'} A minority path survives.`; evidenceId = 'verdict:outcome'; break
+  }
+  const bridge = STORY_BRIDGES[PHASES.indexOf(phase.id) % STORY_BRIDGES.length]
+  return [sourcedSentence(input, `${phase.id}-context-1`, `phase.${phase.id}`, [`${text} ${bridge}`], evidenceId)]
+}
+
+function phaseContextBeat(
+  input: BattleReconstructionInput,
+  phase: BattleStoryboardPhase,
+  quantity: BattleStoryboard['representedQuantity'],
+  factors: AppliedModelFactor[],
+): BattleStoryBeat {
+  const solo = sideName(input, 'solo')
+  const group = sideName(input, 'group')
+  const winner = sideName(input, input.result.winner)
+  const primaryFactorId = phasePrimaryEvidenceId(factors, 'scenario:arena')
+  const quantityText = renderQuantityForStory(quantity)
+  const phaseSentences = phaseContextSentences(input, phase, quantityText, primaryFactorId)
+  const evidenceIds = [...new Set(phaseSentences.flatMap((sentence) => sentence.fragments.flatMap((fragment) => fragment.evidenceId ? [fragment.evidenceId] : [])))]
+  const camera: CameraCue = phase.id === 'briefing' || phase.id === 'deployment'
+    ? { type: 'establishing', target: 'arena' }
+    : phase.id === 'resolution' ? { type: 'resolution-wide' }
+      : phase.id === 'pressure' ? { type: 'frontage-view' }
+        : { type: 'overhead', showRanges: phase.id === 'approach' }
+  const calloutWhy = phase.id === 'briefing' ? quantityText
+    : phase.id === 'deployment' ? `${input.scenario.startingDistanceM.toFixed(1)} m start in ${input.scenario.terrain}`
+      : phase.id === 'resolution' ? `${(winningProbability(input) * 100).toFixed(1)}% favoured probability`
+        : `${PHASE_TITLES[phase.id]} follows the cited evidence`
+  return sealBattleStoryBeat({
+    id: `${phase.id}-context`,
+    phaseId: phase.id,
+    title: PHASE_TITLES[phase.id],
+    role: phase.id === 'turning-point' ? 'reversal' : phase.id === 'resolution' ? 'resolution' : phase.id === 'pressure' ? 'pressure' : 'scene',
+    prominence: phase.id === 'resolution' ? 'decisive' : phase.id === 'turning-point' ? 'major' : 'supporting',
+    outcome: phase.id === 'resolution' ? 'resolved' : phase.advantage === 'contested' ? 'contested' : 'established',
+    eventIds: [],
+    evidenceIds,
+    sentences: phaseSentences,
+    tacticalCue: {
+      durationSeconds: phase.id === 'resolution' ? 3.8 : phase.id === 'turning-point' ? 3.2 : 2.4,
+      cameraCue: camera,
+      focusPositions: [],
+      overlayEventIds: [],
+      callout: {
+        who: phase.id === 'resolution' ? winner : `${solo} and ${group}`,
+        what: phase.id === 'resolution' ? `Reaches the favoured ${input.scenario.winCondition} state` : PHASE_TITLES[phase.id],
+        target: phase.id === 'resolution' ? sideName(input, input.result.winner === 'solo' ? 'group' : 'solo') : null,
+        result: phase.id === 'resolution' ? `${winner} favoured` : phase.advantage === 'neutral' ? 'Field established' : `${phase.advantage} pressure`,
+        why: calloutWhy,
+      },
+    },
+  })
+}
+
+function eventEvidenceIds(input: BattleReconstructionInput, event: BattleEvent, availableEvidence: ReadonlyMap<string, BattleEvidenceRecord>): string[] {
+  const candidates = [
+    ...(event.abilityId ? [abilityEvidenceId(event.actingSide, event.abilityId)] : []),
+    ...event.factorIds.map(factorEvidenceId),
+    ...(event.id === 'scenario-elephant-charge' ? [abilityEvidenceId('solo', 'legacy-contact')] : []),
+    ...(event.id.startsWith('scenario-') ? ['scenario:arena'] : []),
+    ...(event.id === 'resolved-group-frontage' || event.id === 'resolved-replacement-wave' ? ['quantity:group'] : []),
+    ...(event.id === 'authoritative-resolution' ? ['verdict:outcome', 'scenario:win-condition'] : []),
+    ...(input.contestants.solo.id === 'golden-eagle' && input.contestants.group.id === 'house-mouse'
+      && (event.abilityId === 'legacy-flight' || event.id === 'resolved-group-frontage' || event.id === 'resolved-replacement-wave') ? ['quantity:group'] : []),
+    ...(input.contestants.solo.id === 'medusa' && input.contestants.group.id === 'armoured-spear-carrier'
+      && (event.id === 'scenario-medusa-facing-formation' || event.id === 'scenario-medusa-disciplined-advance')
+      ? [abilityEvidenceId('solo', 'petrifying-gaze')] : []),
+  ]
+  return [...new Set(candidates.filter((id) => availableEvidence.has(id)))]
+}
+
+function eventRole(event: BattleEvent): BattleStoryBeat['role'] {
+  if (['counter'].includes(event.type) || ['countered', 'blocked', 'ineligible'].includes(event.outcome)) return 'denial'
+  if (['advance', 'retreat', 'charge', 'flight-manoeuvre'].includes(event.type)) return 'movement'
+  if (['group-encirclement', 'replacement-wave', 'hazard-pulse'].includes(event.type)) return 'pressure'
+  if (['recovery', 'revival'].includes(event.type)) return 'reaction'
+  if (['incapacitation', 'rout'].includes(event.type)) return 'resolution'
+  return 'action'
+}
+
+function eventProminence(input: BattleReconstructionInput, events: BattleEvent[]): BattleStoryBeat['prominence'] {
+  if (events.some((event) => event.id === 'authoritative-resolution')) return 'decisive'
+  const magnitude = Math.max(0, ...events.flatMap((event) => event.factorIds.map((factorId) => {
+    const factor = input.result.appliedFactors.find((candidate) => candidate.id === factorId)
+    const resolution = input.abilityResolutions.find((candidate) => candidate.factorId === factorId || candidate.effects.some((effect) => effect.factorId === factorId))
+    return Math.abs(factor?.logDelta ?? resolution?.logDelta ?? 0)
+  })))
+  return magnitude >= 0.12 || events.some((event) => event.outcome === 'effective') ? 'major' : 'supporting'
+}
+
+function eventActionText(input: BattleReconstructionInput, event: BattleEvent): readonly string[] {
+  const actor = sideName(input, event.actingSide)
+  const target = event.targetSide ? sideName(input, event.targetSide) : 'the opposing side'
+  const resolution = event.abilityId
+    ? input.abilityResolutions.find((candidate) => candidate.side === event.actingSide && candidate.abilityId === event.abilityId)
+    : undefined
+  const ability = resolution ? abilityFor(input, resolution) : undefined
+  const name = ability?.name ?? event.abilityId ?? humaniseId(event.id)
+  const finish = (text: string) => [`${text} ${STORY_BRIDGES[Math.floor(seededUnit(input.storySeed, `action-tail:${event.id}`) * STORY_BRIDGES.length)]}`]
+  if (resolution && !resolution.active) {
+    const reason = rejectedCaption(input, resolution, ability).replace(`${name}: unavailable—`, '').replace(/\.$/, '')
+    return finish(`${actor} reaches for ${name}, but the opening closes: ${reason}; the ability never takes hold.`)
+  }
+  if (event.id === 'resolved-group-frontage') return finish(`${actor} spreads across the usable front; only the effective active share presses ${target}.`)
+  if (event.id === 'resolved-replacement-wave') return finish(`${actor} draws a replacement wave from the waiting reserves while the deeper force stays behind the line.`)
+  if (event.id === 'scenario-elephant-charge') return finish(`${actor} charges through the active ring, buckling the usable frontage around the movement.`)
+  if (event.id === 'scenario-medusa-facing-formation') return finish(`${actor} holds ${input.scenario.coordinationDoctrine} facing and line of sight for the gaze.`)
+  if (event.id === 'scenario-medusa-disciplined-advance') return finish(`With the gaze resolved, ${actor} keeps the disciplined line moving toward ${target}; this is movement, not a new attack.`)
+  if (event.id === 'scenario-orca-trajectory') return finish(`${actor} crosses inward from the fixed hazard boundary; the anchored hazard does not pursue.`)
+  if (event.id === 'authoritative-resolution') return finish(`${actor} reaches the ${input.scenario.winCondition} condition against ${target}, and the accumulated pressure finally closes the contest.`)
+  if (input.contestants.solo.id === 'golden-eagle' && input.contestants.group.id === 'house-mouse' && event.abilityId === 'legacy-flight') return finish(`${actor} climbs on the supported flight route; its shadow is a position cue over the representative field, never a separate attack.`)
+  const range = event.rangeM && event.rangeM > 0
+    ? ` across a reach of ${event.rangeM.toFixed(1)} metres`
+    : ['advance', 'retreat', 'charge', 'flight-manoeuvre'].includes(event.type)
+      ? ' along the available movement path'
+      : event.type === 'hazard-pulse' ? ' from its fixed origin' : ' at contact reach'
+  const area = event.areaRadiusM && event.areaRadiusM > 0 ? ` and a bounded ${event.areaRadiusM.toFixed(1)}-metre radius` : ''
+  const limits = resolution ? [
+    resolution.resolvedUses !== null ? `${resolution.resolvedUses} resolved uses` : '',
+    ability?.conditions?.maximumTargetMassKg !== undefined ? `${ability.conditions.maximumTargetMassKg.toLocaleString('en-AU')} kg mass ceiling` : '',
+    ability?.resource.capacity !== undefined ? `${ability.resource.capacity} finite resource units` : '',
+    ability?.kind === 'mobility' ? 'movement only' : '',
+  ].filter(Boolean).join(', ') : ''
+  const verbs: Record<BattleEvent['type'], string> = {
+    advance: 'uses', retreat: 'uses', charge: 'commits to', 'contact-attack': 'brings', 'ranged-attack': 'brings',
+    'area-attack': 'unleashes', restraint: 'applies', counter: 'loses', recovery: 'draws on', revival: 'returns through',
+    'flight-manoeuvre': 'uses', 'hazard-pulse': 'holds', 'group-encirclement': 'uses', 'replacement-wave': 'uses',
+    incapacitation: 'reaches', rout: 'reaches',
+  }
+  const cadence = seededUnit(input.storySeed, `cadence:${event.id}`) > 0.5 ? 'Now' : 'Then'
+  return finish(`${cadence} ${actor} ${verbs[event.type]} ${name}${range}${area}${limits ? `, bounded by ${limits}` : ''}, turning the opening toward ${target}.`)
+}
+
+function eventOutcomeText(input: BattleReconstructionInput, event: BattleEvent): readonly string[] {
+  const actor = sideName(input, event.actingSide)
+  const target = event.targetSide ? sideName(input, event.targetSide) : 'the opposing side'
+  const lead = event.outcome === 'effective' ? `It takes hold; ${actor} gains meaningful pressure against ${target}`
+    : event.outcome === 'partially-effective' ? 'It matters only in part and cannot decide the ending alone'
+      : event.outcome === 'countered' ? 'An active counter closes the opening before it contributes'
+        : event.outcome === 'blocked' ? "The target's resolved immunity blocks the option"
+          : event.outcome === 'ineligible' ? 'The required conditions never open the option' : 'The action does not connect'
+  const bridge = STORY_BRIDGES[(Math.floor(seededUnit(input.storySeed, `outcome:${event.id}`) * STORY_BRIDGES.length) + 1) % STORY_BRIDGES.length]
+  return [`${lead}. ${bridge}`]
+}
+
+function eventBeat(
+  input: BattleReconstructionInput,
+  phaseId: StoryboardPhaseId,
+  events: BattleEvent[],
+  availableEvidence: ReadonlyMap<string, BattleEvidenceRecord>,
+  groupIndex: number,
+): BattleStoryBeat {
+  const evidenceIds = [...new Set(events.flatMap((event) => eventEvidenceIds(input, event, availableEvidence)))]
+  const fallbackEvidenceId = phaseId === 'resolution' ? 'verdict:outcome' : phaseId === 'pressure' ? 'quantity:group' : 'scenario:arena'
+  if (evidenceIds.length === 0) evidenceIds.push(fallbackEvidenceId)
+  const sentences = events.flatMap((event, eventIndex) => {
+    const primaryEvidenceId = eventEvidenceIds(input, event, availableEvidence)[0] ?? fallbackEvidenceId
+    return [
+      sourcedSentence(input, `${phaseId}-event-${groupIndex}-${eventIndex}-action`, `event.${event.type}.action`, eventActionText(input, event), primaryEvidenceId),
+      sourcedSentence(input, `${phaseId}-event-${groupIndex}-${eventIndex}-outcome`, `event.${event.outcome}.outcome`, eventOutcomeText(input, event), primaryEvidenceId),
+    ]
+  })
+  const actingSides = [...new Set(events.map((event) => event.actingSide))]
+  const targetSides = [...new Set(events.flatMap((event) => event.targetSide ? [event.targetSide] : []))]
+  const outcomes = [...new Set(events.map((event) => event.outcome))]
+  const eventIds = events.map((event) => event.id)
+  const prominence = eventProminence(input, events)
+  const first = events[0]
+  const defaultTitle = events.length === 1
+    ? first.abilityId
+      ? input.contestants[first.actingSide].abilities.find((ability) => ability.id === first.abilityId)?.name ?? humaniseId(first.abilityId)
+      : humaniseId(first.id)
+    : `${events.length} resolved actions`
+  const eagleMice = input.contestants.solo.id === 'golden-eagle' && input.contestants.group.id === 'house-mouse'
+  const pilotTitle = events.length !== 1 ? undefined
+    : eagleMice && first.abilityId === 'legacy-flight' ? 'Altitude and shadow'
+      : eagleMice && first.id === 'resolved-group-frontage' ? 'Representative density pressure'
+        : eagleMice && first.id === 'resolved-replacement-wave' ? 'Compression and reserve depth'
+          : first.abilityId === 'petrifying-gaze' ? (first.outcome === 'effective' ? 'Gaze takes hold' : 'Gaze opening denied')
+            : input.contestants.solo.id === 'giant-spider' && first.type === 'contact-attack' ? 'Contact resolution'
+              : FEATURED_ABILITY_TITLES[first.abilityId ?? ''] ?? FEATURED_EVENT_TITLES[first.id]
+  const title = pilotTitle ?? defaultTitle
+  const focusPositions = events.flatMap((event) => [event.startPosition, ...(event.endPosition ? [event.endPosition] : [])])
+  const who = actingSides.length === 1 ? sideName(input, actingSides[0]) : 'Both sides'
+  const target = targetSides.length === 1 ? sideName(input, targetSides[0]) : targetSides.length ? 'Each opposing side' : null
+  const defaultWhy = outcomes.length !== 1
+    ? 'Several supported actions meet in the same exchange'
+    : OUTCOME_WHY[outcomes[0]] ?? 'The action adds no pressure'
+  const evidenceWhy = availableEvidence.get(evidenceIds[0])?.plainText
+  const geometryWhy = [first.rangeM ? `${first.rangeM.toFixed(1)} m range` : '', first.areaRadiusM ? `${first.areaRadiusM.toFixed(1)} m area` : ''].filter(Boolean).join('; ')
+  const why = [geometryWhy, evidenceWhy].filter(Boolean).join('; ') || defaultWhy
+  return sealBattleStoryBeat({
+    id: `${phaseId}-event-${groupIndex + 1}-${stableHash(eventIds).slice(0, 8)}`,
+    phaseId,
+    title,
+    role: events.length === 1 ? eventRole(first) : 'action',
+    prominence,
+    ...(actingSides.length === 1 ? { actingSide: actingSides[0] } : {}),
+    ...(targetSides.length === 1 ? { targetSide: targetSides[0] } : {}),
+    outcome: outcomes.length === 1 ? outcomes[0] : 'contested',
+    eventIds,
+    evidenceIds,
+    sentences,
+    tacticalCue: {
+      durationSeconds: prominence === 'decisive' ? 3.8 : prominence === 'major' ? 3.2 : 2.4,
+      cameraCue: first.cameraCue ?? { type: 'overhead', showRanges: events.some((event) => (event.rangeM ?? 0) > 0) },
+      focusPositions,
+      overlayEventIds: eventIds,
+      callout: {
+        who,
+        what: title,
+        target,
+        result: outcomes.length === 1 ? humaniseId(outcomes[0]) : 'Contested exchange',
+        why,
+      },
+    },
+  })
+}
+
+function partitionEvents(events: BattleEvent[], combineEquivalent: boolean): BattleEvent[][] {
+  const partitions: BattleEvent[][] = []
+  for (const event of events) {
+    const previous = partitions.at(-1)
+    if (combineEquivalent && previous && previous[0]?.equivalenceGroupId === event.equivalenceGroupId) previous.push(event)
+    else partitions.push([event])
+  }
+  return partitions
+}
+
+export function buildBattleStoryBeats(
+  input: BattleReconstructionInput,
+  phases: BattleStoryboardPhase[],
+  quantity: BattleStoryboard['representedQuantity'],
+  evidence: BattleEvidenceRecord[],
+): Map<StoryboardPhaseId, BattleStoryBeat[]> {
+  const availableEvidence = new Map(evidence.map((record) => [record.id, record]))
+  const combineEquivalent = phases.reduce((total, phase) => total + phase.events.length, 0) > 11
+  return new Map(phases.map((phase) => {
+    const factors = factorsForPhase(input, phase.id)
+    const context = phaseContextBeat(input, phase, quantity, factors)
+    const eventBeats = partitionEvents(phase.events, combineEquivalent)
+      .map((events, index) => eventBeat(input, phase.id, events, availableEvidence, index))
+    return [phase.id, [context, ...eventBeats]]
+  }))
+}
+
+function briefSection(id: BattleBriefSection['id'], title: string, source: NarrativeSentence[]): BattleBriefSection {
+  const sentences = source.map((sentence, index) => ({ ...sentence, id: `brief-${id}-${index + 1}` }))
+  const evidenceIds = [...new Set(sentences.flatMap((sentence) => sentence.fragments.flatMap((fragment) => fragment.evidenceId ? [fragment.evidenceId] : [])))]
+  return { id, title, text: renderedSentences(sentences), evidenceIds, sentences }
+}
+
+/** Build the independently composed, evidence-linked compact account. */
+export function buildBattleNarrativePassages(
+  input: BattleReconstructionInput,
+  phases: BattleStoryboardPhase[],
+  evidence: BattleEvidenceRecord[],
+): { briefAccount: BattleBriefSection[]; alternateOutcome: BattleAlternateOutcome } {
+  const phase = (id: StoryboardPhaseId) => phases.find((item) => item.id === id)!
+  const candidates = phases.flatMap((item) => item.storyBeats).filter((beat) => beat.eventIds.length && !beat.eventIds.includes('authoritative-resolution'))
+  const selected = new Set([...candidates].sort((a, b) => ['supporting', 'major', 'decisive'].indexOf(b.prominence)
+    - ['supporting', 'major', 'decisive'].indexOf(a.prominence)).slice(0, 3).map((beat) => beat.id))
+  const decisiveSource = candidates.filter((beat) => selected.has(beat.id)).map((beat) => beat.sentences[0])
+  const resolutionBeats = phase('resolution').storyBeats
+  const briefAccount = [
+    briefSection('opening', 'Setup and opening', phase('briefing').storyBeats[0].sentences.slice(0, 2)),
+    briefSection('decisive-interactions', 'Decisive interactions', decisiveSource.length ? decisiveSource : phase('pressure').storyBeats[0].sentences.slice(0, 1)),
+    briefSection('resolution', 'Resolution and uncertainty', resolutionBeats.flatMap((beat) => beat.sentences.slice(0, 1)).slice(0, 2)),
+  ]
+  const alternate = alternateOutcome(input)
+  const known = new Set(evidence.map((record) => record.id))
+  if ([...briefAccount, alternate].some((item) => item.evidenceIds.some((id) => !known.has(id)))) throw new Error('Cannot construct narrative passage: unknown evidence.')
+  return { briefAccount, alternateOutcome: alternate }
 }
 
 export function storyboardScenarioHash(input: Pick<BattleReconstructionInput, 'scenario' | 'contestants'>): string {
@@ -353,12 +963,18 @@ export function storyboardResultHash(input: Pick<BattleReconstructionInput, 'res
 
 export function buildBattleStoryboard(input: BattleReconstructionInput): BattleStoryboard {
   if (input.simulationSeed !== input.result.technical.seed) throw new Error('Storyboard simulation seed does not match the authoritative result.')
-  const quantity = quantityRepresentation(input)
+  const quantity = buildQuantityRepresentation(input)
   const abilityEvents = input.deterministicState.conceptual
     ? new Map(PHASES.map((phase) => [phase, [] as BattleEvent[]]))
     : buildAbilityEvents(input)
   const pressure = pressureEvents(input, quantity)
-  abilityEvents.get('pressure')?.push(...pressure)
+  const isElephantWolves = input.contestants.solo.id === 'african-bush-elephant' && input.contestants.group.id === 'gray-wolf'
+  if (isElephantWolves) {
+    abilityEvents.get('deployment')?.push(...pressure.filter((event) => event.id === 'resolved-group-frontage'))
+    abilityEvents.get('pressure')?.push(...pressure.filter((event) => event.id !== 'resolved-group-frontage'))
+  } else {
+    abilityEvents.get('pressure')?.push(...pressure)
+  }
   const scriptedScenarioEvents = scenarioEvents(input)
   for (const phase of PHASES) abilityEvents.get(phase)?.push(...(scriptedScenarioEvents.get(phase) ?? []))
   const winnerFactorIds = input.result.appliedFactors
@@ -367,6 +983,7 @@ export function buildBattleStoryboard(input: BattleReconstructionInput): BattleS
     .slice(0, 4)
     .map((factor) => factor.id)
   if (!input.deterministicState.conceptual) abilityEvents.get('resolution')?.push(resolutionEvent(input, winnerFactorIds, quantity.visibleActorCount))
+  for (const phase of PHASES) abilityEvents.get(phase)?.sort((left, right) => compareBattleEvents(input, phase, left, right))
 
   const duration = input.deterministicState.conceptual ? null : input.deterministicState.durationSeconds
   const phaseDuration = duration === null ? 1 : Math.max(1, duration / PHASES.length)
@@ -379,11 +996,19 @@ export function buildBattleStoryboard(input: BattleReconstructionInput): BattleS
       startSeconds: boundaries[index],
       durationSeconds: Number((boundaries[index + 1] - boundaries[index]).toFixed(3)),
       advantage: advantageFor(factors, input.result.winner, phase),
-      narration: phaseNarration(input, phase, quantity, factors, events),
+      narration: '',
       events,
       supportingFactorIds: factors.map((factor) => factor.id),
+      storyBeats: [],
     }
   })
+  const evidence = buildBattleEvidenceCatalogue(input, quantity)
+  const beatsByPhase = buildBattleStoryBeats(input, phases, quantity, evidence)
+  for (const phase of phases) {
+    phase.storyBeats = beatsByPhase.get(phase.id) ?? []
+    phase.narration = renderedSentences(phase.storyBeats.flatMap((beat) => beat.sentences))
+  }
+  const { briefAccount, alternateOutcome } = buildBattleNarrativePassages(input, phases, evidence)
   const probability = winningProbability(input)
   const type = reconstructionType(input)
   const closeText = type === 'close-contest' ? ' This is a close contest, so the closing branch is not dominant.' : ''
@@ -401,9 +1026,12 @@ export function buildBattleStoryboard(input: BattleReconstructionInput): BattleS
     reconstructionType: type,
     estimatedDurationSeconds: duration,
     representedQuantity: quantity,
+    evidence,
     phases,
-    summary: `${input.result.winnerName} is the favoured model outcome at ${(probability * 100).toFixed(1)}%.${closeText}`,
-    alternateOutcomeNote: alternateOutcome(input),
+    briefAccount,
+    alternateOutcome,
+    summary: `${input.result.winnerName} is favoured at ${(probability * 100).toFixed(1)}%.${closeText}`,
+    alternateOutcomeNote: alternateOutcome.text,
     caveats: [
       RECONSTRUCTION_NOTICE,
       'The numerical simulation remains authoritative; storyboard events are selected from resolved factors, abilities and scenario conditions without re-running it.',

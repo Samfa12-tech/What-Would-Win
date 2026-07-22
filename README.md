@@ -1,4 +1,4 @@
-# What Would Win — prototype handoff
+# What Would Win
 
 A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 134-profile database, structured abilities and counters, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
 
@@ -38,15 +38,15 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **model 0.4.1, data 0.4.1 and share format v4**; the application version is **0.5.0**. Custom-creature and history storage remain format **v2**.
+The active reproducibility identity is **model 0.4.1, data 0.4.1 and share format v4**; the application version is **0.6.0**. Custom-creature and history storage remain format **v2**.
 
 Model 0.4.1 makes the model-0.4 decomposition explicit: physical mass/integrity, defence, environment, deployment, group aggregation and bounded body-scale area control remain physical factors; execution, delivery access, effect-level stopping, range/area geometry, coverage, conditions, channels and finite uses resolve per structured ability. Every editable combat stat has an applicable deterministic route. The technical report receives all applied/rejected resolutions and labels retained model-0.3 diagnostics as non-contributing.
 
 The v4 share codec embeds the current structured scenario. Released v4/0.4.0 plus supported v3, v2, v1 and unversioned inputs are migrated and visibly recalculated when their referenced profiles are available. Version-2 custom/history storage preserves recoverable incompatible data rather than silently relabelling an old result. JSON exports preserve the exact canonical v4 scenario, asymmetric/per-ability resources, contestants, resolutions and sensitivity used by the run.
 
-Ordinary-scale results include a seven-phase deterministic explanation backed by the applied-factor ledger. Conceptual-scale results use a three-phase aggregate explanation and deliberately withhold physical duration and loss estimates. Neither sequence is a sampled event timeline, anatomy simulation or alternate winner generator.
+The model runtime retains its seven-step ordinary technical explanation and three-step conceptual aggregate explanation, both backed by the applied-factor ledger. Storyboard v2 presents seven visible narrative chapters over that immutable record. Neither sequence is a sampled event timeline, anatomy simulation or alternate winner generator.
 
-Application 0.5.0 adds a validated, story-seeded `BattleStoryboard`, a complete deterministic likely-battle account and an optional lazy tactical diorama. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. The HTML account is authoritative; the primitive 3D scene is an accessible enhancement with transcript, captions, quantity disclosure, storyboard-timed seeking, reduced motion and no-WebGL fallback. Optional generated phase tones and PNG/WebM canvas capture never create or alter events. See `docs/BATTLE_RECONSTRUCTION.md`.
+Application 0.6.0 uses storyboard v2 to add evidence-backed story beats, a readable Story account, an exact Analyst account and an optional beat-driven tactical diorama. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. Hover/focus/tap evidence explanations supplement rather than replace the complete HTML record. The primitive 3D scene is an optional enhancement with explicit beat callouts, Story camera, a synchronized 2D Canvas tactical map, Free look, transcript, quantity disclosure, reduced motion and a useful no-WebGL map fallback. PNG/WebM canvas capture never creates or alters events. See `docs/BATTLE_RECONSTRUCTION.md`.
 
 ## Documentation
 

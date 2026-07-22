@@ -19,8 +19,8 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 
 ## Current state
 
-- React/TypeScript/Vite static application, version **0.4.1**.
-- Active reproducibility identity: **model 0.4.1, data 0.4.1, share format v4**; custom/history storage formats **v2**.
+- React/TypeScript/Vite static application, version **0.6.0**.
+- Active reproducibility identity: **model 0.4.1, data 0.4.1, share format v4**; storyboard **v2**; custom/history storage formats **v2**.
 - 134 canonical profiles and an audited model-0.3 physical aggregate foundation.
 - Structured model-0.4 abilities with explicit delivery, geometry scaling, activation, effects, facing/eligibility, counters, bounded uses/recharge and bilateral channel resolution.
 - Contact reach is distinct from ability range. Scenarios have separate solo/group resources and optional per-ability overrides.
@@ -32,10 +32,11 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 - Strict, functional and magical resizing; bilateral stopping/access; frontage/reserves; area control; and bounded-arena occupancy remain from model 0.3.
 - V4 shares and v2 custom/history persistence include recovery and migrations from supported v3, v2, v1 and unversioned inputs.
 - Ordinary results use seven factor-backed explanatory phases; conceptual results use three aggregate phases and withhold physical duration/loss estimates.
+- The validated presentation layer expands either result into seven evidence-backed storyboard chapters, deterministic Story/Analyst accounts and an optional beat-driven 3D/Canvas reconstruction without re-running the simulation.
 - Four report depths, URL sharing, PNG/JSON export and local browser history remain available.
 - Static hosting requires no account, database or server-side simulation service.
 
-`app/src/version.ts` exposes the active 0.4.1/v4 identity and separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
+`app/src/version.ts` exposes application 0.6.0 plus the active model/data 0.4.1 and share-v4 identity, alongside separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
 
 ## Read these files in order
 

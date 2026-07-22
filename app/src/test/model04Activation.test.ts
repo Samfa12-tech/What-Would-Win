@@ -61,7 +61,7 @@ function resultIdentity(run: Model04RuntimeResult) {
 describe('model 0.4 atomic activation contract', () => {
   test('locks application and active model, data, share, custom and history identities explicitly', () => {
     expect(packageJson.version).toBe(APPLICATION_VERSION)
-    expect(String(APPLICATION_VERSION)).toBe('0.5.0')
+    expect(String(APPLICATION_VERSION)).toBe('0.6.0')
     expect(String(MODEL_VERSION)).toBe(MODEL_04_VERSION)
     expect(String(DATA_VERSION)).toBe(MODEL_04_DATA_VERSION)
     expect(Number(SHARE_FORMAT_VERSION)).toBe(MODEL_04_SHARE_FORMAT_VERSION)

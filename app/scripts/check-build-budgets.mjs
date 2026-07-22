@@ -13,7 +13,7 @@ const budgets = {
   optionalUiJavascript: 21_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
-  presentationJavascript: 45_000,
+  presentationJavascript: 55_000,
   tacticalRuntimeJavascript: 950_000,
   // Procedural 0.5 scenes ship no external media. These gates reserve explicit
   // per-file limits for later selected-only archetype, environment and audio assets.
@@ -23,11 +23,11 @@ const budgets = {
   selectedTacticalAssets: 1_200_000,
   model04RuntimeJavascript: 100_000,
   coreJavascript: 575_000,
-  javascript: 1_550_000,
+  javascript: 1_570_000,
   creatureRoster: 125_000,
   coreCss: 26_000,
-  reconstructionCss: 4_000,
-  css: 31_000,
+  reconstructionCss: 6_000,
+  css: 32_000,
   total: 1_850_000,
   coreDeployable: 835_000,
   socialImage: 300_000,
@@ -69,10 +69,10 @@ const lazyJavascript = javascript - entryJavascript
 const model04RuntimeFiles = sizes.filter((file) => /dist[\\/]assets[\\/]runtime-[^\\/]+\.js$/.test(relative(appRoot, file.path)))
 if (model04RuntimeFiles.length !== 1) throw new Error(`Expected one lazy model 0.4 runtime chunk, found ${model04RuntimeFiles.length}.`)
 const model04RuntimeJavascript = model04RuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
-const tacticalRuntimeFiles = sizes.filter((file) => /^dist\/assets\/TacticalScene-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
-if (tacticalRuntimeFiles.length !== 1) throw new Error(`Expected one lazy tactical runtime chunk, found ${tacticalRuntimeFiles.length}.`)
+const tacticalRuntimeFiles = sizes.filter((file) => /^dist\/assets\/(?:TacticalScene|TacticalReconstructionPanel|contracts)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
+if (tacticalRuntimeFiles.length !== 3) throw new Error(`Expected three lazy tactical runtime chunks, found ${tacticalRuntimeFiles.length}.`)
 const tacticalRuntimeJavascript = tacticalRuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
-const presentationFiles = sizes.filter((file) => /^dist\/assets\/(?:LikelyBattlePanel|TacticalReconstructionPanel|storyboard)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
+const presentationFiles = sizes.filter((file) => /^dist\/assets\/(?:LikelyBattlePanel|storyboard|reconstruction)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
 if (presentationFiles.length !== 3) throw new Error(`Expected three lazy presentation chunks, found ${presentationFiles.length}.`)
 const presentationJavascript = presentationFiles.reduce((sum, file) => sum + file.bytes, 0)
 const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript - tacticalRuntimeJavascript - presentationJavascript
@@ -80,7 +80,7 @@ const rosterFiles = sizes.filter((file) => /dist[\\/]assets[\\/]creatures-[^\\/]
 const creatureRoster = rosterFiles.reduce((sum, file) => sum + file.bytes, 0)
 const cssFiles = sizes.filter((file) => file.path.endsWith('.css'))
 const css = cssFiles.reduce((sum, file) => sum + file.bytes, 0)
-const reconstructionCss = cssFiles.filter((file) => /^dist\/assets\/reconstruction-[^/]+\.css$/.test(relative(appRoot, file.path).replaceAll('\\', '/'))).reduce((sum, file) => sum + file.bytes, 0)
+const reconstructionCss = cssFiles.filter((file) => /^dist\/assets\/(?:reconstruction|LikelyBattlePanel|TacticalReconstructionPanel)-[^/]+\.css$/.test(relative(appRoot, file.path).replaceAll('\\', '/'))).reduce((sum, file) => sum + file.bytes, 0)
 const coreCss = css - reconstructionCss
 // Social previews are fetched by link crawlers, not by visitors loading the app.
 // Keep them independently bounded without weakening the runtime payload ceiling.

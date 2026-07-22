@@ -1437,7 +1437,7 @@ footer strong {
 .result-view-nav button,
 .tactical-controls button,
 .tactical-controls select {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
   color: var(--ink);
@@ -1468,13 +1468,6 @@ footer strong {
   *::after {
     scroll-behavior: auto !important;
     transition: none !important;
-  }
-}
-
-@media (forced-colors: active) {
-  .versus-mark span {
-    background: Canvas;
-    color: CanvasText;
   }
 }
 
@@ -1528,6 +1521,23 @@ footer strong {
 .workspace-links span {
   color: var(--gold);
   font-size: 10px;
+}
+
+@media (forced-colors: active) {
+  .versus-mark span {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .workspace-links a {
+    forced-color-adjust: none;
+    color: CanvasText;
+    background: Canvas;
+  }
+
+  .workspace-links span {
+    color: CanvasText;
+  }
 }
 
 .nav-case {
@@ -1841,7 +1851,7 @@ footer strong {
   }
 
   .workspace-nav {
-    top: 0;
+    position: static;
     gap: 8px;
     margin-left: -2px;
     margin-right: -2px;

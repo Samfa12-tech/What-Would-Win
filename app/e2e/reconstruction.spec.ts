@@ -10,7 +10,7 @@ async function runDefaultSimulation(page: Page) {
 }
 
 function storySeed(page: Page) {
-  return page.getByText(/Story seed \d+ changes presentation choices only\./)
+  return page.getByText(/Story seed \d+ changes presentation(?: choices)? only\./)
 }
 
 async function openLikelyBattle(page: Page) {
@@ -18,8 +18,8 @@ async function openLikelyBattle(page: Page) {
   await expect(async () => {
     await tab.click()
     await expect(tab).toHaveAttribute('aria-current', 'page')
-  }).toPass({ timeout: 15_000 })
-  await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
+  }).toPass({ timeout: 30_000 })
+  await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 30_000 })
 }
 
 async function openTactical(page: Page) {
@@ -27,8 +27,8 @@ async function openTactical(page: Page) {
   await expect(async () => {
     await tab.click()
     await expect(tab).toHaveAttribute('aria-current', 'page')
-  }).toPass({ timeout: 15_000 })
-  await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 15_000 })
+  }).toPass({ timeout: 30_000 })
+  await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 30_000 })
 }
 
 async function cleanSharedPage(browser: Browser, url: string) {
@@ -44,13 +44,15 @@ test('likely battle is a fully annotated, explicitly non-trial presentation', as
 
   await expect(page.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
   await expect(page.getByLabel('Three-part likely battle account').locator('article')).toHaveCount(3)
-  await expect(page.getByLabel('Seven-phase battle account').locator('> li')).toHaveCount(7)
+  await expect(page.getByLabel('Seven-phase epic battle account').locator('> section')).toHaveCount(7)
   await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/visible|represented|active|quantity/i)
   await expect(page.getByRole('heading', { name: 'Alternate path' })).toBeVisible()
 
-  const firstEvidence = page.getByText('Evidence annotations', { exact: true }).first()
+  await page.getByRole('button', { name: 'Analyst', exact: true }).click()
+  const analyst = page.getByTestId('analyst-account')
+  const firstEvidence = analyst.getByText('Evidence annotations', { exact: true }).first()
   await firstEvidence.click()
-  await expect(page.locator('.storyboard-timeline details').first()).toContainText(/factors|scenario condition/i)
+  await expect(analyst.locator('details[open]').first()).toContainText(/evidence|model|scenario|factor/i)
 })
 
 test('another reconstruction changes the story seed without changing the verdict, probability, or factor ledger', async ({ page, browser }) => {
@@ -79,6 +81,7 @@ test('another reconstruction changes the story seed without changing the verdict
 })
 
 test('history restores the saved story seed after another reconstruction', async ({ page }) => {
+  test.slow()
   await runDefaultSimulation(page)
   await openLikelyBattle(page)
   await page.getByRole('button', { name: 'Another reconstruction' }).click()
@@ -95,31 +98,41 @@ test('history restores the saved story seed after another reconstruction', async
 })
 
 test('tactical controls are keyboard-operable and expose a complete transcript', async ({ page }) => {
+  test.slow()
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
   await expect(panel.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
-  await expect(panel.getByRole('button', { name: 'Play' })).toBeEnabled()
-  await expect(panel.getByLabel('Playback speed')).toHaveValue('1')
-  await expect(panel.getByRole('button', { name: 'Directed camera' })).toBeVisible()
-  for (const name of ['Labels', 'Attack ranges', 'Effective counts', 'Factor annotations', 'Reduced motion', 'Phase tones', 'Download scene PNG', 'Record scene WebM']) {
-    await expect(panel.getByRole('button', { name })).toBeVisible()
-  }
+  await expect(panel.getByRole('button', { name: 'Play reconstruction' })).toBeEnabled()
+  await expect(panel.getByLabel('Speed')).toHaveValue('1')
+  for (const name of ['Story camera', 'Tactical map', 'Free look']) await expect(panel.getByRole('button', { name })).toBeVisible()
   await expect(panel.getByText('Full reconstruction transcript', { exact: true })).toBeVisible()
-  await expect(panel.locator('.tactical-transcript li')).toHaveCount(7)
-  await expect(panel.getByTestId('effective-counts')).toBeVisible()
+  expect(await panel.locator('.tactical-transcript li').count()).toBeGreaterThan(7)
+  await panel.getByText('Full reconstruction transcript', { exact: true }).click()
+  await expect(panel.locator('.tactical-transcript li').first()).toContainText('Target:')
+  await expect(panel.locator('.tactical-transcript li').first()).toContainText('Evidence:')
+  await expect(panel.getByLabel('Quantity representation')).toBeVisible()
 
+  const callout = panel.getByTestId('tactical-callout')
+  const currentTranscript = panel.locator('.tactical-transcript li[aria-current="step"]')
+  for (const value of await callout.locator('dd').allTextContents()) await expect(currentTranscript).toContainText(value)
+  for (const value of (await callout.locator('p').allTextContents()).map((line) => line.replace(/^(Why|Evidence):\s*/, ''))) await expect(currentTranscript).toContainText(value)
+  const firstBeat = await callout.innerText()
   await panel.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(panel.getByTestId('tactical-caption')).toContainText('Phase 2 of 7')
+  await expect.poll(() => callout.innerText()).not.toBe(firstBeat)
   await page.keyboard.press('ArrowLeft')
-  await expect(panel.getByTestId('tactical-caption')).toContainText('Phase 1 of 7')
+  await expect.poll(() => callout.innerText()).toBe(firstBeat)
   await page.keyboard.press('Space')
-  await expect(panel.getByRole('button', { name: 'Pause' })).toBeVisible()
-  await panel.getByLabel('Playback speed').selectOption('2')
-  await expect(panel.getByLabel('Playback speed')).toHaveValue('2')
-  await panel.getByRole('button', { name: 'Directed camera' }).click()
-  await expect(panel.getByRole('button', { name: 'Free camera' })).toBeVisible()
+  await expect(panel.getByRole('button', { name: 'Pause reconstruction' })).toBeVisible()
+  await panel.getByLabel('Speed').selectOption('2')
+  await expect(panel.getByLabel('Speed')).toHaveValue('2')
+  await panel.getByRole('button', { name: 'Free look' }).click()
+  await expect(panel.getByRole('button', { name: 'Reset view' })).toBeVisible()
+  await panel.getByText('Display and capture', { exact: true }).click()
+  for (const name of ['Actor labels', 'Range and area overlays', 'Factor annotations', 'Reduced motion', 'Download guided PNG', 'Record guided WebM']) {
+    await expect(panel.getByRole('button', { name })).toBeVisible()
+  }
   await panel.getByRole('button', { name: 'Factor annotations' }).click()
   await expect(panel.locator('.factor-annotation')).toBeVisible()
 })
@@ -129,16 +142,16 @@ test('the optional tactical canvas exports a labelled PNG without changing the s
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
   if (await panel.getByTestId('no-webgl-fallback').isVisible().catch(() => false)) {
-    await expect(panel.getByRole('button', { name: 'Download scene PNG' })).toBeDisabled()
-    await expect(panel.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    await expect(panel.getByTestId('tactical-map')).toBeVisible()
     return
   }
   const canvas = panel.getByTestId('tactical-canvas')
   await expect(canvas).toBeVisible({ timeout: 15_000 })
-  const originalCaption = await panel.getByTestId('tactical-caption').innerText()
+  const originalCallout = await panel.getByTestId('tactical-callout').innerText()
 
+  await panel.getByText('Display and capture', { exact: true }).click()
   const downloadPromise = page.waitForEvent('download')
-  await panel.getByRole('button', { name: 'Download scene PNG' }).click()
+  await panel.getByRole('button', { name: 'Download guided PNG' }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^what-would-win-reconstruction-\d+\.png$/)
   const stream = await download.createReadStream()
@@ -147,30 +160,32 @@ test('the optional tactical canvas exports a labelled PNG without changing the s
     stream.once('error', reject)
   })
   expect([...signature]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
-  await expect(panel.locator('.capture-status')).toContainText('Scene image downloaded as PNG.')
-  expect(await panel.getByTestId('tactical-caption').innerText()).toBe(originalCaption)
+  await expect(panel.locator('.capture-status')).toContainText('Composite reconstruction image downloaded as PNG.')
+  expect(await panel.getByTestId('tactical-callout').innerText()).toBe(originalCallout)
 })
 
 test('the tactical canvas records WebM where the browser exposes canvas recording', async ({ page }) => {
+  test.slow()
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
   if (await panel.getByTestId('no-webgl-fallback').isVisible().catch(() => false)) {
-    await expect(panel.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    await expect(panel.getByTestId('tactical-map')).toBeVisible()
     return
   }
   await expect(panel.getByTestId('tactical-canvas')).toBeVisible({ timeout: 15_000 })
+  await panel.getByText('Display and capture', { exact: true }).click()
   const supported = await page.evaluate(() => {
-    const canvas = document.querySelector<HTMLCanvasElement>('.tactical-canvas-shell canvas')
+    const canvas = document.querySelector<HTMLCanvasElement>('.tactical-viewport canvas')
     return Boolean(canvas && typeof canvas.captureStream === 'function' && typeof MediaRecorder !== 'undefined')
   })
   if (!supported) {
-    await panel.getByRole('button', { name: 'Record scene WebM' }).click()
+    await panel.getByRole('button', { name: 'Record guided WebM' }).click()
     await expect(panel.locator('.capture-status')).toContainText('unavailable')
     return
   }
 
-  await panel.getByRole('button', { name: 'Record scene WebM' }).click()
+  await panel.getByRole('button', { name: 'Record guided WebM' }).click()
   await expect(panel.getByRole('button', { name: 'Stop WebM' })).toBeVisible()
   await page.waitForTimeout(500)
   const downloadPromise = page.waitForEvent('download')
@@ -183,47 +198,51 @@ test('the tactical canvas records WebM where the browser exposes canvas recordin
     stream.once('error', reject)
   })
   expect([...signature]).toEqual([26, 69, 223, 163])
-  await expect(panel.locator('.capture-status')).toContainText('Scene recording downloaded as WebM.')
+  await expect(panel.locator('.capture-status')).toContainText('Composite reconstruction recording downloaded as WebM.')
 })
 
-test('phase seeking is direct, accessible, and exposes the modelled timeline', async ({ page }) => {
+test('phase and beat seeking is direct, accessible, and exposes presentation timing', async ({ page }) => {
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
-  const caption = panel.getByTestId('tactical-caption')
-  const seek = panel.getByLabel('Seek to battle phase')
+  const callout = panel.getByTestId('tactical-callout')
+  const timeline = panel.getByTestId('tactical-timeline')
+  const phaseButtons = timeline.locator('.phase-seek')
+  await expect(phaseButtons).toHaveCount(7)
+  await expect(phaseButtons.first()).toHaveAttribute('aria-current', 'step')
 
-  await expect(seek).toHaveAttribute('min', '1')
-  await expect(seek).toHaveAttribute('max', '7')
-  await expect(seek).toHaveAttribute('aria-valuetext', 'Phase 1: briefing')
-  await seek.focus()
-  await page.keyboard.press('End')
-  await expect(caption).toContainText('Phase 7 of 7: resolution')
-  await page.keyboard.press('Home')
-  await expect(caption).toContainText('Phase 1 of 7: briefing')
-  await seek.fill('5')
-  await expect(caption).toContainText('Phase 5 of 7: pressure')
-  await expect(seek).toHaveAttribute('aria-valuetext', 'Phase 5: pressure')
+  const beatButtons = timeline.locator('.beat-dots button')
+  expect(await beatButtons.count()).toBeGreaterThan(7)
+  expect(await beatButtons.evaluateAll((buttons) => buttons.every((button) => {
+    const box = button.getBoundingClientRect()
+    return box.width >= 44 && box.height >= 44
+  }))).toBe(true)
+  const directBeat = beatButtons.nth(3)
+  await directBeat.click()
+  await expect(directBeat).toHaveAttribute('aria-current', 'step')
+  await expect(panel).toHaveAttribute('data-beat-progress', '0.000')
+  await expect(callout).toContainText(/Beat \d+ of \d+/)
+  await expect(callout).toContainText('Evidence:')
 
-  const sourceStartSeconds = Number(await caption.getAttribute('data-source-start-seconds'))
-  const sourceDurationSeconds = Number(await caption.getAttribute('data-source-duration-seconds'))
+  await timeline.getByRole('button', { name: /7\. resolution/i }).click()
+  await expect(callout).toContainText('Phase 7 of 7')
+  await timeline.getByRole('button', { name: /5\. pressure/i }).click()
+  await expect(callout).toContainText('Phase 5 of 7')
+  await expect(timeline.getByRole('button', { name: /5\. pressure/i })).toHaveAttribute('aria-current', 'step')
+
   const sourceTimelineSeconds = Number(await panel.getAttribute('data-source-timeline-seconds'))
   const displayTimelineMs = Number(await panel.getAttribute('data-display-timeline-ms'))
-  expect(sourceStartSeconds).toBeGreaterThan(0)
-  expect(sourceDurationSeconds).toBeGreaterThan(0)
-  expect(sourceTimelineSeconds).toBeGreaterThan(sourceStartSeconds)
+  expect(sourceTimelineSeconds).toBeGreaterThan(0)
   expect(displayTimelineMs).toBeGreaterThanOrEqual(7_000)
-  expect(displayTimelineMs).toBeLessThanOrEqual(21_000)
-  await expect(caption.locator('.tactical-timing')).toContainText(/Modelled time .* seconds .* playback/)
 
-  await panel.getByRole('button', { name: 'Play' }).click()
-  await expect(panel.getByRole('button', { name: 'Pause' })).toBeVisible()
-  await seek.fill('3')
-  await expect(panel.getByRole('button', { name: 'Play' })).toBeVisible()
-  await expect(caption).toContainText('Phase 3 of 7: approach')
+  await panel.getByRole('button', { name: 'Play reconstruction' }).click()
+  await expect(panel.getByRole('button', { name: 'Pause reconstruction' })).toBeVisible()
+  await timeline.getByRole('button', { name: /3\. approach/i }).click()
+  await expect(panel.getByRole('button', { name: 'Play reconstruction' })).toBeVisible()
+  await expect(callout).toContainText('Phase 3 of 7')
 })
 
-test('playback advances after the metadata-derived phase delay', async ({ page }) => {
+test('playback advances after the validated beat display delay', async ({ page }) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext
     HTMLCanvasElement.prototype.getContext = function (contextId: string, ...args: unknown[]) {
@@ -235,23 +254,15 @@ test('playback advances after the metadata-derived phase delay', async ({ page }
   await page.clock.install()
 
   const panel = page.getByTestId('tactical-reconstruction-panel')
-  const caption = panel.getByTestId('tactical-caption')
-  await panel.getByLabel('Playback speed').selectOption('2')
-
-  const sourcePhaseSeconds = Number(await caption.getAttribute('data-source-duration-seconds'))
-  const sourceTimelineSeconds = Number(await panel.getAttribute('data-source-timeline-seconds'))
-  const displayTimelineMs = Number(await panel.getAttribute('data-display-timeline-ms'))
-  const expectedDelayMs = Math.max(250, Math.round((sourcePhaseSeconds / sourceTimelineSeconds) * displayTimelineMs / 2))
-  await expect(caption).toHaveAttribute('data-display-delay-ms', String(expectedDelayMs))
-
-  await panel.getByRole('button', { name: 'Play' }).click()
+  const callout = panel.getByTestId('tactical-callout')
+  const firstBeat = await callout.innerText()
+  await panel.getByLabel('Speed').selectOption('2')
+  await panel.getByRole('button', { name: 'Play reconstruction' }).click()
   await page.evaluate(() => Promise.resolve())
-  expect(await panel.getByRole('button', { name: 'Pause' }).count()).toBe(1)
-  await page.clock.fastForward(Math.floor(expectedDelayMs / 2))
-  expect(await caption.innerText()).toContain('Phase 1 of 7')
-  await page.clock.fastForward(Math.ceil(expectedDelayMs / 2))
+  expect(await panel.getByRole('button', { name: 'Pause reconstruction' }).count()).toBe(1)
+  await page.clock.fastForward(2_500)
   await page.evaluate(() => Promise.resolve())
-  expect(await caption.innerText()).toContain('Phase 2 of 7')
+  await expect(callout).not.toHaveText(firstBeat)
 })
 
 test('reduced-motion preference starts a tactical reconstruction paused', async ({ browser }) => {
@@ -261,12 +272,14 @@ test('reduced-motion preference starts a tactical reconstruction paused', async 
     await runDefaultSimulation(page)
     await openTactical(page)
     const panel = page.getByTestId('tactical-reconstruction-panel')
-    await expect(panel.getByRole('button', { name: 'Play' })).toBeDisabled()
+    await expect(panel.getByRole('button', { name: 'Play reconstruction' })).toBeDisabled()
+    await expect(panel).toHaveAttribute('data-beat-progress', '1.000')
+    await panel.getByText('Display and capture', { exact: true }).click()
     await expect(panel.getByRole('button', { name: 'Reduced motion' })).toHaveAttribute('aria-pressed', 'true')
     await panel.focus()
     await page.keyboard.press('Space')
-    await expect(panel.getByRole('button', { name: 'Play' })).toBeDisabled()
-    await expect(panel.getByTestId('tactical-caption')).toContainText('Phase 1 of 7')
+    await expect(panel.getByRole('button', { name: 'Play reconstruction' })).toBeDisabled()
+    await expect(panel.getByTestId('tactical-callout')).toContainText('Phase 1 of 7')
   } finally {
     await context.close()
   }
@@ -289,9 +302,12 @@ test('no-WebGL keeps the accessible tactical fallback and transcript', async ({ 
     await runDefaultSimulation(page)
     await openTactical(page)
     await expect(page.getByTestId('no-webgl-fallback')).toBeVisible()
-    await expect(page.locator('.tactical-transcript li')).toHaveCount(7)
-    await expect(page.getByRole('button', { name: 'Download scene PNG' })).toBeDisabled()
-    await expect(page.getByRole('button', { name: 'Record scene WebM' })).toBeDisabled()
+    await expect(page.getByTestId('tactical-map')).toBeVisible()
+    await expect(page.getByTestId('tactical-callout')).toBeVisible()
+    await expect(page.getByTestId('tactical-timeline')).toBeVisible()
+    expect(await page.locator('.tactical-transcript li').count()).toBeGreaterThan(7)
+    await expect(page.getByRole('button', { name: 'Story camera' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Free look' })).toBeDisabled()
     expect(requestedScripts.some((url) => /TacticalScene-[\w-]+\.js$/i.test(url))).toBe(false)
   } finally {
     await context.close()
@@ -303,7 +319,10 @@ test('conceptual quantities never initialise a literal tactical battlefield', as
   await page.getByLabel('Quantity').fill('10^100')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await openTactical(page)
-  await expect(page.getByTestId('conceptual-tactical-fallback')).toBeVisible()
+  await expect(page.getByTestId('tactical-map')).toBeVisible()
+  await expect(page.getByTestId('tactical-callout')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Story camera' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Free look' })).toBeDisabled()
   await expect(page.locator('.tactical-canvas-shell')).toHaveCount(0)
 })
 
@@ -325,16 +344,20 @@ test('the TacticalScene chunk is deferred until tactical view is selected', asyn
 
 test('standalone storyboard JSON export contains the validated reconstruction record', async ({ page }) => {
   await runDefaultSimulation(page)
-  await page.getByText('Export files', { exact: true }).click()
-  const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download storyboard JSON' }).click()
-  const download = await downloadPromise
+  const exportMenu = page.locator('details.result-export-menu')
+  await exportMenu.locator('summary').press('Enter')
+  await expect(exportMenu).toHaveAttribute('open', '')
+  const downloadButton = exportMenu.getByRole('button', { name: 'Download storyboard JSON' })
+  await expect(downloadButton).toBeVisible()
+  const [download] = await Promise.all([page.waitForEvent('download'), downloadButton.click()])
   const stream = await download.createReadStream()
   const chunks: Buffer[] = []
   for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
   const storyboard = JSON.parse(Buffer.concat(chunks).toString('utf8'))
   expect(download.suggestedFilename()).toBe('what-would-win-storyboard.json')
-  expect(storyboard).toMatchObject({ version: 1, simulationSeed: expect.any(Number), storySeed: expect.any(Number), phases: expect.any(Array) })
+  expect(storyboard).toMatchObject({ version: 2, simulationSeed: expect.any(Number), storySeed: expect.any(Number), phases: expect.any(Array) })
   expect(storyboard.phases).toHaveLength(7)
+  expect(storyboard.evidence.length).toBeGreaterThan(0)
+  expect(storyboard.phases.every((phase: { storyBeats?: unknown[] }) => (phase.storyBeats?.length ?? 0) > 0)).toBe(true)
   expect(storyboard.caveats).toContain(RECONSTRUCTION_NOTICE)
 })

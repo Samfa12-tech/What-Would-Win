@@ -481,25 +481,53 @@ function confidenceLabelV4(solo: CreatureV4Draft, group: CreatureV4Draft, probab
   return 'Close and assumption-sensitive'
 }
 
+function quantityInputForLog10(log10: number): string {
+  if (log10 <= 12) return String(Math.max(1, Math.round(10 ** log10)))
+
+  const exponent = Math.floor(log10)
+  const significantDigits = 12
+  const scale = 10 ** (significantDigits - 1)
+  const mantissa = Math.round(10 ** (log10 - exponent) * scale)
+  if (mantissa >= 10 * scale) return `1e${exponent + 1}`
+  return `${mantissa}e${exponent - (significantDigits - 1)}`
+}
+
 function coinFlipQuantityV4(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): string {
   const atOne = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: '1' })
   if (atOne.groupLogPower >= atOne.soloLogPower) return 'The group is already favoured at 1 opponent.'
-  let low = 0
-  let high = 1
-  while (high <= 1_000_000) {
-    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${high}` })
+
+  let lowLog10 = 0
+  let highLog10 = 1
+  while (highLog10 <= 1_000_000) {
+    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${highLog10}` })
     if (state.groupLogPower >= state.soloLogPower) break
-    low = high
-    high *= 2
+    lowLog10 = highLog10
+    highLog10 *= 2
   }
-  if (high > 1_000_000) return 'No practical crossover was found within the model limit.'
-  while (high - low > 1) {
-    const mid = Math.floor((low + high) / 2)
-    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${mid}` })
-    if (state.groupLogPower >= state.soloLogPower) high = mid
-    else low = mid
+  if (highLog10 > 1_000_000) return 'No practical crossover was found within the model limit.'
+
+  if (highLog10 <= 12) {
+    let lowQuantity = Math.max(1, Math.floor(10 ** lowLog10))
+    let highQuantity = Math.ceil(10 ** highLog10)
+    while (highQuantity - lowQuantity > 1) {
+      const midQuantity = Math.floor((lowQuantity + highQuantity) / 2)
+      const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: String(midQuantity) })
+      if (state.groupLogPower >= state.soloLogPower) highQuantity = midQuantity
+      else lowQuantity = midQuantity
+    }
+    return `about ${highQuantity.toLocaleString('en-AU')}`
   }
-  return `about ${formatLogQuantity(high)}`
+
+  for (let i = 0; i < 70; i += 1) {
+    const midLog10 = (lowLog10 + highLog10) / 2
+    const state = resolveModel04Deterministic(creatures, {
+      ...scenario,
+      groupQuantity: quantityInputForLog10(midLog10),
+    })
+    if (state.groupLogPower >= state.soloLogPower) highLog10 = midLog10
+    else lowLog10 = midLog10
+  }
+  return `about ${formatLogQuantity((lowLog10 + highLog10) / 2)}`
 }
 
 function formatMass(value: number): string {

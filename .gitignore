@@ -41,6 +41,7 @@ app/vite.config.d.ts
 # Internal QA renders and screenshots
 qa/
 output/
+.playwright-cli/
 app/playwright-report/
 app/test-results/
 coverage/

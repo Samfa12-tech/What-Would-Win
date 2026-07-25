@@ -17,6 +17,7 @@ import type { Model04Runtime, Model04RuntimeResources, Model04RuntimeResult } fr
 import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
 import type { Model04SensitivityPoint } from './model04/engineV4'
 import { HISTORY_ITEM_FORMAT_VERSION, historyItemNeedsRecalculation } from './legacyHistory'
+import type { BattleReconstructionInput } from './storyboard'
 
 const CustomCreatureEditor = lazy(async () => {
   const module = await import('./components/CustomCreatureEditor')
@@ -83,14 +84,40 @@ const fieldBriefs: Array<{
   },
   {
     id: 'mythic-standoff',
-    kicker: 'Myth file',
-    title: 'The Gorgon problem',
-    description: 'Medusa against twenty armoured spear carriers in a ruin.',
+    kicker: 'Pilot 4 · gaze',
+    title: 'Medusa versus spear carriers',
+    description: 'Line of sight, facing, disciplined formation and conditional gaze resolution.',
     scenario: {
       soloId: 'medusa', groupId: 'armoured-spear-carrier', groupQuantity: '20',
       soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' },
       scalingMode: 'magical', terrain: 'urban', startingDistanceM: 30,
+      priorKnowledge: 'both', awareness: 'mutual', facing: 'mutual', coordinationDoctrine: 'disciplined',
     },
+  },
+  {
+    id: 'pilot-elephant-wolves', kicker: 'Pilot 1 · frontage', title: 'Elephant versus wolves',
+    description: 'Mass, stopping pressure, coordination, active frontage, reserves and rout.',
+    scenario: { soloId: 'african-bush-elephant', groupId: 'gray-wolf', groupQuantity: '100', soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' }, scalingMode: 'strict', terrain: 'open', weather: 'clear', startingDistanceM: 30, arenaBoundary: 'bounded', winCondition: 'retreat' },
+  },
+  {
+    id: 'pilot-eagle-mice', kicker: 'Pilot 2 · compression', title: 'Eagle versus mice',
+    description: 'Flight access against one million mice with representative density and reserve pressure.',
+    scenario: { soloId: 'golden-eagle', groupId: 'house-mouse', groupQuantity: '1000000', soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' }, scalingMode: 'strict', terrain: 'open', weather: 'clear', startingDistanceM: 25, arenaBoundary: 'bounded' },
+  },
+  {
+    id: 'pilot-dragon-archers', kicker: 'Pilot 3 · area range', title: 'Dragon versus archers',
+    description: 'Flight, ranged formation, finite resources and resolved fire area.',
+    scenario: { soloId: 'western-dragon', groupId: 'prepared-archer', groupQuantity: '200', soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' }, scalingMode: 'magical', terrain: 'open', weather: 'clear', startingDistanceM: 25, arenaBoundary: 'bounded' },
+  },
+  {
+    id: 'pilot-spider-rhino', kicker: 'Pilot 5 · restraint', title: 'Giant spider versus rhinoceros',
+    description: 'Web range, target-mass ceiling, finite supply and transition to contact.',
+    scenario: { soloId: 'giant-spider', groupId: 'white-rhinoceros', groupQuantity: '1', soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' }, scalingMode: 'magical', terrain: 'forest', weather: 'clear', startingDistanceM: 12, arenaBoundary: 'bounded' },
+  },
+  {
+    id: 'pilot-charybdis-orca', kicker: 'Pilot 6 · fixed hazard', title: 'Charybdis versus orca',
+    description: 'A stationary ocean hazard, fixed radius, target trajectory and no pursuit.',
+    scenario: { soloId: 'charybdis', groupId: 'orca', groupQuantity: '1', soloSize: { method: 'normal', value: 'normal' }, groupSize: { method: 'normal', value: 'normal' }, scalingMode: 'magical', terrain: 'ocean', weather: 'storm', waterDepthM: 100, startingDistanceM: 40, arenaBoundary: 'bounded' },
   },
 ]
 
@@ -120,6 +147,7 @@ interface InitialAppState {
   warning: string
   history: HistoryItem[]
   historyWarning: string
+  storySeed: number | null
 }
 
 function unavailableHistoryReferences(item: HistoryItem, creatures: Creature[]): string[] {
@@ -145,10 +173,16 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime: Model04Ru
       warning: '',
       history: [],
       historyWarning: '',
+      storySeed: null,
     }
   }
   const loaded = model04Runtime.loadCustoms(window.localStorage)
   const encoded = new URLSearchParams(window.location.search).get('s')
+  const storySeedText = new URLSearchParams(window.location.search).get('r')
+  const parsedStorySeed = storySeedText === null ? null : Number(storySeedText)
+  const sharedStorySeed = typeof parsedStorySeed === 'number' && Number.isInteger(parsedStorySeed) && parsedStorySeed >= 0 && parsedStorySeed <= 0xffff_ffff
+    ? parsedStorySeed >>> 0
+    : null
   const decodedV4 = encoded ? model04Runtime.decodeForUi(encoded) : null
   const decodedSharedCustoms = decodedV4?.customCreatures ?? []
   const savedIds = new Set(loaded.items.map((item) => item.creature.id))
@@ -188,6 +222,7 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime: Model04Ru
     warning: [loaded.warning, shareWarning, collisionWarning, unavailableShareWarning].filter(Boolean).join(' '),
     history: loadedHistory.items,
     historyWarning: [loadedHistory.warning, unavailableHistoryWarning].filter(Boolean).join(' '),
+    storySeed: sharedStorySeed,
   }
 }
 
@@ -244,6 +279,24 @@ function downloadBlob(filename: string, blob: Blob): void {
   URL.revokeObjectURL(url)
 }
 
+function initialStorySeed(run: Model04RuntimeResult): number {
+  const identity = JSON.stringify({
+    scenario: run.scenario,
+    winner: run.result.winner,
+    probability: run.result.soloWinProbability,
+    margin: run.deterministicState.soloLogPower - run.deterministicState.groupLogPower,
+    factors: run.deterministicState.factors.map((factor) => factor.id),
+    simulationSeed: run.result.technical.seed,
+  })
+  let hash = 0x811c9dc5
+  for (let index = 0; index < identity.length; index += 1) hash = Math.imul(hash ^ identity.charCodeAt(index), 0x01000193) >>> 0
+  return hash >>> 0
+}
+
+function advanceStorySeed(seed: number): number {
+  return (Math.imul(seed >>> 0, 1664525) + 1013904223) >>> 0
+}
+
 function wrapCanvasText(context: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines = 5): number {
   const words = text.split(/\s+/)
   let line = ''
@@ -292,10 +345,13 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const [simulatedResources, setSimulatedResources] = useState<Model04RuntimeResources>(initialResources)
   const initialRun = useMemo(() => model04Runtime.simulate(startingScenario, initialResources, creatures), [model04Runtime])
   const [result, setResult] = useState<SimulationResult>(initialRun.result)
+  const [deterministicState, setDeterministicState] = useState(initialRun.deterministicState)
   const [sensitivity, setSensitivity] = useState<Model04SensitivityPoint[]>(initialRun.sensitivity)
   const [abilityResolutions, setAbilityResolutions] = useState(initialRun.abilityResolutions)
   const [simulatedV4Scenario, setSimulatedV4Scenario] = useState(initialRun.scenario)
   const [simulatedV4Contestants, setSimulatedV4Contestants] = useState(initialRun.contestants)
+  const initialDerivedStorySeed = initialStorySeed(initialRun)
+  const [storySeed, setStorySeed] = useState(starting.storySeed ?? initialDerivedStorySeed)
   const [error, setError] = useState('')
   const [shareStatus, setShareStatus] = useState('')
   const [history, setHistory] = useState<HistoryItem[]>(starting.history)
@@ -308,6 +364,16 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const soloResourceAbilities = model04Runtime.resourceAbilities(scenario.soloId)
   const groupResourceAbilities = model04Runtime.resourceAbilities(scenario.groupId)
   const isDirty = JSON.stringify(scenario) !== JSON.stringify(simulatedScenario) || JSON.stringify(resources) !== JSON.stringify(simulatedResources)
+  const storyboardInput = useMemo<BattleReconstructionInput>(() => ({
+    scenario: simulatedV4Scenario,
+    result,
+    deterministicState,
+    abilityResolutions,
+    sensitivity,
+    contestants: simulatedV4Contestants,
+    simulationSeed: result.technical.seed,
+    storySeed,
+  }), [abilityResolutions, deterministicState, result, sensitivity, simulatedV4Contestants, simulatedV4Scenario, storySeed])
 
   function update<K extends keyof Scenario>(key: K, value: Scenario[K]) {
     setScenario((current) => ({ ...current, [key]: value }))
@@ -416,7 +482,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     }
   }
 
-  function saveHistory(nextScenario: Scenario, nextResult: SimulationResult, nextResources: Model04RuntimeResources) {
+  function saveHistory(nextScenario: Scenario, nextResult: SimulationResult, nextResources: Model04RuntimeResources, nextStorySeedValue: number) {
     const nextItem: HistoryItem = {
       formatVersion: HISTORY_ITEM_FORMAT_VERSION,
       modelVersion: MODEL_VERSION,
@@ -428,6 +494,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       soloName: creatures.find((item) => item.id === nextScenario.soloId)?.name ?? nextScenario.soloId,
       groupName: creatures.find((item) => item.id === nextScenario.groupId)?.name ?? nextScenario.groupId,
       soloWinProbability: nextResult.soloWinProbability,
+      storySeed: nextStorySeedValue,
     }
     const nextHistory = [nextItem, ...history].slice(0, MAX_HISTORY_ITEMS)
     setHistory(nextHistory)
@@ -439,22 +506,25 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     }
   }
 
-  function run(nextScenario = scenario, recordHistory = true, nextResources = resources): Model04RuntimeResult | null {
+  function run(nextScenario = scenario, recordHistory = true, nextResources = resources, requestedStorySeed?: number): Model04RuntimeResult | null {
     try {
       const simulated = model04Runtime.simulate(nextScenario, nextResources, creatures)
       const nextResult = simulated.result
       setResult(nextResult)
+      setDeterministicState(simulated.deterministicState)
       setSensitivity(simulated.sensitivity)
       setAbilityResolutions(simulated.abilityResolutions)
       setSimulatedV4Scenario(simulated.scenario)
       setSimulatedV4Contestants(simulated.contestants)
+      const nextStorySeedValue = requestedStorySeed ?? initialStorySeed(simulated)
+      setStorySeed(nextStorySeedValue)
       setScenario(nextScenario)
       setSimulatedScenario(nextScenario)
       setResources(nextResources)
       setSimulatedResources(nextResources)
       setError('')
       setShareStatus('')
-      if (recordHistory) saveHistory(nextScenario, nextResult, nextResources)
+      if (recordHistory) saveHistory(nextScenario, nextResult, nextResources, nextStorySeedValue)
       return simulated
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'The simulation could not be completed.')
@@ -482,6 +552,21 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     run({ ...scenario, seed: (scenario.seed + 1) >>> 0 })
   }
 
+  function anotherReconstruction() {
+    const next = advanceStorySeed(storySeed)
+    setStorySeed(next)
+    const currentItem = history[0]
+    if (!currentItem || JSON.stringify(currentItem.scenario) !== JSON.stringify(simulatedScenario)) return
+    const nextHistory = [{ ...currentItem, storySeed: next }, ...history.slice(1)]
+    setHistory(nextHistory)
+    try {
+      model04Runtime.saveHistory(localStorage, nextHistory, simulatedResources)
+      setHistoryWarning('')
+    } catch {
+      setHistoryWarning('The reconstruction changed, but its story seed could not be saved to recent history in this browser.')
+    }
+  }
+
   function restoreHistory(item: HistoryItem) {
     const unavailable = unavailableHistoryReferences(item, creatures)
     if (unavailable.length > 0) {
@@ -491,7 +576,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     const storedInputs = model04Runtime.historyInputs(localStorage, item.id)
     const restoredScenario = mergeScenario(storedInputs?.scenario ?? item.scenario, creatures)
     const restoredResources = storedInputs?.resources ?? defaultModel04Resources(restoredScenario)
-    const restoredRun = run(restoredScenario, false, restoredResources)
+    const restoredRun = run(restoredScenario, false, restoredResources, storedInputs?.storySeed)
     if (!restoredRun) return
     if (historyItemNeedsRecalculation(item)) {
       const recalculated: HistoryItem = {
@@ -520,18 +605,22 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
 
   async function copyShareLink() {
     const referencedCustoms = [simulatedSolo, simulatedGroup].filter(isCustomCreature)
-    const url = model04Runtime.buildShareUrl(simulatedScenario, simulatedResources, referencedCustoms)
+    const url = new URL(model04Runtime.buildShareUrl(simulatedScenario, simulatedResources, referencedCustoms))
+    url.searchParams.set('r', String(storySeed))
     try {
-      await navigator.clipboard.writeText(url)
-      window.history.replaceState({}, '', url)
+      await navigator.clipboard.writeText(url.toString())
+      window.history.replaceState({}, '', url.toString())
       setShareStatus('Share link copied.')
     } catch {
       setShareStatus('Copy was blocked; the share URL is now in the address bar.')
-      window.history.replaceState({}, '', url)
+      window.history.replaceState({}, '', url.toString())
     }
   }
 
-  function downloadResultJson() {
+  async function downloadResultJson() {
+    const { assertValidBattleStoryboard, buildBattleNarrative, buildBattleStoryboard } = await import('./storyboard')
+    const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
+    const battleNarrative = buildBattleNarrative(storyboard)
     const payload = {
       app: 'What Would Win',
       applicationVersion: APPLICATION_VERSION,
@@ -544,9 +633,19 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       customCreatures: [simulatedV4Contestants.solo, simulatedV4Contestants.group].filter((profile) => profile.id.startsWith('custom:')),
       abilityResolutions,
       sensitivity,
+      deterministicState,
+      storySeed,
+      storyboard,
+      battleNarrative,
       result,
     }
     downloadBlob('what-would-win-result.json', new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
+  }
+
+  async function downloadStoryboard() {
+    const { assertValidBattleStoryboard, buildBattleStoryboard, exportStoryboardJson } = await import('./storyboard')
+    const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
+    downloadBlob('what-would-win-storyboard.json', new Blob([exportStoryboardJson(storyboard)], { type: 'application/json' }))
   }
 
   function downloadResultImage() {
@@ -628,7 +727,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
         </section>
 
         <details className="field-briefings">
-          <summary><span>Try a suggested matchup</span><small>4 field briefings</small></summary>
+          <summary><span>Try a suggested matchup</span><small>{fieldBriefs.length} field briefings</small></summary>
           <div className="field-brief-grid" aria-label="Suggested matchup briefings">
             {fieldBriefs.map((brief) => (
               <button type="button" className="field-brief" key={brief.id} onClick={() => applyFieldBrief(brief)}>
@@ -945,6 +1044,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
           result={result}
           sensitivity={sensitivity}
           abilityResolutions={abilityResolutions}
+          reconstructionInput={storyboardInput}
           contestants={simulatedV4Contestants}
           scenario={simulatedScenario}
           solo={simulatedSolo}
@@ -953,6 +1053,8 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
           onCopyShare={copyShareLink}
           onDownloadImage={downloadResultImage}
           onDownloadJson={downloadResultJson}
+          onDownloadStoryboard={downloadStoryboard}
+          onAnotherReconstruction={anotherReconstruction}
         />
 
         <section className="history-section" id="history">

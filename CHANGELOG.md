@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0 — 2026-07-22
+
+- Advanced the presentation contract to storyboard v2 with typed evidence records, deterministic sentence fragments and validated story beats linked to the existing legal event ledger.
+- Reworked Likely battle into a readable, grounded-epic Story account and a complete Analyst account; the three-part summary is no longer assembled by concatenating technical phase captions.
+- Added accessible inline evidence explanations for important abilities, ranges, counts and model terms using native hover/focus/tap triggers, Escape dismissal and a complete non-tooltip evidence fallback.
+- Reworked tactical playback around explicit beats with Who / What / Target / Result / Why callouts, direct beat controls and a labelled phase-and-beat timeline.
+- Added Story camera, Tactical map and Free look modes; the synchronized 2D Canvas map, HTML legend and active explanation remain available when WebGL is absent or the optional scene fails.
+- Preserved the authoritative application boundary: model/data remain 0.4.1, share format remains v4, history/custom storage remain v2, and changing the story seed cannot alter the verdict or evidence ledger.
+- Added deterministic golden and mutation coverage for all six pilot chronicles plus a natural-size-locked dragon/eagle capture harness and tracked exact-candidate comparison evidence.
+
+## 0.5.0 — 2026-07-20
+
+- Added the versioned `BattleStoryboard`, seven fixed phases, deterministic story seeds, stable scenario/result hashes, validated factor/ability references and standalone JSON export without changing model 0.4.1.
+- Added deterministic three-part and seven-phase likely-battle accounts, evidence annotations, minority-path sensitivity notes, close-contest language and conceptual-scale narration.
+- Added first-class result navigation for Verdict, Likely battle, Tactical reconstruction and Technical record; story seed persists through share links, current history and result exports.
+- Added a completely lazy React Three Fiber tactical diorama driven only by validated storyboard events, with primitive terrain, instanced formations, movement paths, range/area/frontage/reserve/hazard overlays, camera modes, captions and transcript.
+- Added all 15 reusable primitive visual archetypes and the bespoke → adjusted archetype → silhouette → labelled-token fallback contract; missing art can no longer block a reconstruction.
+- Added the six requested pilot briefings and deterministic test coverage for elephant/wolves, eagle/mice, dragon/archers, Medusa/spear carriers, giant spider/rhinoceros and Charybdis/orca.
+- Added visible-actor compression, conceptual no-actor handling, WebGL2 failure fallback, keyboard timeline controls and system/user reduced-motion handling.
+- Added storyboard-timed playback, direct phase seeking, 14 reusable environment families, modular creature visual profiles, event-bound pilot effects, optional generated phase tones and browser PNG/WebM scene capture.
+- Made storyboard hashing locale-independent and added Node 22/24 golden-hash and deterministic snapshot coverage without changing the authoritative numerical engine.
+- Added explicit per-archetype, per-environment, per-audio and selected tactical-asset budgets; 0.5.0 continues to ship zero external tactical asset bytes.
+- Preserved the existing entry, optional-UI, model-runtime and core-CSS ceilings; added independent presentation, reconstruction-CSS and lazy tactical-runtime budgets.
+- Advanced the application version to 0.5.0. Model/data remain 0.4.1 and share format remains v4 because numerical mechanics and the canonical scenario envelope are unchanged.
+
 ## 0.4.1 — 2026-07-19
 
 - Added a release-blocking model-0.4 ability-coverage audit: 118 mechanical source tokens route across all 134 profiles, with 29 reviewed structured overrides including the complete mythical review queue.

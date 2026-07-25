@@ -117,12 +117,13 @@ describe('model 0.4 activation runtime boundary', () => {
       soloName: 'Mallard duck',
       groupName: 'Horse',
       soloWinProbability: 0.625,
+      storySeed: 90210,
     }
     runtime.saveHistory(storage, [historyItem], resources)
 
     const restored = runtime.historyInputs(storage, historyItem.id)
 
-    expect(restored).toEqual({ scenario, resources })
+    expect(restored).toEqual({ scenario, resources, storySeed: 90210 })
     expect(runtime.historyInputs(storage, 'missing-history-id')).toBeNull()
     if (!restored) throw new Error('Expected v2 history inputs.')
     restored.resources.solo.abilityPercent['legacy-contact'] = 100

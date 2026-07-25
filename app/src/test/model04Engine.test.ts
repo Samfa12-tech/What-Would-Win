@@ -71,6 +71,37 @@ describe('active model 0.4 full-engine adapter', () => {
     }
   })
 
+  test('finds the first group-favoured integer for the exported bull versus 100 dogs scenario', () => {
+    const exportedScenario = scenario({
+      soloId: 'breeding-bull',
+      groupId: 'mastiff-type-dog',
+      groupQuantity: '100',
+      scalingMode: 'functional',
+      terrain: 'forest',
+      weather: 'clear',
+      startingDistanceM: 25,
+      preparationMinutes: 0,
+      soloMindset: 'natural',
+      groupMindset: 'bloodlusted',
+      winCondition: 'death',
+      arenaBoundary: 'bounded',
+      arenaDiameterM: 500,
+      coordinationDoctrine: 'instinctive',
+      casualtyTolerance: 'natural',
+      reportDepth: 'technical',
+    })
+    const run = simulateModel04(canonical, exportedScenario)
+    const crossover = Number(run.result.coinFlipQuantity.replace(/^about /, '').replaceAll(',', ''))
+    const before = resolveModel04Deterministic(canonical, { ...exportedScenario, groupQuantity: String(crossover - 1) })
+    const atCrossover = resolveModel04Deterministic(canonical, { ...exportedScenario, groupQuantity: String(crossover) })
+
+    expect(run.result.winner).toBe('group')
+    expect(run.result.groupWinProbability).toBeCloseTo(0.7888834077728151, 12)
+    expect(run.result.coinFlipQuantity).toBe('about 20')
+    expect(before.groupLogPower).toBeLessThan(before.soloLogPower)
+    expect(atCrossover.groupLogPower).toBeGreaterThanOrEqual(atCrossover.soloLogPower)
+  })
+
   test('combines physical and bilateral ability factors under model 0.4 identity', () => {
     const run = simulateModel04(canonical, scenario({ soloId: 'medusa', groupId: 'unarmed-peak-adult-human', startingDistanceM: 15 }))
     expect(run.result.technical).toMatchObject({ modelVersion: '0.4.1', dataVersion: '0.4.1' })

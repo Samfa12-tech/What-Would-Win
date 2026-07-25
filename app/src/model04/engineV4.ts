@@ -52,6 +52,7 @@ export interface Model04SensitivityPoint {
 
 export interface Model04SimulationResult {
   result: SimulationResult
+  deterministicState: Model04DeterministicState
   abilityResolutions: AbilityResolution[]
   sensitivity: Model04SensitivityPoint[]
 }
@@ -480,25 +481,53 @@ function confidenceLabelV4(solo: CreatureV4Draft, group: CreatureV4Draft, probab
   return 'Close and assumption-sensitive'
 }
 
+function quantityInputForLog10(log10: number): string {
+  if (log10 <= 12) return String(Math.max(1, Math.round(10 ** log10)))
+
+  const exponent = Math.floor(log10)
+  const significantDigits = 12
+  const scale = 10 ** (significantDigits - 1)
+  const mantissa = Math.round(10 ** (log10 - exponent) * scale)
+  if (mantissa >= 10 * scale) return `1e${exponent + 1}`
+  return `${mantissa}e${exponent - (significantDigits - 1)}`
+}
+
 function coinFlipQuantityV4(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): string {
   const atOne = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: '1' })
   if (atOne.groupLogPower >= atOne.soloLogPower) return 'The group is already favoured at 1 opponent.'
-  let low = 0
-  let high = 1
-  while (high <= 1_000_000) {
-    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${high}` })
+
+  let lowLog10 = 0
+  let highLog10 = 1
+  while (highLog10 <= 1_000_000) {
+    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${highLog10}` })
     if (state.groupLogPower >= state.soloLogPower) break
-    low = high
-    high *= 2
+    lowLog10 = highLog10
+    highLog10 *= 2
   }
-  if (high > 1_000_000) return 'No practical crossover was found within the model limit.'
-  while (high - low > 1) {
-    const mid = Math.floor((low + high) / 2)
-    const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: `10^${mid}` })
-    if (state.groupLogPower >= state.soloLogPower) high = mid
-    else low = mid
+  if (highLog10 > 1_000_000) return 'No practical crossover was found within the model limit.'
+
+  if (highLog10 <= 12) {
+    let lowQuantity = Math.max(1, Math.floor(10 ** lowLog10))
+    let highQuantity = Math.ceil(10 ** highLog10)
+    while (highQuantity - lowQuantity > 1) {
+      const midQuantity = Math.floor((lowQuantity + highQuantity) / 2)
+      const state = resolveModel04Deterministic(creatures, { ...scenario, groupQuantity: String(midQuantity) })
+      if (state.groupLogPower >= state.soloLogPower) highQuantity = midQuantity
+      else lowQuantity = midQuantity
+    }
+    return `about ${highQuantity.toLocaleString('en-AU')}`
   }
-  return `about ${formatLogQuantity(high)}`
+
+  for (let i = 0; i < 70; i += 1) {
+    const midLog10 = (lowLog10 + highLog10) / 2
+    const state = resolveModel04Deterministic(creatures, {
+      ...scenario,
+      groupQuantity: quantityInputForLog10(midLog10),
+    })
+    if (state.groupLogPower >= state.soloLogPower) highLog10 = midLog10
+    else lowLog10 = midLog10
+  }
+  return `about ${formatLogQuantity((lowLog10 + highLog10) / 2)}`
 }
 
 function formatMass(value: number): string {
@@ -676,12 +705,15 @@ export function resolveModel04Deterministic(
   }
 }
 
-function simulateCore(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): Omit<Model04SimulationResult, 'sensitivity'> {
+function simulateCore(
+  creatures: CreatureV4Draft[],
+  scenario: ScenarioV4Draft,
+  deterministic: Model04DeterministicState,
+): Omit<Model04SimulationResult, 'sensitivity' | 'deterministicState'> {
   const profileMap = new Map(creatures.map((creature) => [creature.id, creature]))
   const soloProfile = profileMap.get(scenario.soloId)
   const groupProfile = profileMap.get(scenario.groupId)
   if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown model 0.4 profile.')
-  const deterministic = resolveModel04Deterministic(creatures, scenario)
   const physicalScenario = toPhysicalScenarioV3(scenario)
   const base = simulate(creatures.map(toPhysicalV3), physicalScenario)
   const sampled = sampleOutcomeFromPowers({
@@ -749,8 +781,8 @@ function simulateCore(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): 
 }
 
 export function simulateModel04(creatures: CreatureV4Draft[], scenario: ScenarioV4Draft): Model04SimulationResult {
-  const baseline = simulateCore(creatures, scenario)
   const deterministic = resolveModel04Deterministic(creatures, scenario)
+  const baseline = simulateCore(creatures, scenario, deterministic)
   const baselineMargin = deterministic.soloLogPower - deterministic.groupLogPower
   interface SensitivityVariant {
     id: string
@@ -878,5 +910,5 @@ export function simulateModel04(creatures: CreatureV4Draft[], scenario: Scenario
       caveat: variant.caveat ?? 'One bounded deterministic perturbation; interactions with other uncertain inputs are not combined.',
     }
   }).sort((left, right) => Math.abs(right.marginDelta) - Math.abs(left.marginDelta) || left.id.localeCompare(right.id))
-  return { ...baseline, sensitivity }
+  return { ...baseline, deterministicState: deterministic, sensitivity }
 }

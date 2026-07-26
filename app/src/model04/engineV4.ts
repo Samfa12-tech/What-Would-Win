@@ -27,6 +27,11 @@ interface PhysicalFoundation {
   groupEffectiveQuantityLog10: number
   soloAreaControlLogPower: number
   durationSeconds: number
+  abilityDurationSeconds: number
+  endurance: {
+    solo: Model04EnduranceState
+    group: Model04EnduranceState
+  }
 }
 
 interface GroupAccessPressure {
@@ -50,6 +55,19 @@ export interface Model04SensitivityPoint {
   caveat: string
 }
 
+export interface Model04EnduranceState {
+  applies: boolean
+  relativeSurfaceArea: number
+  relativeMetabolicPower: number
+  relativeHeatPerSurface: number
+  appliedThermalScaling: number
+  thermalEnvironmentModifier: number
+  dutyFactor: number
+  exertionLoad: number
+  thermalLoad: number
+  enduranceCapacity: number
+  penaltyLogPower: number
+}
 export interface Model04SimulationResult {
   result: SimulationResult
   deterministicState: Model04DeterministicState
@@ -69,6 +87,11 @@ export interface Model04DeterministicState {
   groupEffectiveQuantityLog10: number
   soloAreaControlLogPower: number
   durationSeconds: number
+  abilityDurationSeconds: number
+  endurance: {
+    solo: Model04EnduranceState
+    group: Model04EnduranceState
+  }
   preAbilitySoloShare: number
 }
 
@@ -141,13 +164,90 @@ function unconstrainedEffectiveQuantity(physical: Model03DeterministicSnapshot):
   return frontlineLog10 + reserveLog10 * physical.groupReservePressureRate
 }
 
-function preAbilityDurationSeconds(physical: Model03DeterministicSnapshot, scenario: ScenarioV4Draft): number {
+function abilityDurationSeconds(physical: Model03DeterministicSnapshot, scenario: ScenarioV4Draft): number {
   const distanceM = effectiveStartingDistance(scenario)
   const soloClosingMps = physical.solo.scaledSpeedKph * clamp(physical.solo.environmentFactor, 0.025, 1.25) / 3.6
   const groupClosingMps = physical.group.scaledSpeedKph * clamp(physical.group.environmentFactor, 0.025, 1.25) / 3.6
   const approachSeconds = distanceM / Math.max(0.1, soloClosingMps + groupClosingMps)
   const durabilitySeconds = 20 + 0.3 * (physical.solo.stats.durability + physical.group.stats.durability)
   return clamp(approachSeconds + durabilitySeconds, 20, 180)
+}
+
+function encounterDurationSeconds(
+  physical: Model03DeterministicSnapshot,
+  scenario: ScenarioV4Draft,
+  effectiveQuantityLog10: number,
+): number {
+  const turnoverSeconds = 36 * Math.min(Math.max(0, effectiveQuantityLog10), 5) ** 1.12
+  let durationSeconds = abilityDurationSeconds(physical, scenario) + turnoverSeconds
+  if (scenario.winCondition === 'death') durationSeconds *= 1.15
+  if (scenario.winCondition === 'retreat') durationSeconds *= 0.82
+  if (scenario.escapeAllowed && scenario.arenaBoundary === 'open') durationSeconds *= 0.88
+  return clamp(durationSeconds, 20, 420)
+}
+
+function thermalEnvironmentModifier(
+  profile: CreatureV4Draft,
+  combatant: ResolvedCombatant,
+  scenario: ScenarioV4Draft,
+): number {
+  const waterTerrain = ['ocean', 'deep-ocean', 'river', 'swamp'].includes(scenario.terrain)
+  const immersionRatio = Math.max(
+    waterTerrain ? 1 : 0,
+    scenario.waterDepthM / Math.max(0.01, combatant.scaledHeightM),
+  )
+  let modifier = 1
+  if (scenario.weather === 'heat') modifier *= 1.22
+  if (scenario.terrain === 'desert') modifier *= 1.1
+  if (scenario.weather === 'rain') modifier *= 0.94
+  if (immersionRatio >= 0.5 && (profile.locomotion.aquatic || profile.locomotion.amphibious)) {
+    modifier *= 1 - Math.min(0.28, immersionRatio * 0.12)
+  }
+  return clamp(modifier, 0.62, 1.5)
+}
+
+function enduranceState(
+  profile: CreatureV4Draft,
+  combatant: ResolvedCombatant,
+  scenario: ScenarioV4Draft,
+  durationSeconds: number,
+  dutyFactor: number,
+  conceptual: boolean,
+): Model04EnduranceState {
+  const relativeSurfaceArea = combatant.linearScale ** 2
+  const relativeMetabolicPower = (combatant.targetMassKg / profile.representative_peak_mass_kg) ** 0.75
+  const relativeHeatPerSurface = relativeMetabolicPower / Math.max(relativeSurfaceArea, EPSILON)
+  const modeAdjustedHeatPerSurface = scenario.scalingMode === 'magical'
+    ? 1
+    : scenario.scalingMode === 'functional'
+      ? relativeHeatPerSurface ** 0.5
+      : relativeHeatPerSurface
+  const coldConditions = scenario.weather === 'snow' || scenario.terrain === 'snow'
+  const appliedThermalScaling = coldConditions
+    ? 1 / Math.max(modeAdjustedHeatPerSurface, EPSILON)
+    : modeAdjustedHeatPerSurface
+  const environmentModifier = thermalEnvironmentModifier(profile, combatant, scenario)
+  const applies = profile.physiology === 'living' && !conceptual
+  const sustainedExposure = applies ? Math.max(0, (durationSeconds - 45) / 75) : 0
+  const exertionLoad = sustainedExposure * dutyFactor
+  const thermalLoad = exertionLoad * appliedThermalScaling * environmentModifier
+  const enduranceCapacity = 0.55 + combatant.stats.stamina * 0.011
+  const combinedLoad = exertionLoad * 0.65 + thermalLoad * 0.35
+  const excessLoad = Math.max(0, combinedLoad - enduranceCapacity)
+  const penaltyLogPower = applies && excessLoad > EPSILON ? -clamp(0.07 * excessLoad ** 0.88, 0, 0.12) : 0
+  return {
+    applies,
+    relativeSurfaceArea,
+    relativeMetabolicPower,
+    relativeHeatPerSurface,
+    appliedThermalScaling,
+    thermalEnvironmentModifier: environmentModifier,
+    dutyFactor,
+    exertionLoad,
+    thermalLoad,
+    enduranceCapacity,
+    penaltyLogPower,
+  }
 }
 
 function physicalAreaControl(
@@ -423,7 +523,14 @@ function groupAccessPressure(
   }
 }
 
-function physicalFoundation(physical: Model03DeterministicSnapshot, scenario: ScenarioV4Draft): PhysicalFoundation {
+function physicalFoundation(
+  physical: Model03DeterministicSnapshot,
+  scenario: ScenarioV4Draft,
+  soloProfile: CreatureV4Draft,
+  groupProfile: CreatureV4Draft,
+  conceptual: boolean,
+  enduranceEffectiveQuantityLog10 = unconstrainedEffectiveQuantity(physical),
+): PhysicalFoundation {
   const removedIds = new Set([
     'solo-quality', 'group-quality', 'solo-special', 'group-special',
     'solo-attack-access', 'group-attack-access', 'solo-stopping', 'group-stopping',
@@ -432,6 +539,20 @@ function physicalFoundation(physical: Model03DeterministicSnapshot, scenario: Sc
   const groupEffectiveQuantityLog10 = unconstrainedEffectiveQuantity(physical)
   const groupAggregation = physical.groupExponent * groupEffectiveQuantityLog10
   const soloAreaControlLogPower = physicalAreaControl(physical, groupEffectiveQuantityLog10)
+  const abilityDuration = abilityDurationSeconds(physical, scenario)
+  const durationSeconds = encounterDurationSeconds(physical, scenario, enduranceEffectiveQuantityLog10)
+  const frontlineLog10 = Math.min(
+    physical.groupUsableQuantityLog10,
+    Math.log10(Math.max(1, physical.groupFrontageCapacity)),
+  )
+  const activeFrontlineLog10 = Math.min(enduranceEffectiveQuantityLog10, frontlineLog10)
+  const reserveDepthLog10 = Math.max(0, enduranceEffectiveQuantityLog10 - activeFrontlineLog10)
+  const soloDutyFactor = 1
+  const groupDutyFactor = 1 - 0.55 * clamp(reserveDepthLog10 / 2, 0, 1)
+  const endurance = {
+    solo: enduranceState(soloProfile, physical.solo, scenario, durationSeconds, soloDutyFactor, conceptual),
+    group: enduranceState(groupProfile, physical.group, scenario, durationSeconds, groupDutyFactor, conceptual),
+  }
   const factors: AppliedModelFactor[] = [
     ...physical.factors.filter((factor) => !removedIds.has(factor.id)),
     {
@@ -459,11 +580,30 @@ function physicalFoundation(physical: Model03DeterministicSnapshot, scenario: Sc
       caveat: 'Structured area abilities, many-head interpretations and channel effects are resolved separately.',
     })
   }
+  const recordEndurance = (
+    side: 'solo' | 'group',
+    profile: CreatureV4Draft,
+    state: Model04EnduranceState,
+  ) => {
+    if (state.penaltyLogPower >= -EPSILON) return
+    const dutyText = side === 'solo'
+      ? 'continuous engagement duty'
+      : 'frontline duty after reserve rotation'
+    factors.push({
+      id: `${side}-endurance-thermal-v42`, phase: 'pressure', side, logDelta: state.penaltyLogPower,
+      explanation: `Across about ${Math.round(durationSeconds)} seconds, ${profile.name}'s ${dutyText} produces ${state.exertionLoad.toFixed(2)} exertion load and ${state.thermalLoad.toFixed(2)} thermal load against ${state.enduranceCapacity.toFixed(2)} endurance capacity, applying ${state.penaltyLogPower.toFixed(3)} log power.`,
+      caveat: `Resize geometry uses relative surface area L^2 and a bounded metabolic proxy M^0.75; ${scenario.scalingMode} scaling applies a ${state.appliedThermalScaling.toFixed(3)} thermal multiplier before ambient heat and size-relative water cooling. Authored climate adaptation remains in the separate environment factor. This is an aggregate fatigue model, not a body-temperature simulation.`,
+    })
+  }
+  recordEndurance('solo', soloProfile, endurance.solo)
+  recordEndurance('group', groupProfile, endurance.group)
   return {
     factors,
     groupEffectiveQuantityLog10,
     soloAreaControlLogPower,
-    durationSeconds: preAbilityDurationSeconds(physical, scenario),
+    durationSeconds,
+    abilityDurationSeconds: abilityDuration,
+    endurance,
   }
 }
 
@@ -587,6 +727,10 @@ function buildNarrativeV4(
   )).length
   const rejectedCount = state.abilityKernel.resolutions.filter((resolution) => !resolution.active).length
   const durationText = `${Math.round(state.durationSeconds)} seconds of aggregate encounter time`
+  const enduranceFactors = state.factors.filter((factor) => factor.id.endsWith('-endurance-thermal-v42'))
+  const enduranceText = enduranceFactors.length
+    ? `Sustained duty applies ${enduranceFactors.map((factor) => `${factor.side} ${factor.logDelta.toFixed(3)}`).join(' and ')} log-power adjustments after stamina, reserve rotation and thermal scaling.`
+    : 'The sustained-load check finds no material exhaustion or overheating penalty at this duration.'
 
   if (state.conceptual) {
     return [
@@ -597,7 +741,7 @@ function buildNarrativeV4(
       },
       {
         id: 'pressure', title: 'Aggregate pressure', advantage: factorAdvantageV4(state, 'pressure'),
-        text: `Arena occupancy, frontage and bounded reserves produce a ${formatLogQuantity(state.groupEffectiveQuantityLog10)} effective-count basis before the ${state.physical.groupExponent.toFixed(2)} coordination exponent. ${activeAbilityText}`,
+        text: `Arena occupancy, frontage and bounded reserves produce a ${formatLogQuantity(state.groupEffectiveQuantityLog10)} effective-count basis before the ${state.physical.groupExponent.toFixed(2)} coordination exponent. Exhaustion, metabolic heat and physical duration are omitted at conceptual scale. ${activeAbilityText}`,
         factorIds: factorIdsForPhase(state, 'pressure'),
       },
       {
@@ -631,12 +775,12 @@ function buildNarrativeV4(
     },
     {
       id: 'pressure', title: 'Pressure', advantage: factorAdvantageV4(state, 'pressure'),
-      text: `${quantityDisplay} declared opponents resolve to a ${formatLogQuantity(state.groupEffectiveQuantityLog10)} effective-count basis after arena, physical frontage and reserves. Bounded solo physical area control contributes ${state.soloAreaControlLogPower.toFixed(2)} log power; structured coverage remains inside ability factors.`,
+      text: `${quantityDisplay} declared opponents resolve to a ${formatLogQuantity(state.groupEffectiveQuantityLog10)} effective-count basis after arena, physical frontage and reserves. Bounded solo physical area control contributes ${state.soloAreaControlLogPower.toFixed(2)} log power; structured coverage remains inside ability factors. ${enduranceText}`,
       factorIds: factorIdsForPhase(state, 'pressure'),
     },
     {
       id: 'resolution', title: 'Resolution', advantage: soloProbability >= 0.5 ? 'solo' : 'group',
-      text: `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Healing, regeneration and revival use the explicit pre-ability ledger share (${formatPercent(state.preAbilitySoloShare)} solo) plus ${durationText}; their material effects appear as resolution factors.`,
+      text: `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Exhaustion uses ${durationText}; healing, regeneration and revival retain a separate bounded ${Math.round(state.abilityDurationSeconds)}-second ability window plus the explicit pre-ability ledger share (${formatPercent(state.preAbilitySoloShare)} solo).`,
       factorIds: factorIdsForPhase(state, 'resolution'),
     },
     {
@@ -664,24 +808,75 @@ export function resolveModel04Deterministic(
   const physical = resolveModel03Deterministic(physicalCreatures, physicalScenario, quantity.log10)
   const soloSide = scaledSide(soloProfile, physical.solo.targetMassKg, 0, physical.groupFrontageCapacity)
   const groupSide = scaledSide(groupProfile, physical.group.targetMassKg, quantity.log10, physical.groupFrontageCapacity)
-  const foundation = physicalFoundation(physical, scenario)
-  const preAbilitySoloLogPower = foundation.factors.filter((factor) => factor.side === 'solo').reduce((sum, factor) => sum + factor.logDelta, 0)
-  const preAbilityGroupLogPower = foundation.factors.filter((factor) => factor.side === 'group').reduce((sum, factor) => sum + factor.logDelta, 0)
-  const bootstrapMargin = clamp(preAbilitySoloLogPower - preAbilityGroupLogPower, -12, 12)
+  let foundation = physicalFoundation(physical, scenario, soloProfile, groupProfile, quantity.conceptual)
+  const bootstrapSoloLogPower = foundation.factors.filter((factor) => factor.side === 'solo').reduce((sum, factor) => sum + factor.logDelta, 0)
+  const bootstrapGroupLogPower = foundation.factors.filter((factor) => factor.side === 'group').reduce((sum, factor) => sum + factor.logDelta, 0)
+  const bootstrapMargin = clamp(bootstrapSoloLogPower - bootstrapGroupLogPower, -12, 12)
   const bootstrapShare = 1 / (1 + 10 ** -bootstrapMargin)
   const bootstrapResolved = resolveBilateralAbilities(
-    soloSide, groupSide, physical, scenario, bootstrapShare, foundation.durationSeconds, options,
+    soloSide, groupSide, physical, scenario, bootstrapShare, foundation.abilityDurationSeconds, options,
   )
-  const bootstrapAccess = groupAccessPressure(bootstrapResolved.kernel, physical, foundation.groupEffectiveQuantityLog10)
-  const accessAdjustedGroupLogPower = preAbilityGroupLogPower + (bootstrapAccess.factor?.logDelta ?? 0)
-  const causalMargin = clamp(preAbilitySoloLogPower - accessAdjustedGroupLogPower, -12, 12)
-  const preAbilitySoloShare = 1 / (1 + 10 ** -causalMargin)
-  const resolved = resolveBilateralAbilities(
-    soloSide, groupSide, physical, scenario, preAbilitySoloShare, foundation.durationSeconds, options,
+  let accessPressure = groupAccessPressure(
+    bootstrapResolved.kernel, physical, foundation.groupEffectiveQuantityLog10,
   )
+  let resolved = bootstrapResolved
+  let preAbilitySoloShare = bootstrapShare
+  let converged = false
+  const resolveAtAccess = (access: GroupAccessPressure) => {
+    const nextFoundation = physicalFoundation(
+      physical, scenario, soloProfile, groupProfile, quantity.conceptual, access.effectiveQuantityLog10,
+    )
+    const preAbilitySoloLogPower = nextFoundation.factors
+      .filter((factor) => factor.side === 'solo')
+      .reduce((sum, factor) => sum + factor.logDelta, 0)
+    const preAbilityGroupLogPower = nextFoundation.factors
+      .filter((factor) => factor.side === 'group')
+      .reduce((sum, factor) => sum + factor.logDelta, 0)
+    const accessAdjustedGroupLogPower = preAbilityGroupLogPower + (access.factor?.logDelta ?? 0)
+    const causalMargin = clamp(preAbilitySoloLogPower - accessAdjustedGroupLogPower, -12, 12)
+    const nextPreAbilitySoloShare = 1 / (1 + 10 ** -causalMargin)
+    const nextResolved = resolveBilateralAbilities(
+      soloSide, groupSide, physical, scenario, nextPreAbilitySoloShare,
+      nextFoundation.abilityDurationSeconds, options,
+    )
+    const nextAccess = groupAccessPressure(
+      nextResolved.kernel, physical, nextFoundation.groupEffectiveQuantityLog10,
+    )
+    return {
+      foundation: nextFoundation,
+      preAbilitySoloShare: nextPreAbilitySoloShare,
+      resolved: nextResolved,
+      accessPressure: nextAccess,
+    }
+  }
+  for (let iteration = 0; iteration < 6; iteration += 1) {
+    const pass = resolveAtAccess(accessPressure)
+    foundation = pass.foundation
+    resolved = pass.resolved
+    preAbilitySoloShare = pass.preAbilitySoloShare
+    const accessDelta = Math.abs(
+      pass.accessPressure.effectiveQuantityLog10 - accessPressure.effectiveQuantityLog10,
+    )
+    accessPressure = pass.accessPressure
+    if (accessDelta <= EPSILON) {
+      const reconciled = resolveAtAccess(accessPressure)
+      const reconciledDelta = Math.abs(
+        reconciled.accessPressure.effectiveQuantityLog10 - accessPressure.effectiveQuantityLog10,
+      )
+      if (reconciledDelta > EPSILON) continue
+      foundation = reconciled.foundation
+      resolved = reconciled.resolved
+      preAbilitySoloShare = reconciled.preAbilitySoloShare
+      accessPressure = reconciled.accessPressure
+      converged = true
+      break
+    }
+  }
+  if (!converged) {
+    throw new Error('Model 0.4 access and endurance pressure did not converge.')
+  }
   const kernel = resolved.kernel
   const factors = abilityFactors(kernel, profileMap)
-  const accessPressure = groupAccessPressure(kernel, physical, foundation.groupEffectiveQuantityLog10)
   const ledger = [
     ...foundation.factors,
     ...(accessPressure.factor ? [accessPressure.factor] : []),
@@ -700,7 +895,9 @@ export function resolveModel04Deterministic(
     appliedCounterChannels: resolved.channels,
     groupEffectiveQuantityLog10: accessPressure.effectiveQuantityLog10,
     soloAreaControlLogPower: foundation.soloAreaControlLogPower,
+    endurance: foundation.endurance,
     durationSeconds: foundation.durationSeconds,
+    abilityDurationSeconds: foundation.abilityDurationSeconds,
     preAbilitySoloShare,
   }
 }
@@ -756,10 +953,11 @@ function simulateCore(
       ...base.assumptions.filter((assumption) => !assumption.includes('displayed probability reserves')),
       `The displayed probability reserves ${Math.round((1 - sampled.epistemicCompression) * 100)}% of outcome weight for unmodelled uncertainty; the final structured model raw trial tally was ${formatPercent(sampled.rawSoloTrialRate)} for the solo side.`,
       'Model 0.4 removes the legacy combined special-capability multiplier and applies structured abilities bilaterally through explicit conditions, channels and resources.',
+      'Living-profile exhaustion begins only after sustained exposure; relative surface area L^2 and metabolic heat M^0.75 modify the bounded penalty, while access-effective reserve rotation, ambient weather, size-relative water cooling and scaling mode alter load. Climate-adaptation traits remain in the separate environment factor. This is not a body-temperature simulation.',
       'Sensitivity values are alternate calculations of the same scenario; they do not select or replace the baseline winner.',
     ],
     groupCasualties,
-    estimatedDuration: deterministic.conceptual ? 'not physically meaningful at conceptual scale' : `${Math.round(deterministic.durationSeconds)} seconds (pre-ability aggregate estimate)`,
+    estimatedDuration: deterministic.conceptual ? 'not physically meaningful at conceptual scale' : `${Math.round(deterministic.durationSeconds)} seconds (access- and reserve-aware aggregate estimate)`,
     soloIncapacitationRisk: `${formatPercent(sampled.groupProbability)} modelled risk under the selected ${scenario.winCondition} condition`,
     coinFlipQuantity: coinFlipQuantityV4(creatures, scenario),
     technical: {
@@ -775,6 +973,20 @@ function simulateCore(
       rawSoloTrialRate: sampled.rawSoloTrialRate,
       epistemicCompression: sampled.epistemicCompression,
       trialCount: TRIALS_BY_DEPTH[scenario.reportDepth],
+      encounterDurationSeconds: deterministic.durationSeconds,
+      abilityDurationSeconds: deterministic.abilityDurationSeconds,
+      soloRelativeSurfaceArea: deterministic.endurance.solo.relativeSurfaceArea,
+      groupRelativeSurfaceArea: deterministic.endurance.group.relativeSurfaceArea,
+      soloRelativeMetabolicPower: deterministic.endurance.solo.relativeMetabolicPower,
+      groupRelativeMetabolicPower: deterministic.endurance.group.relativeMetabolicPower,
+      soloRelativeHeatPerSurface: deterministic.endurance.solo.relativeHeatPerSurface,
+      groupRelativeHeatPerSurface: deterministic.endurance.group.relativeHeatPerSurface,
+      soloExertionLoad: deterministic.endurance.solo.exertionLoad,
+      groupExertionLoad: deterministic.endurance.group.exertionLoad,
+      soloThermalLoad: deterministic.endurance.solo.thermalLoad,
+      groupThermalLoad: deterministic.endurance.group.thermalLoad,
+      soloEndurancePenaltyLogPower: deterministic.endurance.solo.penaltyLogPower,
+      groupEndurancePenaltyLogPower: deterministic.endurance.group.penaltyLogPower,
     },
   }
   return { result, abilityResolutions: deterministic.abilityKernel.resolutions }

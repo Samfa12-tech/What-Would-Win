@@ -1,7 +1,7 @@
 import type { Creature, Scenario } from '../types'
 
-export const MODEL_04_DRAFT_VERSION = '0.4.1' as const
-export const MODEL_04_VERSION = '0.4.1' as const
+export const MODEL_04_DRAFT_VERSION = '0.4.2' as const
+export const MODEL_04_VERSION = '0.4.2' as const
 export const MODEL_04_DATA_VERSION = '0.4.1' as const
 export const MODEL_04_SHARE_FORMAT_VERSION = 4 as const
 export const MODEL_04_CUSTOM_STORAGE_VERSION = 2 as const
@@ -99,7 +99,7 @@ export interface AbilityEffect {
 
 export interface AbilityCondition {
   requiresLineOfSight?: boolean
-  /** @deprecated Model 0.4.1 profiles must declare the relevant participant explicitly. */
+  /** @deprecated Model 0.4 profiles must declare the relevant participant explicitly. */
   requiresFacing?: boolean
   requiresAttackerFacing?: boolean
   requiresTargetFacing?: boolean

@@ -260,7 +260,7 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.4.1, data 0.4.1 and share format v4**; the application version is **0.6.0** and exported presentation storyboards are **v2**. Custom-creature and history storage remain format **v2** because their serialized shapes remain compatible. Released v4/0.4.0 plus supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. An unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result. Storyboard v2 consumes the completed result and does not change the numerical reproducibility identity.
+The current reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.6.1** and exported presentation storyboards are **v2**. Custom-creature and history storage remain format **v2** because their serialized shapes remain compatible. Released v4/0.4.0 and v4/0.4.1 plus supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. Previous v2 outcomes remain snapshots pending recalculation; an unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result. Storyboard v2 consumes the completed result and does not change the numerical reproducibility identity.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
@@ -273,11 +273,12 @@ All constants in this section are **versioned design parameters**. They should b
 5. Run the audited model-0.3 physical aggregate foundation without its legacy combined special multiplier.
 6. Reconstruct bounded-arena occupancy, frontage, reserves, group aggregation and physical body-scale area control as explicit ledger factors.
 7. Resolve structured abilities bilaterally through stat execution, per-effect stopping/access, delivery, range/area, conditions, counters, bounded uses/recharge and channel modifiers.
-8. Calculate deterministic solo/group log power and record stable physical and `ability:*` factors, including inactive/rejected reasons.
-9. Run seeded Monte Carlo trials around those deterministic values.
-10. Reserve explicit probability weight for unmodelled uncertainty without a conceptual-threshold certainty jump.
-11. Calculate crossover quantity, selected deterministic sensitivity points and ordinary-scale heuristic metrics; withhold physical duration/losses at conceptual scale.
-12. Generate the verdict, technical record and factor-linked deterministic explanation. Neither prose nor sensitivity variants choose a competing winner.
+8. Resolve the access-effective encounter clock, reserve rotation and one bounded living-profile endurance/thermal factor per side while retaining a separate ability clock.
+9. Calculate deterministic solo/group log power and record stable physical and `ability:*` factors, including inactive/rejected reasons.
+10. Run seeded Monte Carlo trials around those deterministic values.
+11. Reserve explicit probability weight for unmodelled uncertainty without a conceptual-threshold certainty jump.
+12. Calculate crossover quantity, selected deterministic sensitivity points and ordinary-scale heuristic metrics; withhold physical duration/losses at conceptual scale.
+13. Generate the verdict, technical record and factor-linked deterministic explanation. Neither prose nor sensitivity variants choose a competing winner.
 
 ### 10.3 Quantity representation
 
@@ -352,6 +353,15 @@ Bonuses apply for swarm/eusocial behaviour, pack hunting, formation discipline, 
 
 Active frontage and reserve weighting make contact saturation inspectable while retaining logarithmic runtime. Approximate bounded-arena occupancy caps usable opposing quantity before frontage, reserve and access limits; the declared quantity remains visible and produces a feasibility warning. Open arenas permit explicitly aggregate quantities without that spatial cap. The exponent, frontage geometry, reserve weight and occupancy approximation remain sensitive global heuristics that should eventually be estimated by archetype.
 
+### 10.8A Endurance and thermal scaling
+
+Model 0.4.2 gives ordinary living profiles one bounded sustained-load factor. Baseline stamina remains authoritative at normal size. Resizing derives relative surface area `L^2`, metabolic power `M^0.75 = L^2.25` and strict heat per surface `L^0.25`; functional scaling applies `L^0.125`, while magical scaling removes resize-derived thermal imbalance but retains ordinary fatigue.
+
+The access-effective opposing count lengthens a separate encounter clock, capped at 420 seconds. Quantity enters fatigue through this clock once. Access-ineligible reserves neither prolong the encounter nor grant rotation relief. The model-0.4.1 ability clock remains capped at 180 seconds, so recharge and recovery are not silently expanded by the fatigue clock.
+
+After a 45-second grace period, exertion and thermal load are compared with stamina-derived capacity. A material penalty is emitted once as a non-positive pressure factor and capped at `-0.12` log power. Ambient heat, size-relative aquatic cooling and reciprocal shrink-related cold stress alter thermal load; authored heat/cold adaptation remains in the environment factor. Nonliving and conceptual profiles are exempt. Exact equations and evidence are recorded in `docs/MODEL_0.4.2_ENDURANCE.md`.
+
+
 ### 10.9 Matchup interactions
 
 The deterministic layer also applies:
@@ -361,7 +371,7 @@ The deterministic layer also applies:
 - **Access ceiling:** where a group lacks credible access, additional reserves do not create new attack opportunities by themselves.
 - **Solo area control:** multi-target score, mass ratio and area-effect traits add bounded resistance to effective group pressure.
 - **Frontage and reserves:** contact geometry limits the active front, while coordination, doctrine and casualty tolerance affect the rate at which reserves sustain pressure.
-- **Resources and channels:** solo/group resource defaults and per-ability overrides scale supply; capacity plus encounter-duration-bounded recharge determine resolved uses; conditions, counters and physiology/sense/channel modifiers can activate, reduce or reject an ability.
+- **Resources and channels:** solo/group resource defaults and per-ability overrides scale supply; capacity plus separate ability-clock-bounded recharge determine resolved uses; conditions, counters and physiology/sense/channel modifiers can activate, reduce or reject an ability.
 - **Range and closing:** contact reach is separate from ability range/area; slow contact profiles pay a bounded closing cost.
 - **Environment:** habitat match, explicit land/amphibious capability, resized geometry, terrain, weather and time of day affect each side separately.
 - **Preparation, ambush and defence:** intelligent profiles convert preparation into a capped advantage.

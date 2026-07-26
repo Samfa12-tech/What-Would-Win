@@ -216,6 +216,20 @@ export interface SimulationTechnical {
   probabilityStandardError: number
   rawSoloTrialRate: number
   epistemicCompression: number
+  encounterDurationSeconds?: number
+  abilityDurationSeconds?: number
+  soloRelativeSurfaceArea?: number
+  groupRelativeSurfaceArea?: number
+  soloRelativeMetabolicPower?: number
+  groupRelativeMetabolicPower?: number
+  soloRelativeHeatPerSurface?: number
+  groupRelativeHeatPerSurface?: number
+  soloExertionLoad?: number
+  groupExertionLoad?: number
+  soloThermalLoad?: number
+  groupThermalLoad?: number
+  soloEndurancePenaltyLogPower?: number
+  groupEndurancePenaltyLogPower?: number
 }
 
 export interface SimulationResult {

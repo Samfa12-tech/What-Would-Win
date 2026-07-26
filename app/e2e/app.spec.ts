@@ -392,7 +392,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     await clean.context.close()
   }
 
-  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.1', dataVersion: '0.4.1' })
+  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.2', dataVersion: '0.4.1' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -442,7 +442,7 @@ test('version 2 history persists while corrupt history remains untouched', async
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
   expect(current.storageVersion).toBe(2)
-  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.1', dataVersion: '0.4.1' } })
+  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.2', dataVersion: '0.4.1' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
@@ -476,7 +476,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.6.0')
+  expect(exported.applicationVersion).toBe('0.6.1')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))

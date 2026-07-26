@@ -2,9 +2,9 @@
 
 **Status:** active public contract and retained migration record
 
-**Active contract:** `0.4.1`
+**Active contract:** `0.4.2`
 
-**Active public identity:** app/model/data 0.4.1, share v4, custom/history v2
+**Active public identity:** app 0.6.1, model 0.4.2, data 0.4.1, share v4, custom/history v2
 
 ## Decision
 
@@ -16,9 +16,9 @@ This boundary prevents three silent failures:
 2. applying both old capability booleans and new abilities to the same effect;
 3. relabelling v3 custom/history/share data as v4 without a reviewable migration.
 
-The identities advanced together at activation:
+The identities advanced together at the original model-0.4.1 activation:
 
-| Contract | Before cutover | Active release |
+| Contract | Before cutover | Model-0.4.1 activation |
 |---|---:|---:|
 | Application | 0.3.1 | 0.4.1 |
 | Model | 0.3.0 | 0.4.1 |
@@ -30,6 +30,8 @@ The identities advanced together at activation:
 The v3 creature and scenario schemas remain hash-locked compatibility inputs. The active v4 schemas live under `data/model-0.4/`.
 
 The migration-evidence artifacts now use active `targetModel: 0.4.1` and `reviewed` status. Draft labels are not accepted as current review evidence.
+
+That `targetModel` remains the canonical data-review target because model 0.4.2 changes engine behaviour without changing the v4 creature schema or bundled data. Runtime/share identity is independently versioned as model 0.4.2/data 0.4.1.
 
 ## Reach migration
 
@@ -101,7 +103,8 @@ The v4 decoder uses a migration registry keyed by share format, model version an
 
 | Input | Required result after activation |
 |---|---|
-| v4 · model/data 0.4.1 | Current |
+| v4 · model 0.4.2 · data 0.4.1 | Current |
+| v4 · model/data 0.4.1 | Compatible v4 migration; visible recalculation |
 | v4 · model/data 0.4.0 | Compatible v4 migration; visible recalculation |
 | v3 · model 0.3.0 · data 0.3.1 | Pure v3→v4 migration; visible recalculation |
 | v3 · model 0.3.0 · data 0.3.0 | Existing data migration, then v3→v4 |

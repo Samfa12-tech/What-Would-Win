@@ -173,10 +173,10 @@ async function main() {
   for (const diagnostic of diagnostics) console.log(JSON.stringify(diagnostic))
   const errors = diagnostics.filter((diagnostic) => diagnostic.severity === 'error')
   if (errors.length) {
-    console.error(`Model 0.4.1 ability coverage audit failed with ${errors.length} error(s).`)
+    console.error(`Model 0.4 ability coverage audit failed with ${errors.length} error(s).`)
     process.exitCode = 1
   } else {
-    console.log(`Model 0.4.1 ability coverage audit passed: ${diagnostics.length} mechanical source tokens routed across ${creatures.length} profiles.`)
+    console.log(`Model 0.4 ability coverage audit passed: ${diagnostics.length} mechanical source tokens routed across ${creatures.length} profiles.`)
   }
 }
 

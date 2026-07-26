@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.1 — 2026-07-26
+
+- Advanced the deterministic engine to model 0.4.2 while retaining data 0.4.1, share format v4, storyboard v2 and custom/history storage v2.
+- Added access-aware one-versus-many encounter duration, living-profile exhaustion, reserve rotation and bounded stamina capacity as explicit pressure-phase ledger factors.
+- Added relative surface-area and metabolic scaling: resized surface area uses `L^2`, metabolic heat uses the bounded `M^0.75` proxy and strict heat-per-surface scaling resolves to `L^0.25`; functional scaling moderates it and magical scaling removes resize-derived thermal imbalance.
+- Added ambient heat, size-relative aquatic cooling and reciprocal shrink-related cold stress without duplicating authored heat/cold adaptation already present in the environment factor.
+- Kept recovery and recharge on the pre-existing 20–180 second ability clock while the separate access- and reserve-aware encounter clock can extend to 420 seconds for fatigue.
+- Exempted undead, constructs, spirits, environmental hazards, legacy nonliving profiles and conceptual-scale quantities from metabolic exhaustion.
+- Added technical diagnostics and focused coverage for symmetry, monotonic/capped fatigue, inaccessible reserves, resizing modes, cold shrinkage, all physiology classes and recharge isolation.
+- Preserved released v4/0.4.0 and v4/0.4.1 scenario inputs through explicit migration; preserved old v2 history outcomes as snapshots pending intentional 0.4.2 recalculation.
+
+
 ## 0.6.0 — 2026-07-22
 
 - Advanced the presentation contract to storyboard v2 with typed evidence records, deterministic sentence fragments and validated story beats linked to the existing legal event ledger.

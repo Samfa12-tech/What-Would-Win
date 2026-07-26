@@ -1,12 +1,12 @@
-# What Would Win — application 0.6.0 QA report
+# What Would Win — application 0.6.1 release QA report
 
-**QA date:** 23 July 2026
+**QA date:** 26 July 2026
 
-**Release identity:** application **0.6.0**, model/data **0.4.1**, storyboard **v2**, share format **v4**, custom/history storage **v2**
+**Release identity:** application **0.6.1**, model **0.4.2**, data **0.4.1**, storyboard **v2**, share format **v4**, custom/history storage **v2**
 
 ## Verified automated checks on the current worktree
 
-- `npm test`: **280/280 tests passed across 24 Vitest files** on Node 24.
+- `npm run test`: **294/294 tests passed across 25 Vitest files**.
 - Focused storyboard verification: **62/62 tests passed** across the six pilot goldens, mutation cases and deterministic/invariance contracts.
 - Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; the semantic audit reported **0 errors and 0 warnings**.
 - The model-0.4 migration contract covered all **134 profiles** and the ability audit routed **118/118 mechanical source tokens**.
@@ -16,9 +16,9 @@
 - `npm run build`: passed with Vite 8.1.5 and **171 transformed modules**.
 - `node scripts/check-build-budgets.mjs`: every component and aggregate ceiling passed.
 - `node scripts/check-static-subpath.mjs`: all **6** local references resolved inside `/apps/what-would-win/`.
-- `npx playwright test --workers=3`: **184 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit in 4.0 minutes.
+- `npm run test:e2e`: **184 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit in 3.6 minutes.
 
-The unit suite preserves the historical 16 calibration fixtures and model-0.4.1 numerical contracts while adding storyboard-v2 evidence, fragment and integrity validation; same-seed byte equality; alternate-story-seed semantic invariance; deterministic golden stories for all six pilots; exact event coverage and chronology; ranges, areas, hazards and movement media; resources, counters and rejected effects; quantity compression, conceptual scale and custom-creature fallbacks; the 80-actor cap; actor continuity, camera fitting, active/reserve partitions, fixed hazards, singleton placement and rejected-effect suppression.
+The unit suite preserves the historical 16 calibration fixtures and reviewed winners while adding model-0.4.2 endurance evidence for one-versus-many duty, stamina capacity, strict/functional/magical surface scaling, heat and cold, size-relative water cooling, reserve rotation, access-limited swarms, nonliving/conceptual exclusions and ability-clock isolation. Storyboard-v2 evidence, deterministic/invariance contracts, actor continuity, hazards and the 80-actor cap remain covered.
 
 Validator mutation tests reject altered prose or evidence, unknown or unscoped references, successful rejected abilities, ignored counters, wrong phase/event links, understated or excessive geometry, discontinuous or pursuing hazards, unsupported media, hidden compression, duplicate event coverage, graphic injury and a closing outcome that disagrees with the authoritative result.
 
@@ -37,7 +37,7 @@ The pilot goldens contain 11–15 beats and seven visible chapters. In the order
 
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 450,865 bytes | 455,000 bytes |
+| Entry JavaScript | 451,022 bytes | 455,000 bytes |
 | Optional UI JavaScript | 18,632 bytes | 21,000 bytes |
 | Presentation JavaScript | 54,982 bytes | 55,000 bytes |
 | Lazy tactical runtime JavaScript | 942,421 bytes | 950,000 bytes |
@@ -45,18 +45,18 @@ The pilot goldens contain 11–15 beats and seven visible chapters. In the order
 | Largest environment asset | 0 bytes | 500,000 bytes |
 | Largest audio asset | 0 bytes | 250,000 bytes |
 | Selected tactical assets | 0 bytes | 1,200,000 bytes |
-| Model-0.4 runtime JavaScript | 90,171 bytes | 100,000 bytes |
-| Original core JavaScript | 559,668 bytes | 575,000 bytes |
-| Total JavaScript | 1,557,071 bytes | 1,570,000 bytes |
+| Model-0.4 runtime JavaScript | 96,263 bytes | 100,000 bytes |
+| Original core JavaScript | 565,917 bytes | 575,000 bytes |
+| Total JavaScript | 1,563,320 bytes | 1,570,000 bytes |
 | Creature roster | 120,725 bytes | 125,000 bytes |
 | Core CSS | 25,733 bytes | 26,000 bytes |
 | Reconstruction CSS | 5,978 bytes | 6,000 bytes |
 | Total CSS | 31,711 bytes | 32,000 bytes |
-| Original core deployable payload | 816,970 bytes | 835,000 bytes |
-| Total deployable payload | 1,820,351 bytes | 1,850,000 bytes |
+| Original core deployable payload | 823,219 bytes | 835,000 bytes |
+| Total deployable payload | 1,826,600 bytes | 1,850,000 bytes |
 | Social image | 238,563 bytes | 300,000 bytes |
 
-The largest lazy scene output is 903,858 bytes raw / 240.53 kB gzip. It remains outside the eager verdict graph. Version 0.6.0 adds no external tactical visual or audio asset bytes and no rendering dependency beyond the existing React Three Fiber/Three.js stack.
+The largest lazy scene output is 903,858 bytes raw / 240.53 kB gzip. It remains outside the eager verdict graph. Version 0.6.1 adds no external tactical visual or audio asset bytes and no rendering dependency beyond the existing React Three Fiber/Three.js stack.
 
 ## Browser and accessibility evidence
 
@@ -69,7 +69,7 @@ The exact production build passed Story/Analyst switching; hover, focus and touc
 - System and user reduced-motion behavior pauses automatic playback and uses stable before/after states.
 - No-WebGL retains the synchronized 2D Canvas map, HTML legend/description, beat controls, captions and transcript.
 
-Final comparative browser captures were regenerated from the exact candidate build at **2026-07-22T23:18:56.209Z**. The capture harness explicitly selects Natural size for both contestants through the normal UI before every pilot, then fails before writing screenshots unless dragon/archers retains the resolved 80 m bow range, 35 m fire range, 10 m fire radius and effective basis 132, and eagle/mice retains its locked quantity disclosure and flight/frontage/replacement spine.
+The tracked captures below are retained 0.6.0 visual evidence, not exact 0.6.1 capture evidence. Application 0.6.1 changes model logic, diagnostics and version/migration copy but does not change tactical rendering or layout; its exact production build is covered by the current four-project Playwright matrix.
 
 | Tracked evidence | Bytes | SHA-256 |
 |---|---:|---|
@@ -81,15 +81,15 @@ Final comparative browser captures were regenerated from the exact candidate bui
 
 Headless Chromium observed 16.6658 ms mean / 16.7 ms p95 / 16.8 ms maximum animation-frame intervals and 17.1 MB used JavaScript heap for dragon/archers at 1440 × 1000. Eagle/mice at 412 × 915 touch observed 16.6664 ms mean / 16.8 ms p95 / 16.8 ms maximum and 11.2 MB. These are browser-pipeline and JavaScript-heap observations, not physical GPU or total scene-memory measurements.
 
-## Device, hosting and deployment status
+## Prior physical-device evidence and current deployment status
 
-- The candidate build is served by the **laptop** from `0.0.0.0:4175`; laptop browsers use `http://localhost:4175/` and the phone is a same-LAN client of the laptop host. The phone does not host the application.
+- The prior 0.6.0 candidate build was served by the **laptop** from `0.0.0.0:4175`; laptop browsers used `http://localhost:4175/` and the phone was a same-LAN client of the laptop host. The phone did not host the application.
 - A prior near-final physical run on the SM-S948B (Android 16, Chrome 150) passed native touch controls, Free look, pinch, pinned tooltips, dragon/eagle callout assertions and Adreno 840 WebGL rendering. Its p95 frame interval was 16.8 ms; observed JavaScript heaps were 21.6 MB and 36.5 MB, and process private dirty memory was about 145,004 KiB. Those process/heap observations are not a direct GPU-plus-scene-memory measurement.
 - The user independently confirmed the eagle case communicated actor, action, target, result and eventual winner. Human dragon comprehension sign-off remains pending.
 - A recapture on the exact final candidate remains pending because `adb devices -l` later returned no devices. The prior physical run must not be described as exact-final-build device evidence.
 - Real NVDA, VoiceOver and TalkBack checks and physical iOS/Safari checks remain **not performed**; automated axe and accessibility-tree coverage must not be described as real screen-reader validation.
 - Physical-device PNG/WebM/JSON download checks remain **not performed**.
-- Application 0.6.0 has not been synced to the website repository or deployed publicly; this report makes no live-release claim.
+- Website publication is tracked and verified separately in the Samfa12 website repository; this source QA report records artifact gates and must not be used alone as evidence of current live state.
 
 ## Known QA gaps and risks
 

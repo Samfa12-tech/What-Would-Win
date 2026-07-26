@@ -1,6 +1,6 @@
 # What Would Win — model notes for implementers
 
-This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.4.1, data 0.4.1, share format v4, custom storage v2 and history storage v2**.
+This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.4.2, data 0.4.1, share format v4, custom storage v2 and history storage v2**.
 
 `app/src/version.ts` exposes the active identity and separately named frozen `LEGACY_*` model-0.3 constants used only by retained migration/compatibility code.
 
@@ -55,6 +55,13 @@ Target mass is resolved first. Linear scale is `L = cube_root(target mass / base
 `mass_term = 0.61 × log10(max(target_mass_kg, 10^-6))`
 
 Explicit land/amphibious/aquatic locomotion and resized body depth route environment access. This remains a bounded game-model abstraction rather than a locomotor simulation.
+
+### Endurance, surface scaling and thermal load
+
+Model 0.4.2 keeps authored baseline stamina as the normal-size physiology, then applies relative allometry only when resizing: surface area `L^2`, metabolic power `M^0.75 = L^2.25` and strict heat per surface `L^0.25`. Functional scaling moderates the thermal term to `L^0.125`; magical scaling removes resize-derived thermal imbalance but not ordinary fatigue in living profiles. Snow reciprocates the resize term so shrunken bodies can face bounded heat-loss stress.
+
+An access- and reserve-aware encounter clock drives sustained load. Quantity enters fatigue through that clock once; access-ineligible bodies neither prolong the encounter nor provide rotation relief. The prior 20–180 second ability clock remains separate for recharge and recovery. A material living-profile penalty is capped at `-0.12` log power and appears once in the ledger. Nonliving and conceptual profiles are exempt. See `docs/MODEL_0.4.2_ENDURANCE.md` for equations, evidence and limits.
+
 
 ### Bilateral stopping, access and aggregation
 

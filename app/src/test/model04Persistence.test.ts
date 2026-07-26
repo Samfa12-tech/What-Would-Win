@@ -94,21 +94,23 @@ describe('active model 0.4 persistence and codecs', () => {
     expect(encodeModel04Scenario(first)).toBe(encodeModel04Scenario(second))
   })
 
-  test('migrates the released model/data 0.4.0 v4 identity without changing its scenario inputs', () => {
+  test('migrates released model/data 0.4.0 and 0.4.1 v4 identities without changing scenario inputs', () => {
     const current = encodeModel04Scenario(payloadV4())
-    const released = rewriteV4Wire(current, (wire) => {
-      wire[0] = '0.4.0'
-      wire[1] = '0.4.0'
-    })
-    expect(decodeModel04Scenario(released)).toMatchObject({
-      ok: true,
-      status: 'migrated-v4',
-      payload: {
-        modelVersion: MODEL_04_VERSION,
-        dataVersion: MODEL_04_DATA_VERSION,
-        scenario: payloadV4().scenario,
-      },
-    })
+    for (const [modelVersion, dataVersion] of [['0.4.0', '0.4.0'], ['0.4.1', '0.4.1']]) {
+      const released = rewriteV4Wire(current, (wire) => {
+        wire[0] = modelVersion
+        wire[1] = dataVersion
+      })
+      expect(decodeModel04Scenario(released), modelVersion).toMatchObject({
+        ok: true,
+        status: 'migrated-v4',
+        payload: {
+          modelVersion: MODEL_04_VERSION,
+          dataVersion: MODEL_04_DATA_VERSION,
+          scenario: payloadV4().scenario,
+        },
+      })
+    }
   })
 
   test('uses the same exact referenced-custom validation for v4 encoding and decoding', () => {
@@ -242,6 +244,53 @@ describe('active model 0.4 persistence and codecs', () => {
     expect(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY)).toBeNull()
     expect(storage.getItem(CUSTOM_CREATURE_STORAGE_KEY)).toBe(rawV1)
   })
+
+  test('preserves model 0.4.1 v2 results as snapshots pending explicit 0.4.2 recalculation', () => {
+    const storage = new MemoryStorage()
+    const staleStore = {
+      storageVersion: 2,
+      items: [{
+        formatVersion: 2,
+        source: { shareFormat: 'storage-v2', modelVersion: '0.4.1', dataVersion: '0.4.1' },
+        id: 'history-model-041',
+        createdAt: '2026-07-19T00:00:00.000Z',
+        scenario: payloadV4().scenario,
+        soloName: 'Previous solo',
+        groupName: 'Previous group',
+        result: {
+          status: 'current',
+          modelVersion: '0.4.1',
+          dataVersion: '0.4.1',
+          winnerName: 'Previous winner',
+          soloWinProbability: 0.75,
+        },
+        migrationNotices: [],
+      }],
+    }
+    const raw = JSON.stringify(staleStore)
+    storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, raw)
+
+    const loaded = loadModel04History(storage, new Set(creatures.map((creature) => creature.id)))
+
+    expect(loaded.warning).toContain('must be recalculated under model 0.4.2')
+    expect(loaded.items[0]).toMatchObject({
+      result: {
+        status: 'pending-recalculation',
+        legacySnapshot: { winnerName: 'Previous winner', soloWinProbability: 0.75 },
+      },
+      migrationNotices: [expect.objectContaining({ code: 'history-result-pending-model-042' })],
+    })
+    expect(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY)).toBe(raw)
+    expect(finalizeModel04HistoryItem(loaded.items[0], {
+      winnerName: 'Recalculated winner',
+      soloWinProbability: 0.625,
+    }).result).toMatchObject({
+      status: 'current',
+      modelVersion: MODEL_04_VERSION,
+      dataVersion: MODEL_04_DATA_VERSION,
+    })
+  })
+
 
   test('migrates v1 history inputs as pending and preserves the raw recovery store', () => {
     const storage = new MemoryStorage()

@@ -66,7 +66,7 @@ function ordinaryScenario(overrides: Partial<ScenarioV4Draft> = {}): ScenarioV4D
   }
 }
 
-describe('model 0.4.1 physical foundation', () => {
+describe('model 0.4.2 physical foundation', () => {
   test('runs every original model-0.3 fixture through v4 with reviewed winner and probability acceptance', () => {
     expect(scenariosJson).toHaveLength(16)
     for (const fixture of scenariosJson) {

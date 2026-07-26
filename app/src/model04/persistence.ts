@@ -408,8 +408,11 @@ function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecod
     const wire: unknown = JSON.parse(decoded)
     if (!Array.isArray(wire) || (wire.length !== 3 && wire.length !== 4)) throw new Error('Invalid envelope.')
     const currentIdentity = wire[0] === MODEL_04_VERSION && wire[1] === MODEL_04_DATA_VERSION
-    const releasedModel040Identity = wire[0] === '0.4.0' && wire[1] === '0.4.0'
-    if (!currentIdentity && !releasedModel040Identity) {
+    const previousIdentity = (
+      (wire[0] === '0.4.0' && wire[1] === '0.4.0')
+      || (wire[0] === '0.4.1' && wire[1] === '0.4.1')
+    )
+    if (!currentIdentity && !previousIdentity) {
       return { ok: false, reason: 'incompatible', message: 'This model 0.4 share uses incompatible model or data versions.' }
     }
     if (!isScenarioV4Draft(wire[2])) throw new Error('Invalid scenario.')
@@ -417,7 +420,7 @@ function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecod
     if (!customs || !validateReferencedCustomProfiles(wire[2], customs, builtInIds)) throw new Error('Invalid custom profiles.')
     return {
       ok: true,
-      status: releasedModel040Identity ? 'migrated-v4' : 'current',
+      status: previousIdentity ? 'migrated-v4' : 'current',
       payload: currentPayload(wire[2], customs),
     }
   } catch {
@@ -508,9 +511,37 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
       || (value.presentation.storySeed as number) < 0 || (value.presentation.storySeed as number) > 0xffff_ffff) return null
   }
   if (value.result.status === 'current') {
-    if (value.result.modelVersion !== MODEL_04_VERSION || value.result.dataVersion !== MODEL_04_DATA_VERSION || !validHistoryText(value.result.winnerName)) return null
+    if (!validHistoryText(value.result.winnerName)) return null
     if (typeof value.result.soloWinProbability !== 'number' || value.result.soloWinProbability < 0 || value.result.soloWinProbability > 1) return null
-  } else if (value.result.status === 'pending-recalculation') {
+    const currentIdentity = value.result.modelVersion === MODEL_04_VERSION
+      && value.result.dataVersion === MODEL_04_DATA_VERSION
+    if (currentIdentity) return structuredClone(value) as unknown as HistoryItemV2
+    const previousIdentity = (
+      (value.result.modelVersion === '0.4.0' && value.result.dataVersion === '0.4.0')
+      || (value.result.modelVersion === '0.4.1' && value.result.dataVersion === '0.4.1')
+    )
+    if (!previousIdentity) return null
+    const cloned = structuredClone(value) as unknown as HistoryItemV2
+    return {
+      ...cloned,
+      result: {
+        status: 'pending-recalculation',
+        legacySnapshot: {
+          winnerName: value.result.winnerName,
+          soloWinProbability: value.result.soloWinProbability,
+        },
+      },
+      migrationNotices: [
+        ...cloned.migrationNotices,
+        {
+          code: 'history-result-pending-model-042',
+          severity: 'warning',
+          message: 'The saved inputs are intact, but the model 0.4.0/0.4.1 result must be recalculated under model 0.4.2 before it can be current.',
+        },
+      ],
+    }
+  }
+  if (value.result.status === 'pending-recalculation') {
     if (!isRecord(value.result.legacySnapshot)) return null
   } else if (value.result.status === 'pending-unavailable-profile') {
     if (!Array.isArray(value.result.missingIds) || !isRecord(value.result.legacySnapshot)) return null
@@ -577,7 +608,11 @@ export function loadModel04History(storage: Storage, availableIds: ReadonlySet<s
       if (!isRecord(parsed) || parsed.storageVersion !== 2 || !Array.isArray(parsed.items)) throw new Error('Invalid envelope.')
       const items = parsed.items.map(parseHistoryV2Item)
       if (items.some((item) => item === null)) throw new Error('Invalid item.')
-      return { items: items as HistoryItemV2[], warning: '', source: 'v2' }
+      const loadedItems = items as HistoryItemV2[]
+      const hasPreviousResults = loadedItems.some((item) => item.migrationNotices.some((notice) => (
+        notice.code === 'history-result-pending-model-042'
+      )))
+      return { items: loadedItems, warning: hasPreviousResults ? 'Saved model 0.4.0/0.4.1 results are preserved as snapshots and must be recalculated under model 0.4.2.' : '', source: 'v2' }
     } catch {
       return { items: [], warning: 'Saved model 0.4 history is incompatible or damaged. The stored data was left untouched.', source: 'v2' }
     }

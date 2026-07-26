@@ -200,7 +200,7 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime: Model04Ru
     : []
   const loadedHistory = model04Runtime.loadHistory(window.localStorage, creatures)
   const shareWarning = decodedV4 && decodedV4.status !== 'current'
-    ? 'This earlier share was migrated and will be recalculated under model 0.4.1.'
+    ? `This earlier share was migrated and will be recalculated under model ${MODEL_04_VERSION}.`
     : encoded && !decodedV4
       ? 'This shared scenario is corrupt, oversized or incompatible and could not be opened.'
       : ''

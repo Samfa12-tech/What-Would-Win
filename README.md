@@ -38,11 +38,11 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **model 0.4.1, data 0.4.1 and share format v4**; the application version is **0.6.0**. Custom-creature and history storage remain format **v2**.
+The active reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.6.1**. Custom-creature and history storage remain format **v2**.
 
-Model 0.4.1 makes the model-0.4 decomposition explicit: physical mass/integrity, defence, environment, deployment, group aggregation and bounded body-scale area control remain physical factors; execution, delivery access, effect-level stopping, range/area geometry, coverage, conditions, channels and finite uses resolve per structured ability. Every editable combat stat has an applicable deterministic route. The technical report receives all applied/rejected resolutions and labels retained model-0.3 diagnostics as non-contributing.
+Model 0.4.2 retains the explicit model-0.4 physical/ability decomposition and adds access-aware encounter duration, bounded living-profile exhaustion, reserve rotation and relative surface/metabolic thermal scaling as inspectable ledger factors. Recharge and recovery retain a separate bounded ability clock. Every editable combat stat has an applicable deterministic route, and nonliving/conceptual profiles remain exempt from metabolic fatigue.
 
-The v4 share codec embeds the current structured scenario. Released v4/0.4.0 plus supported v3, v2, v1 and unversioned inputs are migrated and visibly recalculated when their referenced profiles are available. Version-2 custom/history storage preserves recoverable incompatible data rather than silently relabelling an old result. JSON exports preserve the exact canonical v4 scenario, asymmetric/per-ability resources, contestants, resolutions and sensitivity used by the run.
+The v4 share codec embeds the current structured scenario. Released v4/0.4.0 and v4/0.4.1 plus supported v3, v2, v1 and unversioned inputs are migrated and visibly recalculated when their referenced profiles are available. Version-2 custom/history storage preserves previous outcomes as snapshots rather than silently relabelling an old result. JSON exports preserve the exact canonical v4 scenario, asymmetric/per-ability resources, contestants, resolutions and sensitivity used by the run.
 
 The model runtime retains its seven-step ordinary technical explanation and three-step conceptual aggregate explanation, both backed by the applied-factor ledger. Storyboard v2 presents seven visible narrative chapters over that immutable record. Neither sequence is a sampled event timeline, anatomy simulation or alternate winner generator.
 

@@ -29,7 +29,7 @@ describe('model 0.4 activation runtime boundary', () => {
       solo: { defaultPercent: 100, abilityPercent: {} },
       group: { defaultPercent: 50, abilityPercent: {} },
     })
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.1', dataVersion: '0.4.1' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.2', dataVersion: '0.4.1' })
     expect(run.scenario).toMatchObject({ schemaVersion: 4, soloResources: { defaultPercent: 100 }, groupResources: { defaultPercent: 50 } })
     expect(run.contestants).toMatchObject({ solo: { id: run.scenario.soloId, schemaVersion: 4 }, group: { id: run.scenario.groupId, schemaVersion: 4 } })
     expect(run.abilityResolutions.length).toBeGreaterThan(0)

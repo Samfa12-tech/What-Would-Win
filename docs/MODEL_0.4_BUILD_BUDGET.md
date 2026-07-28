@@ -133,17 +133,17 @@ The exact reviewed production snapshot is:
 |---|---:|---:|---:|
 | Entry JavaScript | 451,227 | 455,000 | 3,773 |
 | Existing optional UI JavaScript | 18,632 | 21,000 | 2,368 |
-| Presentation JavaScript | 80,051 | 82,000 | 1,949 |
+| Presentation JavaScript | 80,599 | 82,000 | 1,401 |
 | Model-0.4 runtime JavaScript | 96,263 | 100,000 | 3,737 |
 | Lazy tactical runtime JavaScript | 942,623 | 950,000 | 7,377 |
 | Original core JavaScript | 566,122 | 575,000 | 8,878 |
-| Total JavaScript | 1,588,796 | 1,600,000 | 11,204 |
+| Total JavaScript | 1,589,344 | 1,600,000 | 10,656 |
 | Creature roster | 120,725 | 125,000 | 4,275 |
 | Core CSS | 25,733 | 26,000 | 267 |
 | Lazy reconstruction CSS | 6,520 | 6,750 | 230 |
 | Total CSS | 32,253 | 32,750 | 497 |
 | Original core deployable payload | 823,424 | 835,000 | 11,576 |
-| Deployable payload | 1,852,618 | 1,860,000 | 7,382 |
+| Deployable payload | 1,853,166 | 1,860,000 | 6,834 |
 | Largest external tactical asset | 0 | category ceilings | unchanged |
 
 The earlier entry, optional UI, model runtime, tactical runtime, original core

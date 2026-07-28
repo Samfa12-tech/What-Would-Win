@@ -6,7 +6,7 @@
 - Separated the complete validated tactical storyboard from the reader narrative plan; Analyst and the collapsed seven-phase detail retain every legal event while Story selects only the smallest evidence-backed causal sequence.
 - Corrected contact presentation geometry to use resized physical reach while preserving resolved ability range/area for ranged and area delivery.
 - Added terrain-relevance filtering so compatibility movement such as aquatic mobility on dry ground remains legal technical evidence without entering Story or tactical playback.
-- Added narrative quality validation, a focused `npm run audit:narrative` gate, strict/functional/magical geometry checks and regressions for the default novelty matchup, all six pilots, conceptual scale, close contests, depleted ranged resources and countered regeneration.
+- Added narrative quality validation, a focused `npm run audit:narrative` gate, strict/functional/magical geometry checks, locked six-pilot outcomes and roster-wide renderability regressions alongside the default novelty matchup, conceptual scale, close contests, depleted ranged resources and countered regeneration.
 - Added the validated reader narrative to complete result JSON exports and redesigned the default likely-battle UI around five short paragraphs with the seven phases closed by default.
 - Advanced the application to 0.7.0. Model 0.4.2, data 0.4.1, storyboard v2, share v4 and custom/history storage v2 remain unchanged because the reader plan is derived and does not add required storyboard or persistence structures.
 

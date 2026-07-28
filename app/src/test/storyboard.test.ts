@@ -91,6 +91,28 @@ describe('validated likely-battle storyboard pilots', () => {
     expect(STORYBOARD_VERSION).toBe(2)
   })
 
+  test('keeps the six pilot outcomes locked independently of the generated narrative', () => {
+    const outcomes = Object.fromEntries(Object.entries(pilots).map(([name, pilot]) => {
+      const story = buildBattleStoryboard(input(pilot))
+      return [name, {
+        scenarioHash: story.scenarioHash,
+        winner: story.winner,
+        probability: Number(story.winnerProbability.toFixed(6)),
+        margin: Number(story.deterministicMargin.toFixed(6)),
+        reconstructionType: story.reconstructionType,
+        visible: story.representedQuantity.visibleActorCount,
+      }]
+    }))
+    expect(outcomes).toEqual({
+      elephantWolves: { scenarioHash: '3b23a542190228d7', winner: 'group', probability: 0.724838, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
+      eagleMice: { scenarioHash: 'b5dfe34c40b00958', winner: 'solo', probability: 0.958853, margin: 1.119766, reconstructionType: 'representative', visible: 48 },
+      dragonArchers: { scenarioHash: '0234d65331418a48', winner: 'solo', probability: 0.938903, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
+      medusaSpears: { scenarioHash: 'f8ab9ac31009b52d', winner: 'group', probability: 0.938903, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
+      spiderRhino: { scenarioHash: 'dd034dd1d4b6430e', winner: 'group', probability: 0.510973, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
+      charybdisOrca: { scenarioHash: '9f556dc6b90c5352', winner: 'solo', probability: 0.559252, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
+    })
+  })
+
   test.each(Object.entries(pilots))('%s produces a complete evidence-backed cinematic account', (_name, pilot) => {
     const reconstruction = input(pilot)
     const story = buildBattleStoryboard(reconstruction)

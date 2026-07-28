@@ -114,6 +114,7 @@ The regression matrix covers:
 
 - the default horse-sized mallard versus 100 duck-sized horses;
 - all six established pilot scenarios;
+- all 134 roster profiles in both ordinary matchup roles;
 - strict, functional and magical scaling geometry;
 - ordinary one-versus-one;
 - a close roughly 50/50 contest;
@@ -125,7 +126,7 @@ The regression matrix covers:
 
 The default regression locks resolved masses at 600 kg and 1.5 kg, physical
 contact reaches near 2.2104 m and 0.1900 m, effective simultaneous pressure near
-six, five paragraphs, the readability range and a concrete access-based
+six, 253 words in five paragraphs and a concrete access-based
 minority path.
 
 ## Version decision

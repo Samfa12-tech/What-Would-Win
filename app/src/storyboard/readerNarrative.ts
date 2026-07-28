@@ -509,6 +509,14 @@ export function buildBattleNarrativePlan(
       { kind: 'evidence', evidenceId: factorEvidence(input, 'mass'), text: `${input.scenario.scalingMode[0]?.toLocaleUpperCase('en-AU')}${input.scenario.scalingMode.slice(1)} scaling makes ${identities.solo.shortLabel} about ${formatMass(identities.solo.resolvedMassKg)} and ${identities.group.eachLabel} about ${formatMass(identities.group.resolvedMassKg)}.` },
       ...(massComparison ? [{ kind: 'evidence' as const, evidenceId: factorEvidence(input, 'mass'), text: ` ${massComparison}` }] : []),
     ]),
+    ...(parsed.approxNumber !== null && parsed.approxNumber > 1 && !input.deterministicState.conceptual
+      ? [makeSentence(input, 'reader-premise-3', 'reader.premise.reach', [
+          {
+            kind: 'evidence',
+            evidenceId: factorEvidence(input, 'scaling'),
+            text: `At contact, ${identities.solo.shortLabel} has about ${identities.solo.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres of physical reach, compared with ${identities.group.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres for ${identities.group.eachLabel}; those bounds set which ordinary attacks can connect first.`,
+          },
+        ])] : []),
   ]
   const premise = beat('premise', 'The resolved matchup', premiseSentences, [], factorIds(input, ['mass', 'scaling', 'environment']), ['premise', 'mass', 'scaling', 'environment'])
 
@@ -533,12 +541,18 @@ export function buildBattleNarrativePlan(
     ? `${identities.solo.shortLabel[0]?.toLocaleUpperCase('en-AU')}${identities.solo.shortLabel.slice(1)} uses ${naturalAbilityPhrase(input, 'solo', soloAbility)}; ${identities.group.eachLabel} answers with ${naturalAbilityPhrase(input, 'group', groupAbility)} when it can get close enough.`
     : `${identities.solo.shortLabel[0]?.toLocaleUpperCase('en-AU')}${identities.solo.shortLabel.slice(1)} and ${identities.group.collectiveLabel} trade only the attacks their reach and access allow.`
   const exchangeEvidence = soloAbility ? `ability-resolution:solo:${soloAbility}` : factorEvidence(input, 'stopping')
+  const exchangeCandidates = candidates.filter((candidate) =>
+    ['special-ability', 'counter', 'recovery'].includes(candidate.narrativeConcept)
+      && candidate.includeInFull && !candidate.technicalOnly)
+  const exchangeConcepts = [...new Set<NarrativeConcept>([
+    'special-ability', 'stopping', ...exchangeCandidates.map((candidate) => candidate.narrativeConcept),
+  ])]
   const firstExchange = beat('first-exchange', 'First exchange', [
     makeSentence(input, 'reader-exchange-1', 'reader.first-exchange', [
       { kind: 'evidence', evidenceId: exchangeEvidence, text: exchangeText },
     ]),
-  ], candidates.filter((candidate) => candidate.narrativeConcept === 'special-ability' && candidate.includeInFull).flatMap((candidate) => candidate.sourceEventIds),
-  factorIds(input, ['special-ability', 'stopping']), ['special-ability', 'stopping'])
+  ], exchangeCandidates.flatMap((candidate) => candidate.sourceEventIds),
+  factorIds(input, exchangeConcepts), exchangeConcepts)
 
   const accessLimited = input.result.appliedFactors.some((factor) => factor.id.includes('group-ability-access-limit') && factor.logDelta < 0)
   const winner = identities[input.result.winner]
@@ -578,8 +592,8 @@ export function buildBattleNarrativePlan(
     : input.scenario.winCondition === 'retreat'
     ? `${loser.collectiveLabel[0]?.toLocaleUpperCase('en-AU')}${loser.collectiveLabel.slice(1)} lose cohesion and withdraw once they can no longer sustain their preferred pressure.`
     : input.scenario.winCondition === 'death'
-      ? `Repeated isolated exchanges eventually remove the remaining resistance; ${loser.collectiveLabel} can no longer recover or replace losses.`
-      : `${loser.collectiveLabel[0]?.toLocaleUpperCase('en-AU')}${loser.collectiveLabel.slice(1)} can no longer continue once the decisive access and pressure advantage is sustained.`
+      ? `Sustained isolated exchanges eventually leave no remaining resistance from ${loser.collectiveLabel}; recovery and replacement can no longer change the outcome.`
+      : `The sustained access and pressure advantage leaves ${loser.collectiveLabel} unable to continue.`
   const resolution = beat('resolution', 'How the favoured outcome occurs', [
     makeSentence(input, 'reader-resolution-1', 'reader.resolution.cause', [
       { kind: 'evidence', evidenceId: 'scenario:win-condition', text: outcomeText },

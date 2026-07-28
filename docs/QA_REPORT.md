@@ -6,8 +6,8 @@
 
 ## Verified automated checks on the current worktree
 
-- `npm test`: **312/312 tests passed across 26 Vitest files** after the complete release audit.
-- `npm run audit:narrative`: **88/88 focused tests passed** across reader narrative, storyboard and tactical choreography.
+- `npm test`: **314/314 tests passed across 26 Vitest files** after the complete release audit.
+- `npm run audit:narrative`: **90/90 focused tests passed** across reader narrative, storyboard and tactical choreography.
 - Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; the semantic audit reported **0 errors and 0 warnings**.
 - The model-0.4 migration contract covered all **134 profiles** and the ability audit routed **118/118 mechanical source tokens**.
 - Provenance covered **134 records**; public legal and bundled-runtime notice checks passed.
@@ -18,7 +18,7 @@
 - `node scripts/check-static-subpath.mjs`: all **6** local references resolved inside `/apps/what-would-win/`.
 - Complete Playwright matrix: **184 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit.
 
-The unit suite preserves the historical 16 calibration fixtures and reviewed winners. New narrative coverage adds resolved identity, physical contact reach, causal selection, relevance filtering, paragraph/word/sentence quality, story-seed invariance, conceptual scale, close contests, depleted ranged resources, countered regeneration and dry-land aquatic-event omission. Storyboard-v2 evidence, actor continuity, hazards and the 80-actor cap remain covered.
+The unit suite preserves the historical 16 calibration fixtures, reviewed winners and exact six-pilot outcome goldens. New narrative coverage adds resolved identity, physical contact reach, causal selection, relevance filtering, paragraph/word/sentence quality, story-seed invariance, conceptual scale, close contests, depleted ranged resources, countered regeneration, dry-land aquatic-event omission and reader renderability for all 134 profiles in both ordinary matchup roles. Storyboard-v2 evidence, actor continuity, hazards and the 80-actor cap remain covered.
 
 Validator mutation tests reject altered prose or evidence, unknown or unscoped references, successful rejected abilities, ignored counters, wrong phase/event links, understated or excessive geometry, discontinuous or pursuing hazards, unsupported media, hidden compression, duplicate event coverage, graphic injury and a closing outcome that disagrees with the authoritative result.
 
@@ -31,7 +31,7 @@ Validator mutation tests reject altered prose or evidence, unknown or unscoped r
 5. **Giant spider vs one white rhinoceros:** web attempt, restraint/mass ceiling and supply, then contact resolution.
 6. **Charybdis vs one orca:** fixed 40 m hazard boundary, inward orca trajectory and boundary resolution; every Charybdis event remains origin-anchored.
 
-The complete technical storyboard still contains every legal beat. The default reader account now selects only the evidence-backed causal spine. For the supplied horse-sized mallard versus 100 duck-sized horses regression, the previously exposed brief-plus-phases account was **818 words**; the new default is **218 words in five paragraphs** while adding the resolved **600 kg versus 1.5 kg** bodies, roughly **six** simultaneous attackers, an explicit access turning point and a concrete minority path. No unrestricted generated prose is used.
+The complete technical storyboard still contains every legal beat. The default reader account now selects only the evidence-backed causal spine. For the supplied horse-sized mallard versus 100 duck-sized horses regression, the previously exposed brief-plus-phases account was **818 words**; the new default is **253 words in five paragraphs** while adding the resolved **600 kg versus 1.5 kg** bodies, physical contact reach, roughly **six** simultaneous attackers, an explicit access turning point and a concrete minority path. No unrestricted generated prose is used.
 
 ## Production build snapshot
 
@@ -39,7 +39,7 @@ The complete technical storyboard still contains every legal beat. The default r
 |---|---:|---:|
 | Entry JavaScript | 451,227 bytes | 455,000 bytes |
 | Optional UI JavaScript | 18,632 bytes | 21,000 bytes |
-| Presentation JavaScript | 80,051 bytes | 82,000 bytes |
+| Presentation JavaScript | 80,599 bytes | 82,000 bytes |
 | Lazy tactical runtime JavaScript | 942,623 bytes | 950,000 bytes |
 | Largest archetype asset | 0 bytes | 350,000 bytes |
 | Largest environment asset | 0 bytes | 500,000 bytes |
@@ -47,13 +47,13 @@ The complete technical storyboard still contains every legal beat. The default r
 | Selected tactical assets | 0 bytes | 1,200,000 bytes |
 | Model-0.4 runtime JavaScript | 96,263 bytes | 100,000 bytes |
 | Original core JavaScript | 566,122 bytes | 575,000 bytes |
-| Total JavaScript | 1,588,796 bytes | 1,600,000 bytes |
+| Total JavaScript | 1,589,344 bytes | 1,600,000 bytes |
 | Creature roster | 120,725 bytes | 125,000 bytes |
 | Core CSS | 25,733 bytes | 26,000 bytes |
 | Reconstruction CSS | 6,520 bytes | 6,750 bytes |
 | Total CSS | 32,253 bytes | 32,750 bytes |
 | Original core deployable payload | 823,424 bytes | 835,000 bytes |
-| Total deployable payload | 1,852,618 bytes | 1,860,000 bytes |
+| Total deployable payload | 1,853,166 bytes | 1,860,000 bytes |
 | Social image | 238,563 bytes | 300,000 bytes |
 
 The largest lazy scene output is 903,858 bytes raw / 240.53 kB gzip. It remains outside the eager verdict graph. Version 0.7.0 adds no dependency or external tactical visual/audio bytes. The reader layer stays in the existing lazy presentation graph.

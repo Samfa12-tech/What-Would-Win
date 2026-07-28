@@ -74,6 +74,7 @@ describe('reader battle narrative', () => {
     expect(dryAquaticEvent).toMatchObject({ technicalOnly: true })
     expect(buildTacticalChoreography(storyboard).flatMap((beat) => beat.eventIds))
       .not.toContain(dryAquaticEvent?.id)
+    expect(account.wordCount).toBe(253)
     expect(account.wordCount).toBeGreaterThanOrEqual(180)
     expect(account.wordCount).toBeLessThanOrEqual(350)
     expect(account.paragraphs).toHaveLength(5)
@@ -204,5 +205,33 @@ describe('reader battle narrative', () => {
     expect(singleton.wordCount).toBeGreaterThanOrEqual(120)
     expect(singleton.wordCount).toBeLessThanOrEqual(250)
     expect(singleton.qualityIssues).toEqual([])
+  })
+
+  test('every roster profile produces a valid reader account in both matchup roles', () => {
+    const baseline = defaultScenario(creatures)
+    const failures: string[] = []
+    for (const creature of creatures) {
+      const matchupOverrides: Array<Partial<Scenario>> = [
+        {
+          soloId: creature.id,
+          groupId: baseline.groupId,
+          soloSize: { method: 'normal' as const, value: 'normal' },
+          groupSize: { method: 'normal' as const, value: 'normal' },
+        },
+        {
+          soloId: baseline.soloId,
+          groupId: creature.id,
+          soloSize: { method: 'normal' as const, value: 'normal' },
+          groupSize: { method: 'normal' as const, value: 'normal' },
+        },
+      ]
+      for (const overrides of matchupOverrides) {
+        const account = text(input(overrides)).account
+        if (account.qualityIssues.length) {
+          failures.push(`${overrides.soloId} vs ${overrides.groupId}: ${JSON.stringify(account.qualityIssues)}`)
+        }
+      }
+    }
+    expect(failures).toEqual([])
   })
 })

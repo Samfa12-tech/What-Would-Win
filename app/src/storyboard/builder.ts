@@ -121,8 +121,41 @@ function renderQuantityForStory(quantity: BattleStoryboard['representedQuantity'
   return `${quantity.visibleActorCount.toLocaleString('en-AU')} representative figures carry the declared force, each standing for about ${represented} opponents.`
 }
 
+function resolvedSizeName(input: BattleReconstructionInput, side: StoryboardSide): string {
+  const profile = input.contestants[side]
+  const size = side === 'solo' ? input.scenario.soloSize : input.scenario.groupSize
+  if (size.method === 'normal') return profile.name
+  if (size.method === 'named') return `${size.value}-sized ${profile.name}`
+  const mass = input.deterministicState.physical[side].targetMassKg
+  return `${size.method === 'relative' ? (input.deterministicState.physical[side].linearScale >= 1 ? 'enlarged' : 'reduced') : 'resized'} ${profile.name} (${mass.toLocaleString('en-AU', { maximumFractionDigits: 2 })} kg)`
+}
+
 function sideName(input: BattleReconstructionInput, side: StoryboardSide): string {
-  return input.contestants[side].name
+  return resolvedSizeName(input, side)
+}
+
+function storyAbilityName(input: BattleReconstructionInput, resolution: AbilityResolution, ability?: Ability): string {
+  if (resolution.abilityId === 'legacy-contact') {
+    const modes = input.contestants[resolution.side].attack_modes.slice(0, 2).map((mode) => mode.replace(/[-_]+/g, ' '))
+    return modes.length ? modes.join(' and ') : 'contact attack'
+  }
+  if (resolution.abilityId === 'legacy-flight') return 'flight'
+  if (resolution.abilityId === 'legacy-aquatic-mobility') return 'water movement'
+  if (resolution.abilityId === 'legacy-ranged') return 'ranged attack'
+  if (resolution.abilityId === 'legacy-venom') return 'venom delivery'
+  if (resolution.abilityId === 'legacy-regeneration') return 'regeneration'
+  return (ability?.name ?? resolution.abilityId).replace(/\blegacy\b/gi, '').trim()
+}
+
+function mobilityIsStoryRelevant(input: BattleReconstructionInput, resolution: AbilityResolution, ability?: Ability): boolean {
+  if (ability?.kind !== 'mobility') return true
+  if (resolution.abilityId.includes('aquatic')) {
+    const height = input.deterministicState.physical[resolution.side].scaledHeightM
+    return WATER_TERRAINS.has(input.scenario.terrain) || input.scenario.waterDepthM >= height * 0.5
+  }
+  const opponent: StoryboardSide = resolution.side === 'solo' ? 'group' : 'solo'
+  return input.abilityResolutions.some((item) => item.side === opponent && item.active && (item.physicalAccessFactor ?? 1) < 0.95)
+    || input.result.appliedFactors.some((factor) => factor.id.includes('access-limit'))
 }
 
 function abilityFor(input: BattleReconstructionInput, resolution: AbilityResolution): Ability | undefined {
@@ -193,7 +226,7 @@ function rejectedCaption(input: BattleReconstructionInput, resolution: AbilityRe
           : reason === 'delivery-inaccessible'
             ? 'delivery inaccessible'
             : (resolution.conditionFailures?.join('; ') || 'condition unmet')
-  return `${ability?.name ?? resolution.abilityId}: unavailable—${detail}.`
+  return `${storyAbilityName(input, resolution, ability)}: unavailable—${detail}.`
 }
 
 function cameraCue(input: BattleReconstructionInput, resolution: AbilityResolution, ability: Ability | undefined): CameraCue {
@@ -285,6 +318,8 @@ function buildAbilityEvents(input: BattleReconstructionInput): Map<StoryboardPha
     const ability = abilityFor(input, resolution)
     const phase = phaseForAbility(ability, resolution)
     const type = abilityResolutionEventType(ability, resolution)
+    const eventRangeM = ability?.delivery === 'contact'
+      ? input.deterministicState.physical[resolution.side].scaledReachM : resolution.resolvedRangeM
     const stationary = ability?.kind === 'hazard' || ability?.delivery === 'environmental'
     const hasMovementPath = resolution.active && (stationary || ability?.kind === 'mobility' || resolution.resolvedRangeM > 0)
     const charybdisOrcaBoundary = isCharybdisOrcaBoundaryScenario(input)
@@ -300,9 +335,9 @@ function buildAbilityEvents(input: BattleReconstructionInput): Map<StoryboardPha
       : orcaMobility && resolution.active
         ? fixedOriginPoint(ORCA_MOBILITY_ENTRY_M)
         : orcaContact && resolution.active
-          ? fixedOriginPoint(Math.max(0, ORCA_MOBILITY_ENTRY_M - resolution.resolvedRangeM))
+          ? fixedOriginPoint(Math.max(0, ORCA_MOBILITY_ENTRY_M - eventRangeM))
           : hasMovementPath
-            ? targetPositionFor(input, resolution.side, resolution.factorId, resolution.resolvedRangeM > 0 ? resolution.resolvedRangeM : undefined)
+            ? targetPositionFor(input, resolution.side, resolution.factorId, eventRangeM > 0 ? eventRangeM : undefined)
             : undefined
     byPhase.get(phase)?.push(withBattleEventOrdering(input, phase, {
       id: `ability-${resolution.side}-${stableHash(resolution.factorId).slice(0, 8)}`,
@@ -315,10 +350,11 @@ function buildAbilityEvents(input: BattleReconstructionInput): Map<StoryboardPha
       ...(resolution.side === 'group' ? { representedActorCountLog10: input.deterministicState.groupEffectiveQuantityLog10 } : {}),
       startPosition: start,
       ...(endPosition ? { endPosition } : {}),
-      ...(resolution.resolvedRangeM > 0 ? { rangeM: resolution.resolvedRangeM } : {}),
+      ...(eventRangeM > 0 ? { rangeM: eventRangeM } : {}),
       ...(resolution.resolvedAreaRadiusM > 0 ? { areaRadiusM: resolution.resolvedAreaRadiusM } : {}),
       outcome,
-      caption: resolution.active ? `${sideName(input, resolution.side)}: ${ability?.name ?? resolution.abilityId} resolves.` : rejectedCaption(input, resolution, ability),
+      caption: resolution.active ? `${sideName(input, resolution.side)}: ${storyAbilityName(input, resolution, ability)} is available.` : rejectedCaption(input, resolution, ability),
+      ...(!mobilityIsStoryRelevant(input, resolution, ability) ? { technicalOnly: true } : {}),
       cameraCue: cameraCue(input, resolution, ability),
     }))
   }
@@ -765,7 +801,7 @@ function eventProminence(input: BattleReconstructionInput, events: BattleEvent[]
     const resolution = input.abilityResolutions.find((candidate) => candidate.factorId === factorId || candidate.effects.some((effect) => effect.factorId === factorId))
     return Math.abs(factor?.logDelta ?? resolution?.logDelta ?? 0)
   })))
-  return magnitude >= 0.12 || events.some((event) => event.outcome === 'effective') ? 'major' : 'supporting'
+  return magnitude >= 0.12 ? 'major' : 'supporting'
 }
 
 function eventActionText(input: BattleReconstructionInput, event: BattleEvent): readonly string[] {
@@ -775,7 +811,7 @@ function eventActionText(input: BattleReconstructionInput, event: BattleEvent): 
     ? input.abilityResolutions.find((candidate) => candidate.side === event.actingSide && candidate.abilityId === event.abilityId)
     : undefined
   const ability = resolution ? abilityFor(input, resolution) : undefined
-  const name = event.abilityId === 'legacy-contact' ? 'contact strike' : ability?.name ?? FEATURED_EVENT_TITLES[event.id] ?? humaniseId(event.type)
+  const name = resolution ? storyAbilityName(input, resolution, ability) : FEATURED_EVENT_TITLES[event.id] ?? humaniseId(event.type)
   const finish = (text: string) => [text]
   if (resolution && !resolution.active) {
     const reason = rejectedCaption(input, resolution, ability).replace(`${name}: unavailable—`, '').replace(/\.$/, '')
@@ -787,7 +823,7 @@ function eventActionText(input: BattleReconstructionInput, event: BattleEvent): 
   if (event.id === 'scenario-medusa-facing-formation') return finish(`${actor} holds ${input.scenario.coordinationDoctrine} facing and line of sight for the gaze.`)
   if (event.id === 'scenario-medusa-disciplined-advance') return finish(`With the gaze resolved, ${actor} keeps the disciplined line moving toward ${target}; this is movement, not a new attack.`)
   if (event.id === 'scenario-orca-trajectory') return finish(`${actor} crosses inward from the fixed hazard boundary; the anchored hazard does not pursue.`)
-  if (event.id === 'authoritative-resolution') return [`${actor} reaches the ${input.scenario.winCondition} condition against ${target}, and the accumulated pressure finally closes the contest.`]
+  if (event.id === 'authoritative-resolution') return [`${actor} gains the decisive control required to secure ${humaniseId(input.scenario.winCondition)} against ${target}.`]
   if (isEagleMice(input) && event.abilityId === 'legacy-flight') return finish(`${actor} climbs on the supported flight route; its shadow is a position cue over the representative field, never a separate attack.`)
   const range = event.rangeM && event.rangeM >= 0.1
     ? ` across a reach of ${event.rangeM} metres`
@@ -813,15 +849,21 @@ function eventActionText(input: BattleReconstructionInput, event: BattleEvent): 
 function eventOutcomeText(input: BattleReconstructionInput, event: BattleEvent): readonly string[] {
   const actor = sideName(input, event.actingSide)
   const target = event.targetSide ? sideName(input, event.targetSide) : 'the opposing side'
-  if (event.id === 'authoritative-resolution') return [`This plausible path ends with ${actor} favoured over ${target}, where the resolved verdict places it.`]
-  const subject = event.abilityId === 'legacy-contact' ? 'contact strike' : FEATURED_ABILITY_TITLES[event.abilityId ?? ''] ?? FEATURED_EVENT_TITLES[event.id] ?? humaniseId(event.abilityId ?? event.type)
+  if (event.id === 'authoritative-resolution') return [`This plausible path therefore ends with ${actor} favoured over ${target}.`]
+  const resolution = event.abilityId
+    ? input.abilityResolutions.find((candidate) => candidate.side === event.actingSide && candidate.abilityId === event.abilityId)
+    : undefined
+  const subject = resolution ? storyAbilityName(input, resolution, abilityFor(input, resolution)) : FEATURED_EVENT_TITLES[event.id] ?? humaniseId(event.type)
   const result = OUTCOME_WHY[event.outcome] ?? 'nothing connects'
   const kind = (FEATURED_EVENT_TITLES[event.id] ?? humaniseId(event.type)).toLowerCase()
-  const aftermath = event.outcome === 'effective' || event.outcome === 'partially-effective'
-    ? `Within its resolved bounds, ${subject.toLowerCase()} changes the ground around ${target}. ${target} must answer that ${subject.toLowerCase()} through the ${kind} that reaches the field—no unmodelled blow, escape or second effect enters the fight. What follows inherits the position and pressure left around ${target} by ${subject.toLowerCase()}, without stretching its reach, area, resources or resolved result.`
-    : `The failed ${kind} stops at its counter, immunity or entry bound. It changes no later event and never wins elsewhere; the fight resumes from its prior place.`
-  const singleton = parseQuantity(input.scenario.groupQuantity).approxNumber === 1 ? ` With one foe, this ${subject.toLowerCase()} change remains a direct clash: the two seen sides alone bear each legal path, move, check and reply now in play.` : ''
-  return [`For ${actor}, ${subject.toLowerCase()} ${result}—${target} carries its consequence into what follows. ${aftermath}${singleton}`]
+  if (event.technicalOnly) return [`${actor}'s ${subject.toLowerCase()} remains technical context because it does not change this battlefield.`]
+  if (event.outcome === 'effective' || event.outcome === 'partially-effective') {
+    const consequence = ['advance', 'retreat', 'flight-manoeuvre'].includes(event.type)
+      ? 'It changes positioning without becoming a separate attack.'
+      : `It contributes only through the supported ${kind}.`
+    return [`For ${actor}, ${subject.toLowerCase()} ${result} against ${target}. ${consequence}`]
+  }
+  return [`The attempted ${kind} stops at its counter, immunity or access limit and contributes no successful effect.`]
 }
 
 function eventBeat(
@@ -849,7 +891,7 @@ function eventBeat(
   const first = events[0]
   const defaultTitle = events.length === 1
     ? first.abilityId
-      ? first.abilityId === 'legacy-contact' ? 'Contact strike' : input.contestants[first.actingSide].abilities.find((ability) => ability.id === first.abilityId)?.name ?? humaniseId(first.abilityId)
+      ? storyAbilityName(input, input.abilityResolutions.find((resolution) => resolution.side === first.actingSide && resolution.abilityId === first.abilityId)!, input.contestants[first.actingSide].abilities.find((ability) => ability.id === first.abilityId))
       : FEATURED_EVENT_TITLES[first.id] ?? humaniseId(first.type)
     : `${events.length} resolved actions`
   const eagleMice = isEagleMice(input)

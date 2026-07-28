@@ -118,3 +118,39 @@ Adreno 840 WebGL. It met the 33 ms frame-time target, but its heap/process
 readings do not directly establish the 192 MB GPU-plus-scene-memory target.
 Exact-final device recapture remains pending because ADB no longer enumerates
 the phone.
+
+## Application 0.7.0 reader-narrative addendum
+
+Application 0.7.0 keeps model 0.4.2, data 0.4.1, storyboard v2, share v4 and
+custom/history storage v2. The new reader plan, resolved-identity projection,
+causal candidate scoring, quality validation and compact default Story are
+lazy with the existing likely-battle presentation. No dependency, media asset,
+simulation code or eager model/runtime work was added.
+
+The exact reviewed production snapshot is:
+
+| Category | Measured 0.7.0 | Ceiling | Headroom |
+|---|---:|---:|---:|
+| Entry JavaScript | 451,227 | 455,000 | 3,773 |
+| Existing optional UI JavaScript | 18,632 | 21,000 | 2,368 |
+| Presentation JavaScript | 80,051 | 82,000 | 1,949 |
+| Model-0.4 runtime JavaScript | 96,263 | 100,000 | 3,737 |
+| Lazy tactical runtime JavaScript | 942,623 | 950,000 | 7,377 |
+| Original core JavaScript | 566,122 | 575,000 | 8,878 |
+| Total JavaScript | 1,588,796 | 1,600,000 | 11,204 |
+| Creature roster | 120,725 | 125,000 | 4,275 |
+| Core CSS | 25,733 | 26,000 | 267 |
+| Lazy reconstruction CSS | 6,520 | 6,750 | 230 |
+| Total CSS | 32,253 | 32,750 | 497 |
+| Original core deployable payload | 823,424 | 835,000 | 11,576 |
+| Deployable payload | 1,852,618 | 1,860,000 | 7,382 |
+| Largest external tactical asset | 0 | category ceilings | unchanged |
+
+The earlier entry, optional UI, model runtime, tactical runtime, original core
+JavaScript/CSS and core-deployable ceilings were not raised. The reviewed
+presentation ceiling rises by 27,000 bytes for the typed reader contracts,
+identity projection, causal planner and runtime quality guard. Aggregate
+JavaScript rises by 30,000 bytes; reconstruction and aggregate CSS rise by 750
+bytes for the compact paragraphs and closed detail control; deployable payload
+rises by 10,000 bytes. These separate ceilings keep the new reader cost visible
+without allowing it to consume the numerical or eager fast-path budgets.

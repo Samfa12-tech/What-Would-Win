@@ -1,12 +1,14 @@
 # Battle reconstruction contract
 
-Application 0.7.0 develops the explanatory presentation layer over the
+Application 0.7.1 develops the explanatory presentation layer over the
 unchanged model-0.4.2/data-0.4.1 numerical result into a concise causal reader
 account, a complete Analyst record and a beat-driven tactical explanation.
 
 > One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.
 
 The sentence above is mandatory in every likely-battle and tactical view.
+
+Application 0.7.1 adds typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. See `NARRATIVE_SEMANTICS_0.7.1.md`.
 
 ## Authority and data flow
 

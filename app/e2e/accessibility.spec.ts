@@ -97,7 +97,7 @@ test('technical ledger and conceptual results have no serious axe violations', a
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByLabel('Quantity representation disclosure'))
-    .toContainText(/scale is conceptual.*not literalised/i, { timeout: 15_000 })
+    .toContainText(/conceptual scale.*not literalised|not literalised.*conceptual scale/i, { timeout: 15_000 })
   await expectNoSeriousAxeViolations(page)
 })
 

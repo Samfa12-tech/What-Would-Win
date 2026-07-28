@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.1 — 2026-07-28
+
+- Added typed battlefield-medium and combat-behaviour contracts covering terrestrial, dense, confined, aquatic, aerial, fixed-hazard and conceptual encounters without changing simulation inputs or values.
+- Made ranked, deduplicated causal candidates control the first exchange, pressure, turning point, resolution family and minority path; exports now include selected/omitted IDs and selection reasons.
+- Added mechanic-specific turning points and resolutions for frontage, ranged access and resources, flight, area control, hazards, restraint, counters, recovery, formation, mass and stopping power.
+- Rebuilt exact/relative sizing and one-versus-one labels around structured identity grammar, omitting irrelevant reserve disclosure for singleton matchups.
+- Added narrowly caught narrative generation/validation fallback handling that preserves the validated result, storyboard and Analyst record for unusual custom combinations.
+- Replaced generic Story evidence descriptions with plain-language facts while retaining raw IDs and coefficients only in Analyst mode; hover, focus, touch and Escape behaviour remains accessible.
+- Added a 72-test narrative-semantics audit, stronger pilot/matrix assertions, authority non-mutation coverage and browser regressions for singleton grammar, Charybdis/orca language and expanded axe checks.
+- Advanced only the application to 0.7.1. Model 0.4.2, data 0.4.1, storyboard v2, share v4 and custom/history storage v2 remain unchanged.
+
 ## 0.7.0 — 2026-07-28
 
 - Rebuilt the default Story account as a deterministic three-to-six-paragraph causal explanation, with resolved contestant identities, quantity pressure, a concrete turning point, a cause-linked resolution and a scenario-specific minority path.

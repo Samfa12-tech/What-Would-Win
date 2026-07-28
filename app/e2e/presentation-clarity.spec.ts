@@ -21,6 +21,16 @@ async function runDefaultSimulation(page: Page) {
   await expect(page.locator('.results')).toBeVisible()
 }
 
+async function runOneVersusOne(page: Page, soloId: string, groupId: string) {
+  await page.goto('/')
+  await page.getByTestId('solo-creature-select').selectOption(soloId)
+  await page.getByTestId('group-creature-select').selectOption(groupId)
+  await page.locator('.combatant-panel').nth(0).getByLabel('Size method').selectOption('normal')
+  await page.locator('.combatant-panel').nth(1).getByLabel('Size method').selectOption('normal')
+  await page.getByLabel('Quantity').fill('1')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await expect(page.locator('.results')).toBeVisible()
+}
 async function selectResultView(page: Page, name: string) {
   const button = page.getByRole('button', { name, exact: true })
   await expect(async () => {
@@ -83,6 +93,37 @@ test('Story is the readable default and Analyst remains a complete evidence view
   await expect(panel.getByTestId('story-account')).toBeVisible()
 })
 
+test('ordinary and mythical one-versus-one stories use singular grammar without group boilerplate', async ({ page }) => {
+  for (const scenario of [
+    { solo: 'bengal-tiger', group: 'african-lion', identities: /one Bengal tiger.*one African lion/i },
+    { solo: 'giant-spider', group: 'white-rhinoceros', identities: /one Giant Spider.*one white rhinoceros/i },
+  ]) {
+    await runOneVersusOne(page, scenario.solo, scenario.group)
+    await openLikelyBattle(page)
+    const panel = page.getByTestId('likely-battle-panel')
+    const story = panel.getByTestId('story-account')
+    const text = await story.innerText()
+    expect(text).toMatch(scenario.identities)
+    expect(text).not.toMatch(/\bone [^.]{0,60}\bare declared\b/i)
+    expect(text).not.toMatch(/reserve-backed|whole opposing group|How the group applies pressure/i)
+    await expect(panel.getByLabel('Quantity representation disclosure')).toHaveCount(0)
+  }
+})
+
+test('Charybdis remains a fixed ocean hazard while the orca approaches through water', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('solo-creature-select').selectOption('charybdis')
+  await page.getByTestId('group-creature-select').selectOption('orca')
+  await page.getByLabel('Quantity').fill('1')
+  await page.getByLabel('Terrain').selectOption('ocean')
+  await page.getByLabel('Starting distance (m)').fill('40')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  await openLikelyBattle(page)
+  const text = await page.getByTestId('story-account').innerText()
+  expect(text).toMatch(/Charybdis.*(?:remains (?:anchored|fixed)|does not pursue)/i)
+  expect(text).toMatch(/orca.*approaches through the water/i)
+  expect(text).not.toMatch(/ocean ground|Charybdis (?:pursues|surrounds|closes (?:distance|in))/i)
+})
 test('Analyst mode remains selected after another reconstruction in the result session', async ({ page }) => {
   await runDefaultSimulation(page)
   await openLikelyBattle(page)
@@ -113,6 +154,10 @@ test('evidence markers work by hover, focus, pin, outside dismissal, and Escape'
 
   await trigger.hover()
   await expect(page.locator('[role="tooltip"]:visible')).toHaveCount(1)
+  const tooltipText = await page.locator('[role="tooltip"]:visible').innerText()
+  expect(tooltipText).toMatch(/Full technical details remain available in Analyst mode\./)
+  expect(tooltipText.length).toBeGreaterThan(70)
+  expect(tooltipText).not.toMatch(/factor:|ability-resolution:|log10|coefficient/i)
   await expect(trigger).toHaveAttribute('aria-describedby', /.+/)
   await page.mouse.move(0, 0)
 

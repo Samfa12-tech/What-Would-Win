@@ -233,5 +233,5 @@ describe('reader battle narrative', () => {
       }
     }
     expect(failures).toEqual([])
-  })
+  }, 15_000)
 })

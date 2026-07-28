@@ -1,24 +1,24 @@
-# What Would Win — application 0.6.1 release QA report
+# What Would Win — application 0.7.0 release QA report
 
-**QA date:** 26 July 2026
+**QA date:** 28 July 2026
 
-**Release identity:** application **0.6.1**, model **0.4.2**, data **0.4.1**, storyboard **v2**, share format **v4**, custom/history storage **v2**
+**Release identity:** application **0.7.0**, model **0.4.2**, data **0.4.1**, storyboard **v2**, share format **v4**, custom/history storage **v2**
 
 ## Verified automated checks on the current worktree
 
-- `npm run test`: **294/294 tests passed across 25 Vitest files**.
-- Focused storyboard verification: **62/62 tests passed** across the six pilot goldens, mutation cases and deterministic/invariance contracts.
+- `npm test`: **314/314 tests passed across 26 Vitest files** after the complete release audit.
+- `npm run audit:narrative`: **90/90 focused tests passed** across reader narrative, storyboard and tactical choreography.
 - Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; the semantic audit reported **0 errors and 0 warnings**.
 - The model-0.4 migration contract covered all **134 profiles** and the ability audit routed **118/118 mechanical source tokens**.
 - Provenance covered **134 records**; public legal and bundled-runtime notice checks passed.
 - `npm run typecheck`: passed.
 - `npm run test:simulation-budget`: **1/1 passed** below its two-second gate.
-- `npm run build`: passed with Vite 8.1.5 and **171 transformed modules**.
-- `node scripts/check-build-budgets.mjs`: every component and aggregate ceiling passed.
+- `npm run build`: passed with Vite 8.1.5 and **172 transformed modules**.
+- `node scripts/check-build-budgets.mjs`: every original-core, presentation and aggregate ceiling passed.
 - `node scripts/check-static-subpath.mjs`: all **6** local references resolved inside `/apps/what-would-win/`.
-- `npm run test:e2e`: **184 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit in 3.6 minutes.
+- Complete Playwright matrix: **184 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit.
 
-The unit suite preserves the historical 16 calibration fixtures and reviewed winners while adding model-0.4.2 endurance evidence for one-versus-many duty, stamina capacity, strict/functional/magical surface scaling, heat and cold, size-relative water cooling, reserve rotation, access-limited swarms, nonliving/conceptual exclusions and ability-clock isolation. Storyboard-v2 evidence, deterministic/invariance contracts, actor continuity, hazards and the 80-actor cap remain covered.
+The unit suite preserves the historical 16 calibration fixtures, reviewed winners and exact six-pilot outcome goldens. New narrative coverage adds resolved identity, physical contact reach, causal selection, relevance filtering, paragraph/word/sentence quality, story-seed invariance, conceptual scale, close contests, depleted ranged resources, countered regeneration, dry-land aquatic-event omission and reader renderability for all 134 profiles in both ordinary matchup roles. Storyboard-v2 evidence, actor continuity, hazards and the 80-actor cap remain covered.
 
 Validator mutation tests reject altered prose or evidence, unknown or unscoped references, successful rejected abilities, ignored counters, wrong phase/event links, understated or excessive geometry, discontinuous or pursuing hazards, unsupported media, hidden compression, duplicate event coverage, graphic injury and a closing outcome that disagrees with the authoritative result.
 
@@ -31,36 +31,36 @@ Validator mutation tests reject altered prose or evidence, unknown or unscoped r
 5. **Giant spider vs one white rhinoceros:** web attempt, restraint/mass ceiling and supply, then contact resolution.
 6. **Charybdis vs one orca:** fixed 40 m hazard boundary, inward orca trajectory and boundary resolution; every Charybdis event remains origin-anchored.
 
-The pilot goldens contain 11–15 beats and seven visible chapters. In the order above, their full controlled-template accounts contain **627, 615, 803, 803, 513 and 582 words**. Sparse battles remain shorter instead of being padded with unsupported action. No unrestricted generated prose is used.
+The complete technical storyboard still contains every legal beat. The default reader account now selects only the evidence-backed causal spine. For the supplied horse-sized mallard versus 100 duck-sized horses regression, the previously exposed brief-plus-phases account was **818 words**; the new default is **253 words in five paragraphs** while adding the resolved **600 kg versus 1.5 kg** bodies, physical contact reach, roughly **six** simultaneous attackers, an explicit access turning point and a concrete minority path. No unrestricted generated prose is used.
 
 ## Production build snapshot
 
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 451,022 bytes | 455,000 bytes |
+| Entry JavaScript | 451,227 bytes | 455,000 bytes |
 | Optional UI JavaScript | 18,632 bytes | 21,000 bytes |
-| Presentation JavaScript | 54,982 bytes | 55,000 bytes |
-| Lazy tactical runtime JavaScript | 942,421 bytes | 950,000 bytes |
+| Presentation JavaScript | 80,599 bytes | 82,000 bytes |
+| Lazy tactical runtime JavaScript | 942,623 bytes | 950,000 bytes |
 | Largest archetype asset | 0 bytes | 350,000 bytes |
 | Largest environment asset | 0 bytes | 500,000 bytes |
 | Largest audio asset | 0 bytes | 250,000 bytes |
 | Selected tactical assets | 0 bytes | 1,200,000 bytes |
 | Model-0.4 runtime JavaScript | 96,263 bytes | 100,000 bytes |
-| Original core JavaScript | 565,917 bytes | 575,000 bytes |
-| Total JavaScript | 1,563,320 bytes | 1,570,000 bytes |
+| Original core JavaScript | 566,122 bytes | 575,000 bytes |
+| Total JavaScript | 1,589,344 bytes | 1,600,000 bytes |
 | Creature roster | 120,725 bytes | 125,000 bytes |
 | Core CSS | 25,733 bytes | 26,000 bytes |
-| Reconstruction CSS | 5,978 bytes | 6,000 bytes |
-| Total CSS | 31,711 bytes | 32,000 bytes |
-| Original core deployable payload | 823,219 bytes | 835,000 bytes |
-| Total deployable payload | 1,826,600 bytes | 1,850,000 bytes |
+| Reconstruction CSS | 6,520 bytes | 6,750 bytes |
+| Total CSS | 32,253 bytes | 32,750 bytes |
+| Original core deployable payload | 823,424 bytes | 835,000 bytes |
+| Total deployable payload | 1,853,166 bytes | 1,860,000 bytes |
 | Social image | 238,563 bytes | 300,000 bytes |
 
-The largest lazy scene output is 903,858 bytes raw / 240.53 kB gzip. It remains outside the eager verdict graph. Version 0.6.1 adds no external tactical visual or audio asset bytes and no rendering dependency beyond the existing React Three Fiber/Three.js stack.
+The largest lazy scene output is 903,858 bytes raw / 240.53 kB gzip. It remains outside the eager verdict graph. Version 0.7.0 adds no dependency or external tactical visual/audio bytes. The reader layer stays in the existing lazy presentation graph.
 
 ## Browser and accessibility evidence
 
-The exact production build passed Story/Analyst switching; hover, focus and touch-pinned tooltips; one-open behavior; Escape/outside dismissal; keyboard playback; beat and phase seeking; Story camera, Tactical map and Free look; pointer and pinch gestures; reduced-motion stable states; no-WebGL map fallback; deferred scene loading; transcript parity; composite PNG/WebM capture; storyboard/result exports; sharing, history and story-seed reproduction.
+The exact production build passed the five-paragraph default Story, closed seven-phase detail, Story/Analyst switching, reader-safe evidence tooltips, resolved-size/quantity/turning-point copy, keyboard playback, beat and phase seeking, Story camera, Tactical map and Free look, pointer and pinch gestures, reduced-motion stable states, no-WebGL map fallback, deferred scene loading, transcript parity, composite PNG/WebM capture, storyboard/result exports, sharing, history and story-seed reproduction.
 
 - Axe checks passed for the initial app, custom editor, technical/conceptual records, Story, Analyst, expanded evidence, reconstruction and tactical-map states.
 - Keyboard/focus, accessible names, 320/360/412 px reflow, user text spacing, forced-colour mode and ARIA-tree coverage passed in their applicable projects.
@@ -69,7 +69,7 @@ The exact production build passed Story/Analyst switching; hover, focus and touc
 - System and user reduced-motion behavior pauses automatic playback and uses stable before/after states.
 - No-WebGL retains the synchronized 2D Canvas map, HTML legend/description, beat controls, captions and transcript.
 
-The tracked captures below are retained 0.6.0 visual evidence, not exact 0.6.1 capture evidence. Application 0.6.1 changes model logic, diagnostics and version/migration copy but does not change tactical rendering or layout; its exact production build is covered by the current four-project Playwright matrix.
+The tracked captures below are retained 0.6.0 visual evidence, not exact 0.7.0 capture evidence. Application 0.7.0 materially changes the default Story layout, so those images are historical comparison evidence only. The exact 0.7.0 production artifact is covered by the current four-project Playwright matrix.
 
 | Tracked evidence | Bytes | SHA-256 |
 |---|---:|---|

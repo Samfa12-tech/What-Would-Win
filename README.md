@@ -38,15 +38,15 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.6.1**. Custom-creature and history storage remain format **v2**.
+The active reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.7.0**. Custom-creature and history storage remain format **v2**.
 
 Model 0.4.2 retains the explicit model-0.4 physical/ability decomposition and adds access-aware encounter duration, bounded living-profile exhaustion, reserve rotation and relative surface/metabolic thermal scaling as inspectable ledger factors. Recharge and recovery retain a separate bounded ability clock. Every editable combat stat has an applicable deterministic route, and nonliving/conceptual profiles remain exempt from metabolic fatigue.
 
 The v4 share codec embeds the current structured scenario. Released v4/0.4.0 and v4/0.4.1 plus supported v3, v2, v1 and unversioned inputs are migrated and visibly recalculated when their referenced profiles are available. Version-2 custom/history storage preserves previous outcomes as snapshots rather than silently relabelling an old result. JSON exports preserve the exact canonical v4 scenario, asymmetric/per-ability resources, contestants, resolutions and sensitivity used by the run.
 
-The model runtime retains its seven-step ordinary technical explanation and three-step conceptual aggregate explanation, both backed by the applied-factor ledger. Storyboard v2 presents seven visible narrative chapters over that immutable record. Neither sequence is a sampled event timeline, anatomy simulation or alternate winner generator.
+The model runtime retains its seven-step ordinary technical explanation and three-step conceptual aggregate explanation, both backed by the applied-factor ledger. Storyboard v2 preserves the complete seven-phase legal event/evidence record. Application 0.7.0 derives a separate concise reader narrative from that immutable record; neither layer is a sampled event timeline, anatomy simulation or alternate winner generator.
 
-Application 0.6.0 uses storyboard v2 to add evidence-backed story beats, a readable Story account, an exact Analyst account and an optional beat-driven tactical diorama. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. Hover/focus/tap evidence explanations supplement rather than replace the complete HTML record. The primitive 3D scene is an optional enhancement with explicit beat callouts, Story camera, a synchronized 2D Canvas tactical map, Free look, transcript, quantity disclosure, reduced motion and a useful no-WebGL map fallback. PNG/WebM canvas capture never creates or alters events. See `docs/BATTLE_RECONSTRUCTION.md`.
+Application 0.7.0 uses storyboard v2 to retain evidence-backed story beats, an exact Analyst account and an optional beat-driven tactical diorama while a separate causal plan drives the compact default Story account. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. Hover/focus/tap evidence explanations supplement rather than replace the complete HTML record. The primitive 3D scene is an optional enhancement with explicit beat callouts, Story camera, a synchronized 2D Canvas tactical map, Free look, transcript, quantity disclosure, reduced motion and a useful no-WebGL map fallback. PNG/WebM canvas capture never creates or alters events. See `docs/BATTLE_RECONSTRUCTION.md`.
 
 ## Documentation
 
@@ -57,6 +57,7 @@ Application 0.6.0 uses storyboard v2 to add evidence-backed story beats, a reada
 - `docs/MODEL_AUDIT_0.3.md` — historical model-0.3 physical-foundation audit and calibration guardrails.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — historical data-0.3.1 semantic audit and migration decisions.
 - `docs/MODEL_0.4_CALIBRATION_COMPARISON.md` — reproducible 16-fixture model-0.3 versus model-0.4 probability table and movement review.
+- `docs/NARRATIVE_SYSTEM_0.7.0.md` — reader narrative architecture, causal selection, geometry and version decision.
 - `docs/BATTLE_RECONSTRUCTION.md` — storyboard legality, narrative, tactical renderer, quantity, accessibility and performance contracts.
 - `docs/assets/evidence-0.6.0/` — exact-candidate dragon/eagle comparison captures and browser runtime evidence.
 - `data/DATA_DICTIONARY.md` — canonical data semantics and editing rules.
@@ -70,7 +71,7 @@ Private custom profiles use `custom:` IDs and remain in the current browser unle
 
 ## Hosting on samfa12.com
 
-Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward. Application 0.6.0 remains an undeployed candidate until that exact reviewed tree is deliberately synced and verified.
+Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward. Application 0.7.0 remains a source candidate until its exact reviewed tree is deliberately synced through the website repository and verified.
 
 ## Public-repository hygiene
 

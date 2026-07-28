@@ -50,7 +50,7 @@ function fallbackCallout(storyboard: BattleStoryboard, phaseIndex: number, event
     what: event.caption,
     target: event.targetSide ? (event.targetSide === 'solo' ? 'Solo side' : 'Group side') : null,
     result: event.outcome.replace(/-/g, ' '),
-    why: event.factorIds.length > 0 ? `Supported by ${event.factorIds.join(', ')}.` : 'Supported by the validated scenario conditions.',
+    why: event.factorIds.length > 0 ? 'Supported by the same evidence-backed conditions as the narrative.' : 'Supported by the validated scenario conditions.',
   }
 }
 
@@ -64,11 +64,15 @@ export function buildTacticalChoreography(storyboard: BattleStoryboard): Tactica
     const sourceBeats = phase.storyBeats ?? []
 
     for (const beat of sourceBeats) {
-      const events = beat.eventIds
-        .filter((eventId) => !claimedEvents.has(eventId))
+      const sourceEventIds = beat.eventIds.filter((eventId) => !claimedEvents.has(eventId))
+      const events = sourceEventIds
         .map((eventId) => eventsById.get(eventId))
+        .filter((event) => !event?.technicalOnly)
         .filter((event): event is BattleEvent => Boolean(event))
+      sourceEventIds.filter((eventId) => eventsById.get(eventId)?.technicalOnly)
+        .forEach((eventId) => claimedEvents.add(eventId))
       events.forEach((event) => claimedEvents.add(event.id))
+      if (beat.eventIds.length > 0 && events.length === 0) continue
       if (events.length <= 1) {
         beats.push({
           id: beat.id,
@@ -118,6 +122,7 @@ export function buildTacticalChoreography(storyboard: BattleStoryboard): Tactica
 
     for (const event of phase.events) {
       if (claimedEvents.has(event.id)) continue
+      if (event.technicalOnly) { claimedEvents.add(event.id); continue }
       claimedEvents.add(event.id)
       beats.push({
         id: `${phase.id}:${event.id}`,

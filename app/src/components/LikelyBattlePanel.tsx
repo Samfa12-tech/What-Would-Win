@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import {
   assertValidBattleStoryboard,
+  assertValidReaderNarrative,
   buildBattleStoryboard,
+  buildReaderBattleNarrative,
   RECONSTRUCTION_NOTICE,
   type BattleEvidenceRecord,
   type BattleReconstructionInput,
   type BattleStoryboardPhase,
   type NarrativeSentenceFragment,
+  type ReaderNarrativeParagraph,
 } from '../storyboard'
 import { EvidenceTooltip } from './EvidenceTooltip'
 import './reconstruction.css'
@@ -30,15 +33,30 @@ function titleCase(value: string): string {
   return value.replace(/-/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
+function readerEvidenceCopy(evidence: BattleEvidenceRecord): { label: string; detail: string } {
+  const category = evidence.sourceType === 'ability-resolution' ? 'ability'
+    : evidence.sourceType === 'applied-factor' ? 'modelled advantage'
+      : evidence.sourceType === 'scenario-condition' ? 'scenario'
+        : evidence.sourceType
+  return {
+    label: `${category[0]?.toLocaleUpperCase('en-AU')}${category.slice(1)} evidence`,
+    detail: `This sentence is linked to the validated ${category} record. Analyst mode contains the complete technical detail.`,
+  }
+}
+
 function StoryChapter({ phase, evidenceById }: {
   phase: BattleStoryboardPhase
   evidenceById: ReadonlyMap<string, BattleEvidenceRecord>
 }) {
+  const technicalEventIds = new Set(phase.events.filter((event) => event.technicalOnly).map((event) => event.id))
+  const visibleBeats = phase.storyBeats.filter((beat) =>
+    beat.eventIds.length === 0 || beat.eventIds.some((eventId) => !technicalEventIds.has(eventId)))
   const renderFragment = (fragment: NarrativeSentenceFragment, key: string) => {
     const evidence = fragment.evidenceId && evidenceById.get(fragment.evidenceId)
     if (!evidence) return fragment.text
-    return <span key={key}>{fragment.text}<EvidenceTooltip label={evidence.plainText} technicalDetail={evidence.technicalText}>
-      <span aria-hidden="true">†</span><span className="visually-hidden">Evidence: {evidence.label}</span>
+    const copy = readerEvidenceCopy(evidence)
+    return <span key={key}>{fragment.text}<EvidenceTooltip label={copy.label} technicalDetail={copy.detail}>
+      <span aria-hidden="true">†</span><span className="visually-hidden">Evidence: {copy.label}</span>
     </EvidenceTooltip></span>
   }
 
@@ -46,12 +64,12 @@ function StoryChapter({ phase, evidenceById }: {
     <section className="story-chapter" aria-labelledby={`story-phase-${phase.id}`}>
       <header>
         <div>
-          <h4 id={`story-phase-${phase.id}`}>{phase.storyBeats[0]?.title ?? titleCase(phase.id)}</h4>
+          <h4 id={`story-phase-${phase.id}`}>{visibleBeats[0]?.title ?? titleCase(phase.id)}</h4>
         </div>
         <span className="story-advantage">{sideLabel(phase.advantage)}</span>
       </header>
       <div className="story-beats">
-        {phase.storyBeats.map((beat) => (
+        {visibleBeats.map((beat) => (
           <div key={beat.id} className={`story-beat prominence-${beat.prominence}`} data-beat-id={beat.id}>
             {beat.prominence !== 'supporting' && <h5>{beat.title}</h5>}
             {beat.sentences.map((sentence) => (
@@ -63,6 +81,32 @@ function StoryChapter({ phase, evidenceById }: {
         ))}
       </div>
     </section>
+  )
+}
+
+function ReaderParagraph({ paragraph, evidenceById }: {
+  paragraph: ReaderNarrativeParagraph
+  evidenceById: ReadonlyMap<string, BattleEvidenceRecord>
+}) {
+  const renderFragment = (fragment: NarrativeSentenceFragment, key: string) => {
+    const evidence = fragment.evidenceId && evidenceById.get(fragment.evidenceId)
+    if (!evidence) return fragment.text
+    const copy = readerEvidenceCopy(evidence)
+    return <span key={key}>{fragment.text}<EvidenceTooltip label={copy.label} technicalDetail={copy.detail}>
+      <span aria-hidden="true">†</span><span className="visually-hidden">Evidence: {copy.label}</span>
+    </EvidenceTooltip></span>
+  }
+
+  return (
+    <p data-reader-beats={paragraph.beatIds.join(',')}>
+      {paragraph.sentences.map((sentence, sentenceIndex) => (
+        <span key={sentence.id}>
+          {sentenceIndex > 0 ? ' ' : ''}
+          {sentence.fragments.map((fragment, fragmentIndex) =>
+            renderFragment(fragment, `${sentence.id}-${fragmentIndex}`))}
+        </span>
+      ))}
+    </p>
   )
 }
 
@@ -102,6 +146,7 @@ function QuantityDisclosure({ label }: { label: string }) {
 export function LikelyBattlePanel({ input, onAnotherReconstruction }: LikelyBattlePanelProps) {
   const [mode, setMode] = useState<NarrativeMode>('story')
   const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(input), input)
+  const readerNarrative = assertValidReaderNarrative(buildReaderBattleNarrative(input, storyboard))
   const evidenceById = new Map(storyboard.evidence.map((evidence) => [evidence.id, evidence]))
 
   return (
@@ -125,21 +170,24 @@ export function LikelyBattlePanel({ input, onAnotherReconstruction }: LikelyBatt
 
       {mode === 'story' ? (
         <div data-testid="story-account">
-          <p className="section-intro story-intro">A deterministic cinematic chronicle assembled only from validated events and evidence. Evidence markers reveal the modelled basis.</p>
-          <div className="brief-account" aria-label="Three-part likely battle account">
-            {storyboard.briefAccount.map((part) => (
-              <article key={part.id}>
-                <h4>{part.title}</h4>
-                <p>{part.text}</p>
-              </article>
-            ))}
+          <p className="section-intro story-intro">A concise, deterministic explanation of the modelled outcome. Evidence markers reveal the supporting record.</p>
+          <article className="reader-account" aria-label="Readable likely battle account" data-word-count={readerNarrative.wordCount}>
+            {readerNarrative.paragraphs.map((paragraph) =>
+              <ReaderParagraph key={paragraph.id} paragraph={paragraph} evidenceById={evidenceById} />)}
+          </article>
+
+          <div className="quantity-disclosure reader-quantity" aria-label="Quantity representation disclosure">
+            <strong>How the group applies pressure</strong>
+            <p>{readerNarrative.quantity.declaredCountText} {readerNarrative.quantity.simultaneousPressureText} {readerNarrative.quantity.reserveText}</p>
           </div>
 
-          <QuantityDisclosure label={storyboard.representedQuantity.abstractionLabel} />
-
-          <article className="epic-account" aria-label="Seven-phase epic battle account">
-            {storyboard.phases.map((phase) => <StoryChapter key={phase.id} phase={phase} evidenceById={evidenceById} />)}
-          </article>
+          <details className="detailed-reconstruction">
+            <summary>Detailed phase-by-phase reconstruction</summary>
+            <p className="section-intro">The validated seven-phase ledger is preserved for readers who want the complete reconstruction.</p>
+            <article className="epic-account" aria-label="Seven-phase detailed reconstruction">
+              {storyboard.phases.map((phase) => <StoryChapter key={phase.id} phase={phase} evidenceById={evidenceById} />)}
+            </article>
+          </details>
         </div>
       ) : (
         <div data-testid="analyst-account">
@@ -156,13 +204,12 @@ export function LikelyBattlePanel({ input, onAnotherReconstruction }: LikelyBatt
               ))}
             </ul>
           </details>
+          <aside className="alternate-outcome-note" aria-labelledby="alternate-outcome-heading">
+            <h4 id="alternate-outcome-heading">Technical alternate path</h4>
+            <p>{storyboard.alternateOutcomeNote}</p>
+          </aside>
         </div>
       )}
-
-      <aside className="alternate-outcome-note" aria-labelledby="alternate-outcome-heading">
-        <h4 id="alternate-outcome-heading">Alternate path</h4>
-        <p>{storyboard.alternateOutcomeNote}</p>
-      </aside>
     </div>
   )
 }

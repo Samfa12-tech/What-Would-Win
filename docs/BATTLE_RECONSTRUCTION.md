@@ -1,8 +1,8 @@
 # Battle reconstruction contract
 
-Application 0.6.0 develops the explanatory presentation layer over the
-unchanged model-0.4.1 numerical result into a readable battle chronicle and a
-beat-driven tactical explanation.
+Application 0.7.0 develops the explanatory presentation layer over the
+unchanged model-0.4.2/data-0.4.1 numerical result into a concise causal reader
+account, a complete Analyst record and a beat-driven tactical explanation.
 
 > One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.
 
@@ -15,11 +15,14 @@ ScenarioV4Draft
   → model-0.4 deterministic state and seeded Monte Carlo result
   → immutable Model04RuntimeResult snapshot
   → validated BattleStoryboard v2
-      ├─ evidence-backed story beats
-      ├─ deterministic Story and Analyst HTML accounts
-      ├─ beat callouts, captions and transcript
-      ├─ JSON export
+      ├─ complete evidence-backed event/beat ledger
+      ├─ Analyst HTML, detailed phases and JSON export
+      ├─ beat callouts, captions and tactical transcript
       └─ optional tactical 3D scene
+  → deterministic reader narrative plan
+      ├─ resolved identities and quantity pressure
+      ├─ ranked causal concepts and relevance filters
+      └─ concise evidence-backed Story HTML and result export
 ```
 
 `Model04RuntimeResult` exposes a cloned deterministic state, the final result,
@@ -79,18 +82,21 @@ input.
 
 ## Narrative and evidence
 
-The deterministic template system now exposes two complementary modes:
+The deterministic presentation exposes two complementary modes:
 
-- **Story** is the default readable chronicle. Its compact three-part account is
-  composed independently from the most prominent legal beats. The full account
-  then presents Briefing, Deployment, Approach, Contact, Pressure, Turning point
-  and Resolution as a continuous present-tense chronicle.
+- **Story** is the default reader account. A causal plan selects premise,
+  opening geometry, first exchange, pressure, turning point, resolution and a
+  concrete minority path. It renders three to six short paragraphs; the full
+  seven phases remain closed by default under “Detailed phase-by-phase
+  reconstruction”.
 - **Analyst** preserves the exact phase intervals, event ledger, factor IDs,
   ability outcomes and complete evidence annotations without relying on prose
   or hover interactions.
 
-Ordinary pilot stories contain 10–18 legal beats and target 600–900 words;
-sparse or conceptual battles may be shorter instead of inventing action. Every
+Ordinary one-versus-many stories target 180–350 words; ordinary one-versus-one
+stories target 120–250; conceptual stories target 150–300 and avoid literal
+actors or physical sequences. Sparse accounts remain short instead of
+inventing action. Every
 generated sentence is assembled from typed text and evidence fragments.
 If a dense imported custom profile contains more than 11 causally distinct
 event groups, the chronicle keeps additional beats rather than merging
@@ -106,8 +112,10 @@ to the viewport, and Escape or outside activation dismisses it. Reduced motion
 removes tooltip animation. A tooltip never contains a second interactive
 control or the only copy of a required fact.
 
-The alternate path uses minority probability and bounded sensitivity; it does
-not generate an unrelated winner. Results below 60% use close-contest language.
+The minority path uses bounded sensitivity only when a perturbation is
+material; otherwise it states the concrete access, contact or capacity change
+the losing side needs. It never generates an unrelated winner. Results below
+60% use close-contest language.
 Conceptual quantities use only access, frontage, reserves and aggregate
 pressure, with no literal actors, individual-combat verbs or physical duration.
 
@@ -189,9 +197,10 @@ The UI exposes and the snapshot suite validates:
 All six UI fixtures explicitly select natural creature sizes; none inherits the
 novelty matchup's size presets.
 
-The deterministic full Story accounts contain 627, 615, 803, 803, 513 and 582
-words respectively. The two sparse pilots remain below 600 words instead of
-adding unsupported action.
+All six pilots now pass causal-selection, evidence, paragraph, sentence and
+readability bounds in the focused narrative audit. Their complete seven-phase
+technical reconstructions remain available without padding the default Story
+account.
 
 The historical 80 m Charybdis fixture remains a useful rejected/out-of-range
 case; the pilot uses the reviewed 40 m boundary so the hazard volume is active.
@@ -230,7 +239,7 @@ rather than being available only in ignored Playwright output.
 
 ## Performance budgets
 
-The application-0.6 production snapshot and reviewed ceilings are recorded in
+The application-0.7 production snapshot and reviewed ceilings are recorded in
 `MODEL_0.4_BUILD_BUDGET.md` and `QA_REPORT.md`. The numerical/model fast-path
 ceilings remain independent from presentation growth.
 

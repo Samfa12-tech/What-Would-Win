@@ -206,8 +206,9 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await expect(page.getByText('Heuristic group losses', { exact: true }).locator('..')).toContainText('not physically meaningful')
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByLabel('Seven-phase epic battle account').locator('> section')).toHaveCount(7, { timeout: 15_000 })
-  await expect(page.getByLabel('Quantity representation disclosure')).toContainText('no literal battlefield')
+  await expect(page.getByLabel('Readable likely battle account').locator('> p')).toHaveCount(5, { timeout: 15_000 })
+  await expect(page.locator('details.detailed-reconstruction')).not.toHaveAttribute('open', '')
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/scale is conceptual.*not literalised/i)
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 
@@ -476,12 +477,17 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.6.1')
+  expect(exported.applicationVersion).toBe('0.7.0')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))
   expect(exported.result.technical.modelVersion).toBe(exported.modelVersion)
   expect(exported.result.technical.dataVersion).toBe(exported.dataVersion)
+  expect(exported.readerNarrative).toMatchObject({
+    wordCount: expect.any(Number),
+    paragraphs: expect.any(Array),
+    qualityIssues: [],
+  })
   expect(exported.result.narrative).toEqual(expect.arrayContaining([
     expect.objectContaining({ id: 'briefing', factorIds: expect.any(Array) }),
     expect.objectContaining({ id: 'uncertainty', factorIds: expect.any(Array) }),

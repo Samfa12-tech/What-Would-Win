@@ -13,7 +13,7 @@ const budgets = {
   optionalUiJavascript: 21_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
-  presentationJavascript: 55_000,
+  presentationJavascript: 82_000,
   tacticalRuntimeJavascript: 950_000,
   // Procedural 0.5 scenes ship no external media. These gates reserve explicit
   // per-file limits for later selected-only archetype, environment and audio assets.
@@ -23,12 +23,12 @@ const budgets = {
   selectedTacticalAssets: 1_200_000,
   model04RuntimeJavascript: 100_000,
   coreJavascript: 575_000,
-  javascript: 1_570_000,
+  javascript: 1_600_000,
   creatureRoster: 125_000,
   coreCss: 26_000,
-  reconstructionCss: 6_000,
-  css: 32_000,
-  total: 1_850_000,
+  reconstructionCss: 6_750,
+  css: 32_750,
+  total: 1_860_000,
   coreDeployable: 835_000,
   socialImage: 300_000,
 }

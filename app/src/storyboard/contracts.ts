@@ -61,6 +61,8 @@ export interface BattleEvent {
   areaRadiusM?: number
   outcome: 'effective' | 'partially-effective' | 'countered' | 'missed' | 'blocked' | 'ineligible'
   caption: string
+  /** Retained for Analyst evidence but omitted from reader prose and tactical playback. */
+  technicalOnly?: boolean
   cameraCue?: CameraCue
 }
 

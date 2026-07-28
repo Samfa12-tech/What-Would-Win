@@ -19,7 +19,7 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 
 ## Current state
 
-- React/TypeScript/Vite static application, version **0.6.1**.
+- React/TypeScript/Vite static application, version **0.7.0**.
 - Active reproducibility identity: **model 0.4.2, data 0.4.1, share format v4**; storyboard **v2**; custom/history storage formats **v2**.
 - 134 canonical profiles and an audited model-0.3 physical aggregate foundation.
 - Structured model-0.4 abilities with explicit delivery, geometry scaling, activation, effects, facing/eligibility, counters, bounded uses/recharge and bilateral channel resolution.
@@ -33,11 +33,11 @@ Use `npm run dev` for local iteration. Deploy the exact tested contents of `app/
 - Model 0.4.2 adds separate ability/encounter clocks plus bounded living-profile exhaustion and relative surface/metabolic thermal scaling; nonliving and conceptual profiles are exempt.
 - V4 shares and v2 custom/history persistence include recovery and migrations from released v4/0.4.0, v4/0.4.1 and supported v3, v2, v1 and unversioned inputs.
 - Ordinary results use seven factor-backed explanatory phases; conceptual results use three aggregate phases and withhold physical duration/loss estimates.
-- The validated presentation layer expands either result into seven evidence-backed storyboard chapters, deterministic Story/Analyst accounts and an optional beat-driven 3D/Canvas reconstruction without re-running the simulation.
+- The validated presentation layer keeps the complete seven-phase storyboard for Analyst/detail/tactical use and derives a separate concise causal Story account without re-running the simulation.
 - Four report depths, URL sharing, PNG/JSON export and local browser history remain available.
 - Static hosting requires no account, database or server-side simulation service.
 
-`app/src/version.ts` exposes application 0.6.1 plus active model 0.4.2/data 0.4.1 and share-v4 identity, alongside separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
+`app/src/version.ts` exposes application 0.7.0 plus active model 0.4.2/data 0.4.1 and share-v4 identity, alongside separately named frozen `LEGACY_*` 0.3.0/0.3.1/v3 constants. Retained model-0.3 engine/share modules use only those legacy exports; active model-0.4 contracts are also locked in `app/src/model04/contracts.ts`.
 
 ## Read these files in order
 
@@ -103,9 +103,9 @@ The explanation and sensitivity panel cannot independently change the winner. Do
 - Conceptual results omit logistics, heat, food, travel and planetary constraints.
 - Thunderbird and Bunyip remain fictional cryptozoological composites pending cultural-sensitivity review; Charybdis is an explicitly modelled environmental-hazard abstraction.
 - Custom profiles are browser-local and need explicit JSON export or a share link for backup/transfer.
-- Physical Safari/iOS and real NVDA/TalkBack/VoiceOver checks have not been evidenced for application 0.6.1.
+- Physical Safari/iOS and real NVDA/TalkBack/VoiceOver checks have not been evidenced for application 0.7.0.
 - A prior near-final SM-S948B run on Android 16 / Chrome 150 passed native touch, Free look, pinch, pinned tooltips, dragon/eagle assertions and Adreno 840 WebGL at 16.8 ms p95. The user independently confirmed eagle comprehension. Exact-final device recapture and human dragon sign-off remain pending because ADB later stopped enumerating the phone.
-- Application 0.6.1/model 0.4.2 has a source-gated exact `app/dist/` artifact. Website publication is owned by the Samfa12 website sync/validation pipeline; recheck that repository, its deployment workflow and the live route before making a current public-release claim.
+- Application 0.7.0/model 0.4.2 has a source-gated exact `app/dist/` artifact. Website publication is owned by the Samfa12 website sync/validation pipeline; recheck that repository, its deployment workflow and the live route before making a current public-release claim.
 - Automated browser coverage is complete for the exact release application artifact (**184 passed, 20 intentional project-scope skips, 0 failed**); this does not replace exact-final physical-device, real screen-reader, physical-download or independent dragon-comprehension evidence.
 
 ## Recommended next tasks
@@ -138,4 +138,4 @@ Run commands from `app/`. Record exact current counts and build sizes in `docs/Q
 
 ## Handoff prompt for Codex
 
-> Continue What Would Win from application 0.6.1, model 0.4.2/data 0.4.1, storyboard v2, share format v4 and custom/history storage v2. Read the 0.4.2 endurance decision, 0.4.1 rectification audit, product plan, model notes, battle-reconstruction contract, `app/src/model04/` runtime contracts and `app/src/storyboard/` contracts/builder/validator before editing; treat model 0.3 and data 0.3.1 as historical foundation records. Preserve deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, static subpath hosting and factor-ledger truth. Narrative and tactical reconstruction may present only validated evidence and must never imply a Monte Carlo trial replay. Keep contact reach separate from versioned ability geometry; preserve explicit physiology, senses, locomotion, facing, effect-level stopping/access, bounded uses, counters, quantity compression, fixed hazards, separated ability/encounter clocks, bounded endurance and complete technical rejection records. Run ability coverage, the full physical/endurance/storyboard regression suites, persistence migrations, build budgets and the complete browser matrix for every material change.
+> Continue What Would Win from application 0.7.0, model 0.4.2/data 0.4.1, storyboard v2, share format v4 and custom/history storage v2. Read the 0.4.2 endurance decision, 0.4.1 rectification audit, product plan, model notes, battle-reconstruction contract, `app/src/model04/` runtime contracts and `app/src/storyboard/` contracts/builder/validator before editing; treat model 0.3 and data 0.3.1 as historical foundation records. Preserve deterministic numerical authority, seeded reproducibility, logarithmic quantity handling, static subpath hosting and factor-ledger truth. Narrative and tactical reconstruction may present only validated evidence and must never imply a Monte Carlo trial replay. Keep contact reach separate from versioned ability geometry; preserve explicit physiology, senses, locomotion, facing, effect-level stopping/access, bounded uses, counters, quantity compression, fixed hazards, separated ability/encounter clocks, bounded endurance and complete technical rejection records. Run ability coverage, the full physical/endurance/storyboard regression suites, persistence migrations, build budgets and the complete browser matrix for every material change.

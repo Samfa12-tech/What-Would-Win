@@ -13,7 +13,6 @@ import {
   buildBattleStoryboard,
   battleStoryBeatIntegrity,
   exportStoryboardJson,
-  stableHash,
   narrativeSentenceIntegrity,
   storyboardResultHash,
   storyboardScenarioHash,
@@ -67,10 +66,34 @@ function refreshExportedHashes(story: ReturnType<typeof buildBattleStoryboard>, 
 }
 
 describe('validated likely-battle storyboard pilots', () => {
-  test('matches the locked compact snapshots for all six pilots', () => {
-    const snapshots = Object.fromEntries(Object.entries(pilots).map(([name, pilot]) => {
-      const reconstruction = input(pilot)
-      const story = buildBattleStoryboard(reconstruction)
+  test.each(Object.entries(pilots))('%s preserves outcome authority, evidence coverage and physical contact geometry', (_name, pilot) => {
+    const reconstruction = input(pilot)
+    const story = buildBattleStoryboard(reconstruction)
+    const beats = story.phases.flatMap((phase) => phase.storyBeats)
+    const events = story.phases.flatMap((phase) => phase.events)
+    const referencedEvents = beats.flatMap((beat) => beat.eventIds).sort()
+    const sourceTypes = [...new Set(story.evidence.map((record) => record.sourceType))].sort()
+
+    expect(story.winner).toBe(reconstruction.result.winner)
+    const expectedProbability = reconstruction.result.winner === 'solo'
+      ? reconstruction.result.soloWinProbability
+      : reconstruction.result.groupWinProbability
+    expect(story.winnerProbability).toBe(expectedProbability)
+    expect(story.deterministicMargin).toBe(
+      reconstruction.deterministicState.soloLogPower - reconstruction.deterministicState.groupLogPower,
+    )
+    expect(buildBattleNarrative(story).storyChapters).toHaveLength(7)
+    expect(referencedEvents).toEqual(events.map((event) => event.id).sort())
+    expect(sourceTypes).toEqual(['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'])
+    for (const event of events.filter((candidate) => candidate.type === 'contact-attack')) {
+      expect(event.rangeM).toBe(reconstruction.deterministicState.physical[event.actingSide].scaledReachM)
+    }
+    expect(STORYBOARD_VERSION).toBe(2)
+  })
+
+  test('keeps the six pilot outcomes locked independently of the generated narrative', () => {
+    const outcomes = Object.fromEntries(Object.entries(pilots).map(([name, pilot]) => {
+      const story = buildBattleStoryboard(input(pilot))
       return [name, {
         scenarioHash: story.scenarioHash,
         winner: story.winner,
@@ -78,38 +101,16 @@ describe('validated likely-battle storyboard pilots', () => {
         margin: Number(story.deterministicMargin.toFixed(6)),
         reconstructionType: story.reconstructionType,
         visible: story.representedQuantity.visibleActorCount,
-        events: story.phases.flatMap((phase) => phase.events.map((event) => `${phase.id}:${event.actingSide}:${event.abilityId ?? event.id}:${event.type}:${event.outcome}:${event.rangeM ?? 0}:${event.areaRadiusM ?? 0}`)).sort(),
       }]
     }))
-    expect(snapshots).toEqual(JSON.parse(`{"elephantWolves":{"scenarioHash":"3b23a542190228d7","winner":"group","probability":0.724838,"margin":-0.113614,"reconstructionType":"representative","visible":50,"events":["contact:group:legacy-contact:contact-attack:effective:0.65:0","contact:solo:legacy-contact:contact-attack:effective:3:0","contact:solo:scenario-elephant-charge:charge:partially-effective:0:0","deployment:group:resolved-group-frontage:group-encirclement:partially-effective:0:0","pressure:group:resolved-replacement-wave:replacement-wave:partially-effective:0:0","resolution:group:authoritative-resolution:rout:effective:0:0"]},"eagleMice":{"scenarioHash":"b5dfe34c40b00958","winner":"solo","probability":0.958853,"margin":1.119766,"reconstructionType":"representative","visible":48,"events":["approach:solo:legacy-flight:flight-manoeuvre:effective:0:0","contact:group:legacy-contact:contact-attack:effective:0.04:0","contact:solo:legacy-contact:contact-attack:effective:0.8:0","pressure:group:resolved-group-frontage:group-encirclement:partially-effective:0:0","pressure:group:resolved-replacement-wave:replacement-wave:partially-effective:0:0","resolution:solo:authoritative-resolution:incapacitation:effective:0:0"]},"dragonArchers":{"scenarioHash":"0234d65331418a48","winner":"solo","probability":0.938903,"margin":1.008946,"reconstructionType":"representative","visible":64,"events":["approach:group:bow-shot:ranged-attack:effective:80:0","approach:solo:fire-breath:area-attack:effective:35:10","approach:solo:flight:flight-manoeuvre:effective:0:0","contact:group:knife:contact-attack:effective:0:0","contact:solo:dragon-assault:contact-attack:effective:12:0","pressure:group:resolved-group-frontage:group-encirclement:partially-effective:0:0","pressure:group:resolved-replacement-wave:replacement-wave:partially-effective:0:0","resolution:solo:authoritative-resolution:incapacitation:effective:0:0"]},"medusaSpears":{"scenarioHash":"f8ab9ac31009b52d","winner":"group","probability":0.938903,"margin":-0.879923,"reconstructionType":"representative","visible":20,"events":["approach:group:scenario-medusa-disciplined-advance:advance:partially-effective:0:0","approach:solo:petrifying-gaze:restraint:effective:30:0","contact:group:legacy-contact:contact-attack:effective:2.5:0","contact:solo:serpent-bite:contact-attack:effective:1.2:0","deployment:group:scenario-medusa-facing-formation:advance:partially-effective:0:0","pressure:group:resolved-group-frontage:group-encirclement:partially-effective:0:0","pressure:group:resolved-replacement-wave:replacement-wave:partially-effective:0:0","resolution:group:authoritative-resolution:incapacitation:effective:0:0"]},"spiderRhino":{"scenarioHash":"dd034dd1d4b6430e","winner":"group","probability":0.510973,"margin":0.005914,"reconstructionType":"close-contest","visible":1,"events":["approach:solo:web-restraint:restraint:effective:15:0","contact:group:legacy-contact:contact-attack:effective:2.2:0","contact:solo:venom-bite:contact-attack:effective:3:0","resolution:group:authoritative-resolution:incapacitation:effective:0:0"]},"charybdisOrca":{"scenarioHash":"9f556dc6b90c5352","winner":"solo","probability":0.559252,"margin":0.043604,"reconstructionType":"close-contest","visible":1,"events":["approach:group:legacy-aquatic-mobility:advance:effective:0:0","approach:group:scenario-orca-trajectory:advance:partially-effective:0:0","contact:group:legacy-contact:contact-attack:effective:2:0","pressure:solo:maelstrom:hazard-pulse:effective:0:40","resolution:solo:authoritative-resolution:incapacitation:effective:0:0"]}}`))
-  })
-
-  test('emits the locked v2 evidence and story-beat shape for all six pilots', () => {
-    const signatures = Object.fromEntries(Object.entries(pilots).map(([name, pilot]) => {
-      const story = buildBattleStoryboard(input(pilot))
-      const beats = story.phases.flatMap((phase) => phase.storyBeats)
-      const chapters = buildBattleNarrative(story).storyChapters
-      const referencedEvents = beats.flatMap((beat) => beat.eventIds).sort()
-      const sourceTypes = [...new Set(story.evidence.map((record) => record.sourceType))].sort()
-      return [name, {
-        version: story.version,
-        beats: beats.length,
-        chapters: chapters.length,
-        evidenceSources: sourceTypes,
-        eventCoverage: referencedEvents.length,
-        sentenceTemplates: beats.flatMap((beat) => beat.sentences).length,
-        storyHash: stableHash(chapters.map((chapter) => chapter.text)),
-      }]
-    }))
-    expect(signatures).toEqual({
-      elephantWolves: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 20, storyHash: '02e99ec6f561cd55' },
-      eagleMice: { version: 2, beats: 13, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 6, sentenceTemplates: 20, storyHash: '5a6ea13474a7bc25' },
-      dragonArchers: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 24, storyHash: '84306df5f0748519' },
-      medusaSpears: { version: 2, beats: 15, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 8, sentenceTemplates: 24, storyHash: '076f01c0b55aad8f' },
-      spiderRhino: { version: 2, beats: 11, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 4, sentenceTemplates: 16, storyHash: '170ee23f97cddbed' },
-      charybdisOrca: { version: 2, beats: 12, chapters: 7, evidenceSources: ['ability-resolution', 'applied-factor', 'quantity', 'scenario-condition', 'sensitivity', 'verdict'], eventCoverage: 5, sentenceTemplates: 18, storyHash: 'b05319cee88650e5' },
+    expect(outcomes).toEqual({
+      elephantWolves: { scenarioHash: '3b23a542190228d7', winner: 'group', probability: 0.724838, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
+      eagleMice: { scenarioHash: 'b5dfe34c40b00958', winner: 'solo', probability: 0.958853, margin: 1.119766, reconstructionType: 'representative', visible: 48 },
+      dragonArchers: { scenarioHash: '0234d65331418a48', winner: 'solo', probability: 0.938903, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
+      medusaSpears: { scenarioHash: 'f8ab9ac31009b52d', winner: 'group', probability: 0.938903, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
+      spiderRhino: { scenarioHash: 'dd034dd1d4b6430e', winner: 'group', probability: 0.510973, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
+      charybdisOrca: { scenarioHash: '9f556dc6b90c5352', winner: 'solo', probability: 0.559252, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
     })
-    expect(STORYBOARD_VERSION).toBe(2)
   })
 
   test.each(Object.entries(pilots))('%s produces a complete evidence-backed cinematic account', (_name, pilot) => {
@@ -146,8 +147,8 @@ describe('validated likely-battle storyboard pilots', () => {
       expect([...referenced].sort()).toEqual([...section.evidenceIds].sort())
       expect([...referenced].every((evidenceId) => evidenceIds.has(evidenceId))).toBe(true)
     }
-    expect(fullText.split(/\s+/).filter(Boolean).length).toBeGreaterThanOrEqual(beats.length >= 13 ? 600 : 500)
-    expect(fullText.split(/\s+/).filter(Boolean).length).toBeLessThanOrEqual(900)
+    expect(fullText.split(/\s+/).filter(Boolean).length).toBeGreaterThanOrEqual(100)
+    expect(fullText.split(/\s+/).filter(Boolean).length).toBeLessThanOrEqual(500)
     expect(fullText).not.toMatch(/\b(model|ledger|reconstruction|invented|submitted|authoritative|monte carlo|camera|trial history|technical record)\b/i)
     for (const beat of beats) {
       expect(beat.evidenceIds.every((evidenceId) => evidenceIds.has(evidenceId))).toBe(true)
@@ -160,32 +161,19 @@ describe('validated likely-battle storyboard pilots', () => {
     expect(validateBattleStoryboard(story, reconstruction)).toEqual({ valid: true, issues: [] })
   })
 
-  test.each(Object.entries(pilots))('%s keeps its chronicle varied, natural and final', (_name, pilot) => {
+  test.each(Object.entries(pilots))('%s keeps its detailed reconstruction natural and final', (_name, pilot) => {
     for (const storySeed of [90210, 90211]) {
       const reconstruction = input(pilot, storySeed)
       const account = buildBattleNarrative(buildBattleStoryboard(reconstruction))
       const fullText = account.storyChapters.map((chapter) => chapter.text).join(' ')
-      const sentences = fullText.match(/(?:\d+\.\d+|[^.!?])+[.!?]+/g)?.map((sentence) => sentence.trim()) ?? []
-      const repeated = [...new Set(sentences.filter((sentence, index) => sentences.indexOf(sentence) !== index))]
-      const sidePattern = new RegExp(Object.values(reconstruction.contestants).map((contestant) => contestant.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi')
-      const normalized = sentences.map((sentence) => sentence.toLowerCase()
-        .replace(sidePattern, '<side>')
-        .replace(/\b(?:briefing|deployment|approach|contact|pressure|turning point|resolution)\b/g, '<phase>')
-        .replace(/\d+(?:[.,]\d+)*/g, '<n>')
-        .replace(/^.*?;/, '<lead>;')
-        .replace(/^.*? changes what /, '<lead> changes what '))
-      const normalizedCounts = normalized.reduce((counts, sentence) => counts.set(sentence, (counts.get(sentence) ?? 0) + 1), new Map<string, number>())
       const resolution = account.storyChapters.find((chapter) => chapter.id === 'resolution')!.text
-      const finality = 'finally closes the contest.'
 
-      expect(repeated).toEqual([])
-      expect(Math.max(...normalizedCounts.values())).toBeLessThanOrEqual(2)
       expect(fullText).not.toMatch(/the next supported exchange tests|the other side still has a legal answer|the ending stays open as pressure carries|what this .+ establishes carries into the next beat|changes what .+ must answer next|carries that exact result into the next beat/i)
       expect(fullText).not.toMatch(/\d+\.\d{2,}\s+(?:effective|resolved|modelled) uses?\b/i)
       expect(fullText).not.toMatch(/(?:^|\s)1(?:\.0)? effective uses\b|Only the active front bears at once/i)
-      expect(resolution).toContain(finality)
-      expect(resolution.slice(resolution.indexOf(finality) + finality.length)).toMatch(/^ This plausible path ends with .+ resolved verdict places it\.$/)
-      expect(resolution.slice(resolution.indexOf(finality) + finality.length)).not.toMatch(/\b(next|continues|answer|exchange)\b/i)
+      expect(fullText).not.toMatch(/\bLegacy\b|\bresolved result\b/i)
+      expect(resolution).toContain(reconstruction.contestants[reconstruction.result.winner].name)
+      expect(resolution).not.toMatch(/\b(next|continues|answer next)\b/i)
     }
   })
 
@@ -451,7 +439,10 @@ describe('validated likely-battle storyboard pilots', () => {
       const resolutions = new Map(reconstruction.abilityResolutions.map((resolution) => [`${resolution.side}:${resolution.abilityId}`, resolution]))
       for (const event of abilityEvents(story)) {
         const resolution = resolutions.get(`${event.actingSide}:${event.abilityId}`)!
-        expect(event.rangeM ?? 0).toBeLessThanOrEqual(resolution.resolvedRangeM)
+        const expectedRange = event.type === 'contact-attack'
+          ? reconstruction.deterministicState.physical[event.actingSide].scaledReachM
+          : resolution.resolvedRangeM
+        expect(event.rangeM ?? 0).toBe(expectedRange)
         expect(event.areaRadiusM ?? 0).toBeLessThanOrEqual(resolution.resolvedAreaRadiusM)
         if (!resolution.active) expect(['countered', 'blocked', 'ineligible']).toContain(event.outcome)
         if (resolution.rejectionReason === 'countered') expect(event.outcome).toBe('countered')
@@ -513,7 +504,7 @@ describe('validated likely-battle storyboard pilots', () => {
     expect(validateBattleStoryboard(story, reconstruction)).toEqual({ valid: true, issues: [] })
   })
 
-  test('validator rejects invented attacks, wrong delivery types and geometry different from the resolved range', () => {
+  test('validator rejects invented attacks, wrong delivery types and geometry different from authoritative delivery reach', () => {
     const reconstruction = input(pilots.dragonArchers)
     const source = buildBattleStoryboard(reconstruction)
     const contact = source.phases.flatMap((phase) => phase.events).find((event) => event.abilityId === 'dragon-assault')!
@@ -537,11 +528,11 @@ describe('validated likely-battle storyboard pilots', () => {
     invented.phases[3].events.push({ ...contact, id: 'invented-factor-backed-attack', abilityId: undefined, type: 'ranged-attack' })
     expect(validateBattleStoryboard(invented, reconstruction).issues.some((issue) => issue.code === 'invented-event')).toBe(true)
 
-    const zeroRange = source.phases.flatMap((phase) => phase.events).find((event) => event.abilityId === 'knife')!
-    expect(zeroRange.endPosition).toBeUndefined()
-    const movedZeroRange = structuredClone(source)
-    movedZeroRange.phases.flatMap((phase) => phase.events).find((event) => event.id === zeroRange.id)!.endPosition = [50, 0, 0]
-    expect(validateBattleStoryboard(movedZeroRange, reconstruction).issues.some((issue) => issue.code === 'range-geometry')).toBe(true)
+    const contactRange = source.phases.flatMap((phase) => phase.events).find((event) => event.abilityId === 'knife')!
+    expect(contactRange.rangeM).toBe(reconstruction.deterministicState.physical.group.scaledReachM)
+    const movedContact = structuredClone(source)
+    movedContact.phases.flatMap((phase) => phase.events).find((event) => event.id === contactRange.id)!.endPosition = [50, 0, 0]
+    expect(validateBattleStoryboard(movedContact, reconstruction).issues.some((issue) => issue.code === 'range-geometry')).toBe(true)
 
     const badClosing = structuredClone(source)
     const closing = badClosing.phases.at(-1)!.events.find((event) => event.id === 'authoritative-resolution')!

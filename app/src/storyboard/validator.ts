@@ -190,14 +190,15 @@ export function validateBattleStoryboard(
       if (!resolution.active && SUCCESSFUL_OUTCOMES.has(event.outcome)) eventIssue('inactive-success')
       if (resolution.rejectionReason === 'countered' && event.outcome !== 'countered') eventIssue('ignored-counter')
       if (resolution.rejectionReason === 'target-immune' && event.outcome !== 'blocked') eventIssue('ignored-immunity')
-      if (Math.abs((event.rangeM ?? 0) - resolution.resolvedRangeM) > EPSILON) eventIssue('resolved-range')
-      if (Math.abs((event.areaRadiusM ?? 0) - resolution.resolvedAreaRadiusM) > EPSILON) eventIssue('resolved-area')
       const ability = profile.abilities.find((candidate) => candidate.id === event.abilityId)
+      const expectedRangeM = ability?.delivery === 'contact' ? input.deterministicState.physical[event.actingSide].scaledReachM : resolution.resolvedRangeM
+      if (Math.abs((event.rangeM ?? 0) - expectedRangeM) > EPSILON) eventIssue('resolved-range')
+      if (Math.abs((event.areaRadiusM ?? 0) - resolution.resolvedAreaRadiusM) > EPSILON) eventIssue('resolved-area')
       if (event.type !== abilityResolutionEventType(ability, resolution)) eventIssue('ability-event-type')
       const abilityFactorIds = new Set<string>([resolution.factorId, ...resolution.effects.map((effect) => effect.factorId)])
       if (event.factorIds.some((factorId) => !abilityFactorIds.has(factorId))) eventIssue('ability-factor-reference')
       if (resolution.active && ATTACK_TYPES.has(event.type) && event.endPosition
-        && positionDistance(event.startPosition, event.endPosition) > resolution.resolvedRangeM + 0.002) {
+        && positionDistance(event.startPosition, event.endPosition) > expectedRangeM + 0.002) {
         eventIssue('range-geometry')
       }
       const stationaryHazard = ability?.kind === 'hazard' || ability?.delivery === 'environmental'

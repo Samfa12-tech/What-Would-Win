@@ -4,7 +4,7 @@
 
 **Active contract:** `0.4.2`
 
-**Active public identity:** app 0.7.0, model 0.4.2, data 0.4.1, share v4, storyboard v2, custom/history v2
+**Active public identity:** app 0.7.1, model 0.4.2, data 0.4.1, share v4, storyboard v2, custom/history v2
 
 ## Decision
 

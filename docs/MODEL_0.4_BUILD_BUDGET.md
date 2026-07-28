@@ -154,3 +154,28 @@ JavaScript rises by 30,000 bytes; reconstruction and aggregate CSS rise by 750
 bytes for the compact paragraphs and closed detail control; deployable payload
 rises by 10,000 bytes. These separate ceilings keep the new reader cost visible
 without allowing it to consume the numerical or eager fast-path budgets.
+
+## Application 0.7.1 narrative-semantics addendum
+
+Application 0.7.1 keeps model 0.4.2, data 0.4.1, storyboard v2, share v4 and custom/history storage v2. The new battlefield-language contract, behaviour archetypes, mechanic-specific reader planner, causal diagnostics, identity grammar, plain-language evidence copy and narrow fallback remain in the existing lazy presentation graph. No dependency, media asset, simulation code or eager runtime was added.
+
+The reviewed 178-module production snapshot is:
+
+| Category | Measured 0.7.1 | Ceiling | Headroom |
+|---|---:|---:|---:|
+| Entry JavaScript | 451,365 | 455,000 | 3,635 |
+| Existing optional UI JavaScript | 18,632 | 21,000 | 2,368 |
+| Presentation JavaScript | 125,220 | 128,000 | 2,780 |
+| Model-0.4 runtime JavaScript | 96,294 | 100,000 | 3,706 |
+| Lazy tactical runtime JavaScript | 942,594 | 950,000 | 7,406 |
+| Original core JavaScript | 566,291 | 575,000 | 8,709 |
+| Total JavaScript | 1,634,105 | 1,640,000 | 5,895 |
+| Creature roster | 120,725 | 125,000 | 4,275 |
+| Core CSS | 25,733 | 26,000 | 267 |
+| Lazy reconstruction CSS | 6,621 | 6,750 | 129 |
+| Total CSS | 32,354 | 32,750 | 396 |
+| Original core deployable payload | 823,900 | 835,000 | 11,100 |
+| Deployable payload | 1,898,335 | 1,905,000 | 6,665 |
+| Largest external tactical asset | 0 | category ceilings | unchanged |
+
+The entry, optional UI, model runtime, tactical runtime, original core JavaScript, roster, all CSS, original core-deployable and external-asset ceilings remain unchanged. Presentation rises from 82,000 to 128,000 bytes so the 44,621-byte measured semantic-planner growth remains visible in its owning lazy graph. Aggregate JavaScript rises from 1,600,000 to 1,640,000 bytes and deployable payload from 1,860,000 to 1,905,000 bytes. Those are the only ceiling changes; moving these bytes to another chunk would not reduce the published artifact or its actual cost.

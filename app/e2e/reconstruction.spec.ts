@@ -50,7 +50,7 @@ test('likely battle is a fully annotated, explicitly non-trial presentation', as
   await expect(reader).toContainText(/600 kilograms/i)
   await expect(reader).toContainText(/1\.5 kilograms/i)
   await expect(reader).toContainText(/only about 6 can contribute effective pressure at once/i)
-  await expect(reader).toContainText(/turning point/i)
+  await expect(reader).toContainText(/decisive transition.*active attackers.*waiting for access/i)
   await expect(reader).not.toContainText(/Legacy|aquatic movement|death condition|contest closes/i)
   const details = page.locator('details.detailed-reconstruction')
   await expect(details).not.toHaveAttribute('open', '')

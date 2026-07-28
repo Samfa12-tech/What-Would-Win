@@ -620,14 +620,13 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   async function downloadResultJson() {
     const {
       assertValidBattleStoryboard,
-      assertValidReaderNarrative,
       buildBattleNarrative,
       buildBattleStoryboard,
-      buildReaderBattleNarrative,
+      buildSafeReaderBattleNarrative,
     } = await import('./storyboard')
     const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
     const battleNarrative = buildBattleNarrative(storyboard)
-    const readerNarrative = assertValidReaderNarrative(buildReaderBattleNarrative(storyboardInput, storyboard))
+    const readerNarrative = buildSafeReaderBattleNarrative(storyboardInput, storyboard)
     const payload = {
       app: 'What Would Win',
       applicationVersion: APPLICATION_VERSION,

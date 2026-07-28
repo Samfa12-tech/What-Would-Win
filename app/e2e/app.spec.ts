@@ -208,7 +208,7 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByLabel('Readable likely battle account').locator('> p')).toHaveCount(5, { timeout: 15_000 })
   await expect(page.locator('details.detailed-reconstruction')).not.toHaveAttribute('open', '')
-  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/scale is conceptual.*not literalised/i)
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/conceptual scale.*not literalised|not literalised.*conceptual scale/i)
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 
@@ -477,7 +477,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.7.0')
+  expect(exported.applicationVersion).toBe('0.7.1')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))

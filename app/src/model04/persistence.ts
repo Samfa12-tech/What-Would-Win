@@ -10,6 +10,7 @@ import { validateCreature, validateScenario } from '../validation'
 import {
   MODEL_04_CUSTOM_STORAGE_VERSION,
   MODEL_04_DATA_VERSION,
+  MODEL_04_HISTORY_STORAGE_VERSION,
   MODEL_04_SHARE_FORMAT_VERSION,
   MODEL_04_VERSION,
   type CreatureV4Draft,
@@ -22,8 +23,10 @@ import {
 import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from './migrateV3'
 import { withMethodologyDefaults } from '../scenarioDefaults'
 
-export const MODEL_04_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
-export const MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
+export const MODEL_04_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v3'
+export const MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
+const PREVIOUS_MODEL_04_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
+const PREVIOUS_MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
 export const MODEL_04_CUSTOM_EXPORT_KIND = 'what-would-win-custom-creature' as const
 
 export interface SavedCustomCreatureV2 {
@@ -32,7 +35,7 @@ export interface SavedCustomCreatureV2 {
   createdAt: string
   updatedAt: string
   migration?: {
-    sourceStorageVersion: 1 | 2
+    sourceStorageVersion: 1 | 2 | 3
     notices: Model04MigrationNotice[]
   }
 }
@@ -45,7 +48,7 @@ interface CustomCreatureStoreV2 {
 export interface CustomCreatureLoadResultV2 {
   items: SavedCustomCreatureV2[]
   warning: string
-  source: 'v2' | 'migrated-v1' | 'empty'
+  source: 'v3' | 'migrated-v2' | 'migrated-v1' | 'empty'
 }
 
 export interface CustomCreatureExportV2 {
@@ -108,16 +111,17 @@ function uniqueStrings(value: unknown, allowed?: ReadonlySet<string>, minimum = 
 
 function validAbilityCondition(value: unknown): boolean {
   if (!isRecord(value) || !hasOnlyKeys(value, [
-    'requiresLineOfSight', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing', 'minimumDistanceM', 'maximumDistanceM',
+    'requiresLineOfSight', 'preparationDependent', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing', 'minimumDistanceM', 'maximumDistanceM', 'minimumAttackerQuantity',
     'minimumTargetMassKg', 'maximumTargetMassKg', 'terrains', 'forbiddenWeather',
     'timeOfDay', 'targetPhysiology', 'requiredTargetSenses',
   ])) return false
-  for (const key of ['requiresLineOfSight', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing'] as const) {
+  for (const key of ['requiresLineOfSight', 'preparationDependent', 'requiresFacing', 'requiresAttackerFacing', 'requiresTargetFacing', 'requiresMutualFacing'] as const) {
     if (key in value && typeof value[key] !== 'boolean') return false
   }
   for (const key of ['minimumDistanceM', 'maximumDistanceM'] as const) {
     if (key in value && !finiteRange(value[key], 0, 1e7)) return false
   }
+  if ('minimumAttackerQuantity' in value && !finiteRange(value.minimumAttackerQuantity, 1, 1e12)) return false
   for (const key of ['minimumTargetMassKg', 'maximumTargetMassKg'] as const) {
     if (key in value && !finiteRange(value[key], 0, 1e12, true)) return false
   }
@@ -186,7 +190,7 @@ export function isCreatureV4Draft(value: unknown): value is CreatureV4Draft {
   const locomotion = value.locomotion
   if (!physiologies.has(String(value.physiology))) return false
   if (!hasOnlyKeys(senses, senseKeys) || !senseKeys.every((key) => typeof senses[key] === 'boolean')) return false
-  if (!hasOnlyKeys(locomotion, ['flight', 'aquatic', 'amphibious', 'land']) || !['flight', 'aquatic', 'amphibious', 'land'].every((key) => typeof locomotion[key] === 'boolean')) return false
+  if (!hasOnlyKeys(locomotion, ['flight', 'aquatic', 'amphibious', 'land', 'arboreal']) || !['flight', 'aquatic', 'amphibious', 'land'].every((key) => typeof locomotion[key] === 'boolean') || ('arboreal' in locomotion && typeof locomotion.arboreal !== 'boolean')) return false
   if (!isRecord(value.channelModifiers) || !Object.entries(value.channelModifiers).every(([channel, modifier]) => channels.has(channel) && finiteRange(modifier, 0, 4))) return false
   if (!hasOnlyKeys(value.migration, ['sourceModel', 'sourceData', 'reviewRequired', 'notes'])
     || value.migration.sourceModel !== '0.3.0'
@@ -227,7 +231,7 @@ function validateSavedV2(value: unknown): SavedCustomCreatureV2 | null {
     baseCreatureId: value.baseCreatureId,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
-    ...(isRecord(value.migration) && (value.migration.sourceStorageVersion === 1 || value.migration.sourceStorageVersion === 2) && Array.isArray(value.migration.notices)
+    ...(isRecord(value.migration) && (value.migration.sourceStorageVersion === 1 || value.migration.sourceStorageVersion === 2 || value.migration.sourceStorageVersion === 3) && Array.isArray(value.migration.notices)
       ? { migration: structuredClone(value.migration) as SavedCustomCreatureV2['migration'] }
       : {}),
   }
@@ -248,9 +252,9 @@ export function migrateSavedCustomCreatureV1(item: SavedCustomCreature): SavedCu
   }
 }
 
-function parseStoreV2(raw: string): { items: SavedCustomCreatureV2[]; warning: string } | null {
+function parseCustomStore(raw: string, expectedVersion: number): { items: SavedCustomCreatureV2[]; warning: string } | null {
   const parsed: unknown = JSON.parse(raw)
-  if (!isRecord(parsed) || parsed.storageVersion !== MODEL_04_CUSTOM_STORAGE_VERSION || !Array.isArray(parsed.items)) return null
+  if (!isRecord(parsed) || parsed.storageVersion !== expectedVersion || !Array.isArray(parsed.items)) return null
   const items: SavedCustomCreatureV2[] = []
   const ids = new Set<string>()
   let ignored = 0
@@ -265,7 +269,7 @@ function parseStoreV2(raw: string): { items: SavedCustomCreatureV2[]; warning: s
   }
   return {
     items,
-    warning: ignored ? `${ignored} invalid or duplicate model 0.4 custom profile${ignored === 1 ? ' was' : 's were'} ignored. The stored data was left untouched.` : '',
+    warning: ignored ? `${ignored} invalid or duplicate current-model custom profile${ignored === 1 ? ' was' : 's were'} ignored. The stored data was left untouched.` : '',
   }
 }
 
@@ -274,16 +278,29 @@ export function loadModel04CustomCreatures(storage: Storage): CustomCreatureLoad
   try {
     rawV2 = storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY)
   } catch {
-    return { items: [], warning: 'Model 0.4 custom profiles could not be read from this browser.', source: 'empty' }
+    return { items: [], warning: 'Current-model custom profiles could not be read from this browser.', source: 'empty' }
   }
   if (rawV2) {
     try {
-      const parsed = parseStoreV2(rawV2)
+      const parsed = parseCustomStore(rawV2, MODEL_04_CUSTOM_STORAGE_VERSION)
       return parsed
-        ? { ...parsed, source: 'v2' }
-        : { items: [], warning: 'Saved model 0.4 custom profiles use an incompatible or damaged format. The stored data was left untouched.', source: 'v2' }
+        ? { ...parsed, source: 'v3' }
+        : { items: [], warning: 'Saved current-model custom profiles use an incompatible or damaged format. The stored data was left untouched.', source: 'v3' }
     } catch {
-      return { items: [], warning: 'Saved model 0.4 custom profiles contain invalid JSON. The stored data was left untouched.', source: 'v2' }
+      return { items: [], warning: 'Saved current-model custom profiles contain invalid JSON. The stored data was left untouched.', source: 'v3' }
+    }
+  }
+
+  const previousRaw = storage.getItem(PREVIOUS_MODEL_04_CUSTOM_STORAGE_KEY)
+  if (previousRaw) {
+    try {
+      const parsed = parseCustomStore(previousRaw, 2)
+      if (!parsed) return { items: [], warning: 'Saved version 2 custom profiles use an incompatible or damaged format. The stored data was left untouched.', source: 'migrated-v2' }
+      const items = parsed.items.map((item) => ({ ...item, creature: { ...item.creature, locomotion: { ...item.creature.locomotion, arboreal: item.creature.locomotion.arboreal ?? false } }, migration: { sourceStorageVersion: 2 as const, notices: item.migration?.notices ?? [] } }))
+      saveModel04CustomCreatures(storage, items)
+      return { items, warning: 'Custom profiles were copied to version 3 with arboreal movement defaulted off. The version 2 recovery copy was left untouched.', source: 'migrated-v2' }
+    } catch {
+      return { items: [], warning: 'Saved version 2 custom profiles could not be migrated. The stored data was left untouched.', source: 'migrated-v2' }
     }
   }
 
@@ -292,13 +309,13 @@ export function loadModel04CustomCreatures(storage: Storage): CustomCreatureLoad
   const legacy = loadCustomCreatures(storage)
   const items = legacy.items.map(migrateSavedCustomCreatureV1)
   if (legacy.warning) {
-    return { items, warning: `${legacy.warning} A model 0.4 recovery copy was not written.`, source: 'migrated-v1' }
+    return { items, warning: `${legacy.warning} A current-model recovery copy was not written.`, source: 'migrated-v1' }
   }
   try {
     saveModel04CustomCreatures(storage, items)
-    return { items, warning: 'Custom profiles were migrated to model 0.4. The version 1 recovery copy was left untouched.', source: 'migrated-v1' }
+    return { items, warning: 'Custom profiles were migrated to the current model. The version 1 recovery copy was left untouched.', source: 'migrated-v1' }
   } catch {
-    return { items, warning: 'Custom profiles were migrated in memory, but the model 0.4 recovery copy could not be saved.', source: 'migrated-v1' }
+    return { items, warning: 'Custom profiles were migrated in memory, but the current-model recovery copy could not be saved.', source: 'migrated-v1' }
   }
 }
 
@@ -306,7 +323,7 @@ export function saveModel04CustomCreatures(storage: Storage, items: SavedCustomC
   const ids = new Set<string>()
   const validated = items.map((item) => {
     const parsed = validateSavedV2(item)
-    if (!parsed) throw new Error('A model 0.4 custom profile is invalid.')
+    if (!parsed) throw new Error('A current-model custom profile is invalid.')
     if (ids.has(parsed.creature.id)) throw new Error('Custom profile IDs must be unique.')
     ids.add(parsed.creature.id)
     return parsed
@@ -315,13 +332,13 @@ export function saveModel04CustomCreatures(storage: Storage, items: SavedCustomC
   try {
     storage.setItem(MODEL_04_CUSTOM_STORAGE_KEY, JSON.stringify(payload))
   } catch {
-    throw new Error('The browser could not save model 0.4 custom profiles. Storage may be full, blocked or private.')
+    throw new Error('The browser could not save current-model custom profiles. Storage may be full, blocked or private.')
   }
 }
 
 export function exportModel04CustomCreature(item: SavedCustomCreatureV2, now = new Date().toISOString()): CustomCreatureExportV2 {
   const validated = validateSavedV2(item)
-  if (!validated) throw new Error('The model 0.4 custom profile is invalid.')
+  if (!validated) throw new Error('The current-model custom profile is invalid.')
   return { kind: MODEL_04_CUSTOM_EXPORT_KIND, storageVersion: MODEL_04_CUSTOM_STORAGE_VERSION, exportedAt: now, item: validated }
 }
 
@@ -332,9 +349,9 @@ export function importModel04CustomCreature(text: string): SavedCustomCreatureV2
   } catch {
     throw new Error('The selected file is not valid JSON.')
   }
-  if (isRecord(parsed) && parsed.storageVersion === MODEL_04_CUSTOM_STORAGE_VERSION) {
+  if (isRecord(parsed) && (parsed.storageVersion === MODEL_04_CUSTOM_STORAGE_VERSION || parsed.storageVersion === 2)) {
     const item = validateSavedV2(parsed.item)
-    if (parsed.kind !== MODEL_04_CUSTOM_EXPORT_KIND || !item) throw new Error('The selected model 0.4 custom profile export is invalid.')
+    if (parsed.kind !== MODEL_04_CUSTOM_EXPORT_KIND || !item) throw new Error('The selected current-model custom profile export is invalid.')
     return item
   }
   return migrateSavedCustomCreatureV1(importCustomCreature(text))
@@ -390,11 +407,11 @@ function validateReferencedCustomProfiles(
 }
 
 export function encodeModel04Scenario(payload: ScenarioSharePayloadV4): string {
-  if (!isScenarioV4Draft(payload.scenario)) throw new Error('Cannot encode an invalid model 0.4 scenario.')
+  if (!isScenarioV4Draft(payload.scenario)) throw new Error('Cannot encode an invalid current-model scenario.')
   const customs = payload.customCreatures ?? []
-  if (payload.formatVersion !== 4 || payload.modelVersion !== MODEL_04_VERSION || payload.dataVersion !== MODEL_04_DATA_VERSION) throw new Error('Cannot encode an incompatible model 0.4 payload.')
+  if (payload.formatVersion !== MODEL_04_SHARE_FORMAT_VERSION || payload.modelVersion !== MODEL_04_VERSION || payload.dataVersion !== MODEL_04_DATA_VERSION) throw new Error('Cannot encode an incompatible current-model payload.')
   if (!validateReferencedCustomProfiles(payload.scenario, customs)) {
-    throw new Error('Cannot encode invalid or incomplete model 0.4 custom profiles.')
+    throw new Error('Cannot encode invalid or incomplete current-model custom profiles.')
   }
   const wire = [payload.modelVersion, payload.dataVersion, canonicalScenario(payload.scenario), ...(customs.length ? [customs] : [])]
   const encoded = `${MODEL_04_SHARE_FORMAT_VERSION}.${bytesToBase64Url(new TextEncoder().encode(JSON.stringify(wire)))}`
@@ -402,7 +419,7 @@ export function encodeModel04Scenario(payload: ScenarioSharePayloadV4): string {
   return encoded
 }
 
-function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecodeResultV4 {
+function decodeStructuredShare(value: string, builtInIds: ReadonlySet<string>): ScenarioDecodeResultV4 {
   try {
     const decoded = new TextDecoder('utf-8', { fatal: true }).decode(base64UrlToBytes(value))
     const wire: unknown = JSON.parse(decoded)
@@ -411,9 +428,10 @@ function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecod
     const previousIdentity = (
       (wire[0] === '0.4.0' && wire[1] === '0.4.0')
       || (wire[0] === '0.4.1' && wire[1] === '0.4.1')
+      || (wire[0] === '0.4.2' && wire[1] === '0.4.1')
     )
     if (!currentIdentity && !previousIdentity) {
-      return { ok: false, reason: 'incompatible', message: 'This model 0.4 share uses incompatible model or data versions.' }
+      return { ok: false, reason: 'incompatible', message: 'This structured share uses incompatible model or data versions.' }
     }
     if (!isScenarioV4Draft(wire[2])) throw new Error('Invalid scenario.')
     const customs = wire.length === 4 && Array.isArray(wire[3]) ? wire[3] : wire.length === 3 ? [] : null
@@ -424,14 +442,15 @@ function decodeV4(value: string, builtInIds: ReadonlySet<string>): ScenarioDecod
       payload: currentPayload(wire[2], customs),
     }
   } catch {
-    return { ok: false, reason: 'corrupt', message: 'The model 0.4 shared scenario could not be decoded.' }
+    return { ok: false, reason: 'corrupt', message: 'The structured shared scenario could not be decoded.' }
   }
 }
 
 export function decodeModel04Scenario(value: string, builtInIds: ReadonlySet<string> = new Set()): ScenarioDecodeResultV4 {
   if (value.length > MAX_ENCODED_SCENARIO_LENGTH) return { ok: false, reason: 'oversized', message: 'The shared scenario is too large to open safely.' }
-  if (value.startsWith(`${MODEL_04_SHARE_FORMAT_VERSION}.`)) return decodeV4(value.slice(2), builtInIds)
-  if (/^[1-9]\d*\./.test(value) && !value.startsWith('2.') && !value.startsWith('3.')) {
+  if (value.startsWith(`${MODEL_04_SHARE_FORMAT_VERSION}.`)) return decodeStructuredShare(value.slice(String(MODEL_04_SHARE_FORMAT_VERSION).length + 1), builtInIds)
+  if (value.startsWith('4.')) return decodeStructuredShare(value.slice(2), builtInIds)
+  if (/^[1-9]\d*\./.test(value) && !value.startsWith('2.') && !value.startsWith('3.') && !value.startsWith('4.')) {
     return { ok: false, reason: 'incompatible', message: 'This shared scenario uses an unsupported share format version.' }
   }
   const legacy = decodeScenarioPayload(value)
@@ -475,7 +494,7 @@ export type HistoryResultV2 =
     }
 
 export interface HistoryItemV2 {
-  formatVersion: 2
+  formatVersion: typeof MODEL_04_HISTORY_STORAGE_VERSION
   source: Model04SourceIdentity
   id: string
   createdAt: string
@@ -488,14 +507,14 @@ export interface HistoryItemV2 {
 }
 
 interface HistoryStoreV2 {
-  storageVersion: 2
+  storageVersion: typeof MODEL_04_HISTORY_STORAGE_VERSION
   items: HistoryItemV2[]
 }
 
 export interface HistoryLoadResultV2 {
   items: HistoryItemV2[]
   warning: string
-  source: 'v2' | 'migrated-v1' | 'empty'
+  source: 'v3' | 'migrated-v2' | 'migrated-v1' | 'empty'
 }
 
 function validHistoryText(value: unknown): value is string {
@@ -503,7 +522,7 @@ function validHistoryText(value: unknown): value is string {
 }
 
 function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
-  if (!isRecord(value) || value.formatVersion !== 2 || !isRecord(value.source) || !isScenarioV4Draft(value.scenario)) return null
+  if (!isRecord(value) || value.formatVersion !== MODEL_04_HISTORY_STORAGE_VERSION || !isRecord(value.source) || !isScenarioV4Draft(value.scenario)) return null
   if (!validHistoryText(value.id) || !validDate(value.createdAt) || !validHistoryText(value.soloName) || !validHistoryText(value.groupName)) return null
   if (!isRecord(value.result) || !Array.isArray(value.migrationNotices)) return null
   if (value.presentation !== undefined) {
@@ -519,6 +538,7 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
     const previousIdentity = (
       (value.result.modelVersion === '0.4.0' && value.result.dataVersion === '0.4.0')
       || (value.result.modelVersion === '0.4.1' && value.result.dataVersion === '0.4.1')
+      || (value.result.modelVersion === '0.4.2' && value.result.dataVersion === '0.4.1')
     )
     if (!previousIdentity) return null
     const cloned = structuredClone(value) as unknown as HistoryItemV2
@@ -534,9 +554,9 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
       migrationNotices: [
         ...cloned.migrationNotices,
         {
-          code: 'history-result-pending-model-042',
+          code: 'history-result-pending-model-050',
           severity: 'warning',
-          message: 'The saved inputs are intact, but the model 0.4.0/0.4.1 result must be recalculated under model 0.4.2 before it can be current.',
+          message: 'The saved inputs are intact, but the previous result must be recalculated under model 0.5.0/data 0.5.0 before it can be current.',
         },
       ],
     }
@@ -567,7 +587,7 @@ function migrateLegacyHistoryItem(value: unknown, legacyArray: boolean, availabl
   const missingIds = [...new Set([scenario.soloId, scenario.groupId].filter((id) => !availableIds.has(id)))]
   const legacySnapshot = { winnerName: value.winnerName, soloWinProbability: value.soloWinProbability }
   return {
-    formatVersion: 2,
+    formatVersion: MODEL_04_HISTORY_STORAGE_VERSION,
     source: sourceIdentity(value, legacyArray),
     id: value.id,
     createdAt: value.createdAt,
@@ -580,7 +600,7 @@ function migrateLegacyHistoryItem(value: unknown, legacyArray: boolean, availabl
     migrationNotices: [{
       code: 'history-result-pending-model-04',
       severity: 'warning',
-      message: 'The legacy inputs were migrated, but the saved result must be recalculated by model 0.4 before it can be current.',
+      message: 'The legacy inputs were migrated, but the saved result must be recalculated by the current model before it can be current.',
     }],
   }
 }
@@ -588,11 +608,11 @@ function migrateLegacyHistoryItem(value: unknown, legacyArray: boolean, availabl
 export function saveModel04History(storage: Storage, items: HistoryItemV2[]): void {
   const validated = items.slice(0, 12).map((item) => {
     const parsed = parseHistoryV2Item(item)
-    if (!parsed) throw new Error('A model 0.4 history item is invalid.')
+    if (!parsed) throw new Error('A current-model history item is invalid.')
     return parsed
   })
   if (new Set(validated.map((item) => item.id)).size !== validated.length) throw new Error('History item IDs must be unique.')
-  storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, JSON.stringify({ storageVersion: 2, items: validated } satisfies HistoryStoreV2))
+  storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, JSON.stringify({ storageVersion: MODEL_04_HISTORY_STORAGE_VERSION, items: validated } satisfies HistoryStoreV2))
 }
 
 export function loadModel04History(storage: Storage, availableIds: ReadonlySet<string>): HistoryLoadResultV2 {
@@ -600,21 +620,38 @@ export function loadModel04History(storage: Storage, availableIds: ReadonlySet<s
   try {
     rawV2 = storage.getItem(MODEL_04_HISTORY_STORAGE_KEY)
   } catch {
-    return { items: [], warning: 'Model 0.4 history could not be read from this browser.', source: 'empty' }
+    return { items: [], warning: 'Current-model history could not be read from this browser.', source: 'empty' }
   }
   if (rawV2) {
     try {
       const parsed: unknown = JSON.parse(rawV2)
-      if (!isRecord(parsed) || parsed.storageVersion !== 2 || !Array.isArray(parsed.items)) throw new Error('Invalid envelope.')
+      if (!isRecord(parsed) || parsed.storageVersion !== MODEL_04_HISTORY_STORAGE_VERSION || !Array.isArray(parsed.items)) throw new Error('Invalid envelope.')
       const items = parsed.items.map(parseHistoryV2Item)
       if (items.some((item) => item === null)) throw new Error('Invalid item.')
       const loadedItems = items as HistoryItemV2[]
       const hasPreviousResults = loadedItems.some((item) => item.migrationNotices.some((notice) => (
-        notice.code === 'history-result-pending-model-042'
+        notice.code === 'history-result-pending-model-050'
       )))
-      return { items: loadedItems, warning: hasPreviousResults ? 'Saved model 0.4.0/0.4.1 results are preserved as snapshots and must be recalculated under model 0.4.2.' : '', source: 'v2' }
+      return { items: loadedItems, warning: hasPreviousResults ? 'Previous results are preserved as snapshots and must be recalculated under model 0.5.0/data 0.5.0.' : '', source: 'v3' }
     } catch {
-      return { items: [], warning: 'Saved model 0.4 history is incompatible or damaged. The stored data was left untouched.', source: 'v2' }
+      return { items: [], warning: 'Saved current-model history is incompatible or damaged. The stored data was left untouched.', source: 'v3' }
+    }
+  }
+
+  const previousRaw = storage.getItem(PREVIOUS_MODEL_04_HISTORY_STORAGE_KEY)
+  if (previousRaw) {
+    try {
+      const parsed: unknown = JSON.parse(previousRaw)
+      if (!isRecord(parsed) || parsed.storageVersion !== 2 || !Array.isArray(parsed.items)) throw new Error('Invalid v2 envelope.')
+      const items = parsed.items.map((item) => isRecord(item)
+        ? parseHistoryV2Item({ ...item, formatVersion: MODEL_04_HISTORY_STORAGE_VERSION })
+        : null)
+      if (items.some((item) => item === null)) throw new Error('Invalid v2 item.')
+      const migrated = items as HistoryItemV2[]
+      saveModel04History(storage, migrated)
+      return { items: migrated, warning: 'History inputs were copied to version 3; previous numerical results remain snapshots pending model 0.5.0 recalculation. The version 2 recovery copy was left untouched.', source: 'migrated-v2' }
+    } catch {
+      return { items: [], warning: 'Version 2 history could not be migrated. The stored data was left untouched.', source: 'migrated-v2' }
     }
   }
 
@@ -633,14 +670,14 @@ export function loadModel04History(storage: Storage, availableIds: ReadonlySet<s
     if (migrated.some((item) => item === null)) {
       return {
         items: migrated.filter((item): item is HistoryItemV2 => item !== null),
-        warning: 'Some version 1 history entries were invalid. No model 0.4 recovery copy was written, and the version 1 store was left untouched.',
+        warning: 'Some version 1 history entries were invalid. No current-model recovery copy was written, and the version 1 store was left untouched.',
         source: 'migrated-v1',
       }
     }
     saveModel04History(storage, migrated as HistoryItemV2[])
     return {
       items: migrated as HistoryItemV2[],
-      warning: 'History inputs were migrated to model 0.4 pending recalculation. The version 1 recovery copy was left untouched.',
+      warning: 'History inputs were migrated to the current model pending recalculation. The version 1 recovery copy was left untouched.',
       source: 'migrated-v1',
     }
   } catch {
@@ -653,7 +690,7 @@ export function finalizeModel04HistoryItem(
   result: { winnerName: string; soloWinProbability: number },
 ): HistoryItemV2 {
   if (!validHistoryText(result.winnerName) || !Number.isFinite(result.soloWinProbability) || result.soloWinProbability < 0 || result.soloWinProbability > 1) {
-    throw new Error('Cannot finalize history with an invalid model 0.4 result.')
+    throw new Error('Cannot finalize history with an invalid current-model result.')
   }
   return {
     ...structuredClone(item),
@@ -664,5 +701,6 @@ export function finalizeModel04HistoryItem(
       winnerName: result.winnerName,
       soloWinProbability: result.soloWinProbability,
     },
+    migrationNotices: item.migrationNotices.filter((notice) => notice.code !== 'history-result-pending-model-050'),
   }
 }

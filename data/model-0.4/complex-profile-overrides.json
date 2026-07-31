@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "targetModel": "0.4.1",
+  "targetModel": "0.5.0",
   "profiles": [
     {
       "id": "western-dragon",
@@ -575,6 +575,110 @@
         { "id": "thrown-boulder", "name": "Thrown boulder", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 84 }], "rangeM": 30, "geometryScaling": "linear", "targetLimit": "single", "activationRate": 0.62, "resource": { "pool": "ability", "capacity": 3 }, "notes": "Throw is a finite blunt projectile, never a piercing substitution." }
       ],
       "review": { "status": "reviewed", "interpretation": "Generic hill giant with club and throwable stones", "note": "Contact and ranged blunt channels are separate." }
+    },
+    {
+      "id": "silverback-gorilla",
+      "contact_reach_m": 1,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "gorilla-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 72 }], "targetLimit": "single", "activationRate": 0.72, "resource": { "pool": "none" }, "notes": "Bite is a piercing contact route, separate from grappling and striking." },
+        { "id": "gorilla-grapple", "name": "Powerful grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-crushing", "potency": 72 }, { "kind": "restraint", "channel": "restraint", "potency": 78 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Single-target crushing and restraint route." },
+        { "id": "gorilla-strike", "name": "Forelimb strike", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 78 }], "targetLimit": "frontage", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "Broad blunt strike gives bounded frontage without inventing weapon use." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large terrestrial silverback with separate bite, grapple and strike routes", "note": "No tool use or troop bonus is inferred; contact channels and target coverage are explicit." }
+    },
+    {
+      "id": "chimpanzee",
+      "contact_reach_m": 0.75,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "chimpanzee-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 62 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Piercing bite route." },
+        { "id": "chimpanzee-grapple", "name": "Grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 68 }], "targetLimit": "single", "activationRate": 0.76, "resource": { "pool": "none" }, "notes": "Single-target restraint route." },
+        { "id": "chimpanzee-strike", "name": "Hand strike", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 58 }], "targetLimit": "single", "activationRate": 0.74, "resource": { "pool": "none" }, "notes": "Unarmed blunt contact remains available without preparation." },
+        { "id": "prepared-improvised-tool", "name": "Prepared improvised tool", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 50 }], "rangeM": 10, "geometryScaling": "functional", "targetLimit": "single", "activationRate": 0.58, "conditions": { "preparationDependent": true }, "resource": { "pool": "ability", "capacity": 3 }, "notes": "Tool use is available only after declared preparation and is limited to three carried or staged objects." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Unarmed chimpanzee with preparation-dependent improvised-tool use", "note": "Bite, grapple, strike and finite prepared tool delivery are independent; no permanent ranged capability is inferred." }
+    },
+    {
+      "id": "olive-baboon",
+      "contact_reach_m": 0.55,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "baboon-bite", "name": "Canine bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 58 }], "targetLimit": "single", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Piercing contact route." },
+        { "id": "baboon-grapple", "name": "Grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 48 }], "targetLimit": "single", "activationRate": 0.66, "resource": { "pool": "none" }, "notes": "Single-target restraint route." },
+        { "id": "troop-coordinated-assault", "name": "Troop-coordinated assault", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 52 }], "targetLimit": "frontage", "activationRate": 0.78, "conditions": { "minimumAttackerQuantity": 2 }, "resource": { "pool": "none" }, "notes": "Troop behavior requires at least two declared attackers and is represented as bounded contact frontage, not extra independent bodies." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Social olive baboon with canine bite, grapple and bounded troop pressure", "note": "The troop route matters through group frontage and aggregation; it grants no ranged or tool ability." }
+    },
+    {
+      "id": "bearded-capuchin-monkey",
+      "contact_reach_m": 0.4,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": true },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "capuchin-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 30 }], "targetLimit": "single", "activationRate": 0.72, "resource": { "pool": "none" }, "notes": "Small piercing contact route." },
+        { "id": "capuchin-grapple", "name": "Dexterous grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 34 }], "targetLimit": "single", "activationRate": 0.68, "conditions": { "maximumTargetMassKg": 20 }, "resource": { "pool": "none" }, "notes": "Grappling is bounded to targets within a reviewed mass ceiling." },
+        { "id": "prepared-stone-throw", "name": "Prepared stone throw", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 34 }], "rangeM": 8, "geometryScaling": "functional", "targetLimit": "single", "activationRate": 0.56, "conditions": { "preparationDependent": true }, "resource": { "pool": "ability", "capacity": 3 }, "notes": "Prepared tool use requires declared preparation and three staged or carried stones; the unprepared profile is not ranged." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Small arboreal capuchin with bounded, preparation-dependent stone use", "note": "Arboreal locomotion, contact actions and finite prepared tool delivery are explicit and independent." }
+    },
+    {
+      "id": "bornean-orangutan",
+      "contact_reach_m": 1.3,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": true },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "orangutan-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 62 }], "targetLimit": "single", "activationRate": 0.7, "resource": { "pool": "none" }, "notes": "Piercing bite route." },
+        { "id": "long-reach-grapple", "name": "Long-reach grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-crushing", "potency": 62 }, { "kind": "restraint", "channel": "restraint", "potency": 72 }], "rangeM": 1.3, "targetLimit": "single", "activationRate": 0.8, "resource": { "pool": "none" }, "notes": "Reviewed arm span and contact reach support single-target crushing restraint." },
+        { "id": "orangutan-strike", "name": "Forelimb strike", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 66 }], "targetLimit": "single", "activationRate": 0.74, "resource": { "pool": "none" }, "notes": "Blunt contact fallback." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large arboreal orangutan with long-reach single-target grappling", "note": "Arboreal access and anatomical contact reach are explicit; no troop or prepared-tool bonus is inferred." }
+    },
+    {
+      "id": "giant-anteater",
+      "contact_reach_m": 0.9,
+      "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "foreclaw-rake", "name": "Foreclaw rake", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 58 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Defensive foreclaws use the slashing channel; no bite is invented." },
+        { "id": "forelimb-clinch", "name": "Forelimb clinch", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 48 }, { "kind": "restraint", "channel": "restraint", "potency": 58 }], "targetLimit": "single", "activationRate": 0.7, "resource": { "pool": "none" }, "notes": "Single-target claw-and-grapple route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Defensive giant anteater using foreclaws and a single-target clinch", "note": "Claw harm and grapple restraint are explicit; the profile has no bite, venom or ranged attack." }
+    },
+    {
+      "id": "quetzalcoatlus",
+      "contact_reach_m": 2.5,
+      "physiology": "living",
+      "locomotion": { "flight": true, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "beak-and-body-strike", "name": "Beak and body strike", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 76 }], "targetLimit": "single", "activationRate": 0.8, "resource": { "pool": "none" }, "notes": "One bounded contact package represents the chosen grounded beak attack or aerial body-assisted strike; the alternatives never stack as independent simultaneous attacks." },
+
+        { "id": "flight", "name": "Flight", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 78 }], "targetLimit": "single", "activationRate": 1, "resource": { "pool": "none" }, "notes": "Flight and terrestrial locomotion are both explicit." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large pterosaur with terrestrial stalking and powered flight", "note": "One bounded contact package covers the chosen grounded or aerial approach without stacking mutually exclusive attacks; no speculative group hunting is inferred." }
+    },
+    {
+      "id": "generic-wraith",
+      "contact_reach_m": 1.5,
+      "physiology": "spirit",
+      "senses": { "vision": false, "hearing": false, "smell": false, "echolocation": false, "supernaturalPerception": true },
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": { "physical": 0, "physical-blunt": 0, "physical-piercing": 0, "physical-slashing": 0, "physical-crushing": 0, "venom": 0, "disease": 0, "petrification": 0, "hypnosis": 0, "fear": 0, "incorporeal": 1 },
+      "abilities": [
+        { "id": "spectral-touch", "name": "Spectral touch", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "incorporeal", "potency": 72 }], "targetLimit": "single", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "The spirit interacts through the incorporeal channel rather than substituting ordinary physical damage." },
+        { "id": "dread-aura", "name": "Dread aura", "kind": "aura", "delivery": "area", "effects": [{ "kind": "morale", "channel": "fear", "potency": 74 }], "rangeM": 15, "areaRadiusM": 15, "geometryScaling": "fixed", "targetLimit": "area", "activationRate": 0.8, "conditions": { "targetPhysiology": ["living"] }, "resource": { "pool": "none" }, "notes": "Area morale pressure affects living targets and is distinct from direct harm or physical restraint." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic incorporeal spirit with spectral touch and a living-target dread aura", "note": "Physical immunity, supernatural perception, incorporeal harm and fear-channel morale pressure are explicit; apparent mass is compatibility metadata." }
     }
   ]
 }

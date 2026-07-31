@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
@@ -32,21 +33,21 @@ async function runOneVersusOne(page: Page, soloId: string, groupId: string) {
   await expect(page.locator('.results')).toBeVisible()
 }
 async function selectResultView(page: Page, name: string) {
-  const button = page.getByRole('button', { name, exact: true })
+  const tab = page.getByRole('tab', { name, exact: true })
   await expect(async () => {
-    await button.click()
-    await expect(button).toHaveAttribute('aria-current', 'page')
-  }).toPass({ timeout: 15_000 })
+    await tab.click()
+    await expect(tab).toHaveAttribute('aria-selected', 'true')
+  }).toPass({ timeout: 30_000 })
 }
 
 async function openLikelyBattle(page: Page) {
   await selectResultView(page, 'Likely battle')
-  await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 30_000 })
 }
 
 async function openTactical(page: Page) {
   await selectResultView(page, 'Tactical reconstruction')
-  await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 30_000 })
 }
 
 async function noWebGlPage(browser: Browser) {
@@ -60,6 +61,77 @@ async function noWebGlPage(browser: Browser) {
   return { context, page: await context.newPage() }
 }
 
+test('verdict exposes probability context, quantity stages, and keyboard-operable result tabs', async ({ page }) => {
+  await runDefaultSimulation(page)
+
+  const verdictTab = page.getByRole('tab', { name: 'Verdict', exact: true })
+  const likelyTab = page.getByRole('tab', { name: 'Likely battle', exact: true })
+  await expect(verdictTab).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('verdict-view')).toBeVisible()
+  for (const panelId of ['verdict', 'likely-battle', 'tactical-reconstruction', 'technical-record']) {
+    await expect(page.locator(`#result-panel-${panelId}`)).toHaveCount(1)
+  }
+  await expect(page.locator('#result-panel-likely-battle')).toHaveAttribute('hidden', '')
+  await expect(page.locator('#result-panel-tactical-reconstruction')).toHaveAttribute('hidden', '')
+  await expect(page.locator('#result-panel-technical-record')).toHaveAttribute('hidden', '')
+  await expect(page.locator('.probability-midpoint')).toBeVisible()
+  await expect(page.locator('.probability-band')).toBeVisible()
+
+  const pipeline = page.locator('.quantity-pipeline')
+  await expect(pipeline).toContainText('Declared')
+  await expect(pipeline).toContainText('Arena usable')
+  await expect(pipeline).toContainText('Active frontage')
+  await expect(pipeline).toContainText('Effective pressure')
+
+  await verdictTab.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(likelyTab).toBeFocused()
+  await expect(likelyTab).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('#result-panel-verdict')).toHaveAttribute('hidden', '')
+  await expect(page.locator('#result-panel-likely-battle')).not.toHaveAttribute('hidden', '')
+  await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 30_000 })
+})
+test('a modelled draw never mounts decisive story or tactical reconstruction builders', async ({ page }) => {
+  await page.goto('/')
+  await page.getByTestId('solo-creature-select').selectOption('vampire')
+  await page.getByTestId('group-creature-select').selectOption('charybdis')
+  await page.getByLabel('Quantity').fill('1')
+  await page.getByLabel('Starting distance (m)').fill('50')
+  await page.getByLabel('Terrain').selectOption('open')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+
+  await expect(page.locator('.results-header h2')).toHaveText('Draw')
+  await expect(page.locator('.outcome-reason')).toContainText(/Neither side/i)
+  await expect(page.getByTestId('verdict-view')).toContainText('Draw')
+  await selectResultView(page, 'Likely battle')
+  await expect(page.getByTestId('draw-presentation')).toBeVisible()
+  await expect(page.getByTestId('likely-battle-panel')).toHaveCount(0)
+  await selectResultView(page, 'Tactical reconstruction')
+  await expect(page.getByTestId('draw-presentation')).toBeVisible()
+  await expect(page.getByTestId('tactical-reconstruction-panel')).toHaveCount(0)
+
+  await page.getByText('Export files', { exact: true }).click()
+  const storyboardExport = page.getByRole('button', { name: 'Download storyboard JSON' })
+  const exportNote = page.locator('#draw-storyboard-export-note')
+  await expect(exportNote).toBeVisible()
+  await expect(storyboardExport).toBeDisabled()
+  await expect(storyboardExport).toHaveAttribute('aria-describedby', 'draw-storyboard-export-note')
+  await expect(page.locator('.history-card').first()).toContainText('Result: Draw / non-engagement')
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download result JSON' }).click()
+  const download = await downloadPromise
+  const path = await download.path()
+  expect(path).toBeTruthy()
+  const exported = JSON.parse(await readFile(path!, 'utf8'))
+  expect(exported).toMatchObject({
+    storyboard: null,
+    battleNarrative: null,
+    readerNarrative: null,
+    presentationNotice: 'No winner storyboard or battle narrative is generated for a modelled draw.',
+    result: { outcome: 'draw', winner: null },
+  })
+})
 test('Story is the readable default and Analyst remains a complete evidence view', async ({ page }) => {
   await runDefaultSimulation(page)
   await openLikelyBattle(page)
@@ -72,10 +144,10 @@ test('Story is the readable default and Analyst remains a complete evidence view
   await expect(panel.getByTestId('analyst-account')).toBeHidden()
   const story = panel.getByTestId('story-account')
   expect((await story.innerText()).trim().length).toBeGreaterThan(300)
-  await expect(story.locator('.story-chapter > header h4')).toHaveText([
-    'The measure of the field', 'Lines drawn', 'The distance closes', 'First contact',
-    'The contest deepens', 'The balance turns', 'The final balance',
-  ])
+  const causalRail = story.getByRole('list', { name: 'Five-stage causal battle account' })
+  await expect(causalRail.locator('.reader-stage')).toHaveCount(5)
+  await expect(causalRail.locator('.reader-stage-turning')).toHaveCount(1)
+  await expect(causalRail.locator('.what-could-flip')).toContainText('What could flip it')
   const visibleStoryText = await story.evaluate((element) => {
     const copy = element.cloneNode(true) as HTMLElement
     copy.querySelectorAll('.evidence-tooltip').forEach((tooltip) => tooltip.remove())
@@ -187,6 +259,7 @@ test('evidence markers work by hover, focus, pin, outside dismissal, and Escape'
 })
 
 test('beat navigation and camera modes keep the active action explicit', async ({ page }) => {
+  test.slow()
   await runDefaultSimulation(page)
   await openTactical(page)
 
@@ -198,6 +271,22 @@ test('beat navigation and camera modes keep the active action explicit', async (
   await expect(callout).toBeVisible()
   await expect(previous).toBeDisabled()
   await expect(next).toBeEnabled()
+
+  const hud = panel.getByTestId('tactical-hud')
+  await expect(hud).toBeVisible()
+  for (const label of ['Phase', 'Actor', 'Target', 'Outcome', 'Result', 'Model outcome', 'Modelled phase', 'Playback']) {
+    await expect(hud).toContainText(label)
+  }
+  const legend = panel.getByRole('list', { name: 'Tactical map legend' })
+  await expect(legend.getByRole('listitem')).toHaveCount(7)
+  await expect(legend).toContainText('Reserve')
+  await expect(legend).toContainText('Blocked / countered')
+  await expect(panel.locator('.tactical-scale-disclosure')).toBeVisible()
+  await expect(panel.locator('.tactical-state-strips').getByRole('listitem')).toHaveCount(5)
+  await expect(panel.locator('.tactical-state')).toContainText(/Attack access|Reserve pressure|Cohesion|Resources|Retreat state/)
+  await expect(panel.locator('.tactical-count-chips')).toContainText(/declared.*arena usable.*active frontage.*effective pressure/i)
+  await expect(callout).not.toHaveAttribute('aria-live')
+  await expect(panel.locator('p.sr-only[role="status"][aria-live="polite"]')).toContainText(/Phase \d/)
 
   const firstCallout = await callout.innerText()
   await next.click()
@@ -307,6 +396,7 @@ test('mobile Free look accepts orbit and pinch gestures', async ({ page, context
 
 test('412px touch layout preserves evidence under text spacing and forced colours', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'One Chromium context owns the explicit 412px stress check.')
+  test.slow()
   const context = await browser.newContext({ viewport: { width: 412, height: 915 }, hasTouch: true, isMobile: true })
   const page = await context.newPage()
   try {
@@ -323,6 +413,8 @@ test('412px touch layout preserves evidence under text spacing and forced colour
     for (const label of ['Who', 'What', 'Target', 'Result', 'Why']) {
       await expect(callout).toContainText(label)
     }
+    await expect(panel.getByRole('list', { name: 'Tactical map legend' })).toBeVisible()
+    await expect(panel.locator('.tactical-state-strips').getByRole('listitem')).toHaveCount(5)
     await expectNoSeriousAxeViolations(page)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   } finally {

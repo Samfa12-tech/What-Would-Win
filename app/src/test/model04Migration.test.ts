@@ -50,8 +50,8 @@ describe('active model 0.4 contract and model 0.3 migration', () => {
     expect(contractHash(scenarioV3Schema)).toBe('d6d29044')
   })
 
-  test('migrates all 134 profiles without mutating v3 data and validates the v4 draft', () => {
-    expect(reachMigrationJson.profiles).toHaveLength(134)
+  test('migrates all 139 profiles without mutating v3 data and validates the v4 draft', () => {
+    expect(reachMigrationJson.profiles).toHaveLength(139)
     for (const creature of creatures) {
       const before = JSON.stringify(creature)
       const migrated = migrateCreatureV3ToV4Draft(creature)

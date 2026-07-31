@@ -25,6 +25,8 @@ import {
 import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from '../model04/migrateV3'
 
 const creatures = creaturesJson as Creature[]
+const PREVIOUS_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
+const PREVIOUS_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>()
@@ -77,11 +79,11 @@ function legacyHistoryItem(overrides: Record<string, unknown> = {}) {
   }
 }
 
-describe('active model 0.4 persistence and codecs', () => {
-  test('round trips v4 shares with asymmetric side and per-ability resources', () => {
+describe('active model 0.5 persistence and codecs', () => {
+  test('round trips v5 shares with asymmetric side and per-ability resources', () => {
     const payload = payloadV4()
     const encoded = encodeModel04Scenario(payload)
-    expect(encoded.startsWith('4.')).toBe(true)
+    expect(encoded.startsWith('5.')).toBe(true)
     expect(decodeModel04Scenario(encoded)).toEqual({ ok: true, status: 'current', payload })
     expect('resourcesPercent' in payload.scenario).toBe(false)
   })
@@ -94,13 +96,13 @@ describe('active model 0.4 persistence and codecs', () => {
     expect(encodeModel04Scenario(first)).toBe(encodeModel04Scenario(second))
   })
 
-  test('migrates released model/data 0.4.0 and 0.4.1 v4 identities without changing scenario inputs', () => {
+  test('migrates released v4 identities through 0.4.2/data 0.4.1 without changing scenario inputs', () => {
     const current = encodeModel04Scenario(payloadV4())
-    for (const [modelVersion, dataVersion] of [['0.4.0', '0.4.0'], ['0.4.1', '0.4.1']]) {
+    for (const [modelVersion, dataVersion] of [['0.4.0', '0.4.0'], ['0.4.1', '0.4.1'], ['0.4.2', '0.4.1']]) {
       const released = rewriteV4Wire(current, (wire) => {
         wire[0] = modelVersion
         wire[1] = dataVersion
-      })
+      }).replace(/^5\./, '4.')
       expect(decodeModel04Scenario(released), modelVersion).toMatchObject({
         ok: true,
         status: 'migrated-v4',
@@ -123,15 +125,15 @@ describe('active model 0.4 persistence and codecs', () => {
 
     const duplicate = structuredClone(valid)
     duplicate.customCreatures = [first, structuredClone(first)]
-    expect(() => encodeModel04Scenario(duplicate)).toThrow('invalid or incomplete model 0.4 custom profiles')
+    expect(() => encodeModel04Scenario(duplicate)).toThrow('invalid or incomplete current-model custom profiles')
 
     const extra = structuredClone(valid)
     extra.customCreatures = [first, second]
-    expect(() => encodeModel04Scenario(extra)).toThrow('invalid or incomplete model 0.4 custom profiles')
+    expect(() => encodeModel04Scenario(extra)).toThrow('invalid or incomplete current-model custom profiles')
 
     const missing = structuredClone(valid)
     missing.customCreatures = []
-    expect(() => encodeModel04Scenario(missing)).toThrow('invalid or incomplete model 0.4 custom profiles')
+    expect(() => encodeModel04Scenario(missing)).toThrow('invalid or incomplete current-model custom profiles')
 
     const duplicateWire = rewriteV4Wire(encoded, (wire) => { wire[3] = [first, structuredClone(first)] })
     expect(decodeModel04Scenario(duplicateWire)).toMatchObject({ ok: false, reason: 'corrupt' })
@@ -184,7 +186,7 @@ describe('active model 0.4 persistence and codecs', () => {
       })
       expect(decoded.payload.customCreatures?.[0].abilities.every((ability) => ability.legacyGenerated)).toBe(true)
     }
-    expect(decodeModel04Scenario('5.e30')).toMatchObject({ ok: false, reason: 'incompatible' })
+    expect(decodeModel04Scenario('6.e30')).toMatchObject({ ok: false, reason: 'incompatible' })
   })
 
   test('rejects unsupported ability kinds and unknown structured fields', () => {
@@ -196,14 +198,14 @@ describe('active model 0.4 persistence and codecs', () => {
 
     const unsupportedKind = structuredClone(payload) as unknown as { customCreatures: Array<{ abilities: Array<{ kind: string }> }> }
     unsupportedKind.customCreatures[0].abilities[0].kind = 'teleport-strike'
-    expect(() => encodeModel04Scenario(unsupportedKind as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete model 0.4 custom profiles')
+    expect(() => encodeModel04Scenario(unsupportedKind as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete current-model custom profiles')
 
     const unknownField = structuredClone(payload) as unknown as { customCreatures: Array<Record<string, unknown>> }
     unknownField.customCreatures[0].unreviewedPower = 100
-    expect(() => encodeModel04Scenario(unknownField as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete model 0.4 custom profiles')
+    expect(() => encodeModel04Scenario(unknownField as unknown as ScenarioSharePayloadV4)).toThrow('invalid or incomplete current-model custom profiles')
   })
 
-  test('writes a v2 custom recovery copy without changing v1 bytes', () => {
+  test('writes a v3 custom recovery copy without changing v1 bytes', () => {
     const storage = new MemoryStorage()
     const saved = cloneAsCustom(creatures[1], 'custom:stored-v1', '2026-07-19T00:00:00.000Z')
     const rawV1 = JSON.stringify({ storageVersion: 1, items: [saved] })
@@ -215,24 +217,54 @@ describe('active model 0.4 persistence and codecs', () => {
     expect(loaded.warning).toContain('recovery copy was left untouched')
     expect(storage.getItem(CUSTOM_CREATURE_STORAGE_KEY)).toBe(rawV1)
     expect(JSON.parse(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY) ?? '{}')).toMatchObject({
-      storageVersion: 2,
+      storageVersion: 3,
       items: [{ creature: { id: saved.creature.id, schemaVersion: 4 }, migration: { sourceStorageVersion: 1 } }],
     })
-    expect(loadModel04CustomCreatures(storage)).toMatchObject({ source: 'v2', warning: '' })
+    expect(loadModel04CustomCreatures(storage)).toMatchObject({ source: 'v3', warning: '' })
   })
 
-  test('imports v1 custom exports but emits and round trips only v2', () => {
+  test('copies v2 custom profiles forward with an explicit arboreal default and untouched recovery bytes', () => {
+    const storage = new MemoryStorage()
+    const creature = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[1], 'custom:stored-v2', '2026-07-19T00:00:00.000Z').creature, 'custom-v1')
+    const v2Creature = structuredClone(creature) as unknown as Record<string, unknown>
+    delete (v2Creature.locomotion as Record<string, unknown>).arboreal
+    const rawV2 = JSON.stringify({
+      storageVersion: 2,
+      items: [{
+        creature: v2Creature,
+        baseCreatureId: creatures[1].id,
+        createdAt: '2026-07-19T00:00:00.000Z',
+        updatedAt: '2026-07-19T00:00:00.000Z',
+      }],
+    })
+    storage.setItem(PREVIOUS_CUSTOM_STORAGE_KEY, rawV2)
+
+    const loaded = loadModel04CustomCreatures(storage)
+
+    expect(loaded).toMatchObject({
+      source: 'migrated-v2',
+      items: [{ creature: { id: 'custom:stored-v2', locomotion: { arboreal: false } }, migration: { sourceStorageVersion: 2 } }],
+    })
+    expect(loaded.warning).toContain('version 2 recovery copy was left untouched')
+    expect(storage.getItem(PREVIOUS_CUSTOM_STORAGE_KEY)).toBe(rawV2)
+    expect(JSON.parse(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY) ?? '{}')).toMatchObject({
+      storageVersion: 3,
+      items: [{ creature: { id: 'custom:stored-v2', locomotion: { arboreal: false } } }],
+    })
+  })
+
+  test('imports v1 custom exports but emits and round trips only v3', () => {
     const saved = cloneAsCustom(creatures[2], 'custom:portable-v1', '2026-07-19T00:00:00.000Z')
     const migrated = importModel04CustomCreature(JSON.stringify(exportCustomCreature(saved)))
     expect(migrated.creature).toMatchObject({ id: saved.creature.id, schemaVersion: 4 })
     expect(migrated.migration?.notices[0].severity).toBe('review-required')
 
     const exportedV2 = exportModel04CustomCreature(migrated, '2026-07-19T01:00:00.000Z')
-    expect(exportedV2.storageVersion).toBe(2)
+    expect(exportedV2.storageVersion).toBe(3)
     expect(importModel04CustomCreature(JSON.stringify(exportedV2))).toEqual(migrated)
   })
 
-  test('does not write a v2 custom store after a partial v1 migration', () => {
+  test('does not write a v3 custom store after a partial v1 migration', () => {
     const storage = new MemoryStorage()
     const saved = cloneAsCustom(creatures[3], 'custom:mixed-v1', '2026-07-19T00:00:00.000Z')
     const rawV1 = JSON.stringify({ storageVersion: 1, items: [saved, { invalid: true }] })
@@ -245,7 +277,7 @@ describe('active model 0.4 persistence and codecs', () => {
     expect(storage.getItem(CUSTOM_CREATURE_STORAGE_KEY)).toBe(rawV1)
   })
 
-  test('preserves model 0.4.1 v2 results as snapshots pending explicit 0.4.2 recalculation', () => {
+  test('copies model 0.4.1 v2 results forward as snapshots pending model 0.5.0 recalculation', () => {
     const storage = new MemoryStorage()
     const staleStore = {
       storageVersion: 2,
@@ -268,19 +300,19 @@ describe('active model 0.4 persistence and codecs', () => {
       }],
     }
     const raw = JSON.stringify(staleStore)
-    storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, raw)
+    storage.setItem(PREVIOUS_HISTORY_STORAGE_KEY, raw)
 
     const loaded = loadModel04History(storage, new Set(creatures.map((creature) => creature.id)))
 
-    expect(loaded.warning).toContain('must be recalculated under model 0.4.2')
+    expect(loaded.warning).toContain('pending model 0.5.0 recalculation')
     expect(loaded.items[0]).toMatchObject({
       result: {
         status: 'pending-recalculation',
         legacySnapshot: { winnerName: 'Previous winner', soloWinProbability: 0.75 },
       },
-      migrationNotices: [expect.objectContaining({ code: 'history-result-pending-model-042' })],
+      migrationNotices: [expect.objectContaining({ code: 'history-result-pending-model-050' })],
     })
-    expect(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY)).toBe(raw)
+    expect(storage.getItem(PREVIOUS_HISTORY_STORAGE_KEY)).toBe(raw)
     expect(finalizeModel04HistoryItem(loaded.items[0], {
       winnerName: 'Recalculated winner',
       soloWinProbability: 0.625,
@@ -301,16 +333,16 @@ describe('active model 0.4 persistence and codecs', () => {
     const loaded = loadModel04History(storage, available)
 
     expect(loaded.items[0]).toMatchObject({
-      formatVersion: 2,
+      formatVersion: 3,
       source: { shareFormat: 'storage-v1', modelVersion: '0.3.0', dataVersion: '0.3.1' },
       scenario: { schemaVersion: 4 },
       result: { status: 'pending-recalculation', legacySnapshot: { winnerName: 'Legacy winner', soloWinProbability: 0.75 } },
     })
     expect(storage.getItem('what-would-win-history-v1')).toBe(rawV1)
-    expect(JSON.parse(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY) ?? '{}').storageVersion).toBe(2)
+    expect(JSON.parse(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY) ?? '{}').storageVersion).toBe(3)
   })
 
-  test('keeps unavailable history pending until explicit model 0.4 finalization', () => {
+  test('keeps unavailable history pending until explicit current-model finalization', () => {
     const storage = new MemoryStorage()
     const missing = { ...defaultScenario(creatures), soloId: 'custom:missing-profile' }
     storage.setItem('what-would-win-history-v1', JSON.stringify({ storageVersion: 1, items: [legacyHistoryItem({ scenario: missing })] }))
@@ -327,21 +359,21 @@ describe('active model 0.4 persistence and codecs', () => {
     })
   })
 
-  test('valid v2 stores take precedence and damaged v2 data is never overwritten from v1', () => {
+  test('valid v3 stores take precedence and damaged v3 data is never overwritten from v1', () => {
     const storage = new MemoryStorage()
     const v4 = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[4], 'custom:v2-wins').creature, 'custom-v1')
     const currentV2 = JSON.stringify({
-      storageVersion: 2,
+      storageVersion: 3,
       items: [{ creature: v4, baseCreatureId: creatures[4].id, createdAt: '2026-07-19T00:00:00.000Z', updatedAt: '2026-07-19T00:00:00.000Z' }],
     })
     storage.setItem(MODEL_04_CUSTOM_STORAGE_KEY, currentV2)
     storage.setItem(CUSTOM_CREATURE_STORAGE_KEY, '{bad legacy')
-    expect(loadModel04CustomCreatures(storage)).toMatchObject({ source: 'v2', warning: '', items: [{ creature: { id: 'custom:v2-wins' } }] })
+    expect(loadModel04CustomCreatures(storage)).toMatchObject({ source: 'v3', warning: '', items: [{ creature: { id: 'custom:v2-wins' } }] })
     expect(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY)).toBe(currentV2)
 
-    storage.setItem(MODEL_04_CUSTOM_STORAGE_KEY, '{bad v2')
+    storage.setItem(MODEL_04_CUSTOM_STORAGE_KEY, '{bad v3')
     const damaged = loadModel04CustomCreatures(storage)
-    expect(damaged).toMatchObject({ source: 'v2', items: [], warning: expect.stringContaining('invalid JSON') })
-    expect(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY)).toBe('{bad v2')
+    expect(damaged).toMatchObject({ source: 'v3', items: [], warning: expect.stringContaining('invalid JSON') })
+    expect(storage.getItem(MODEL_04_CUSTOM_STORAGE_KEY)).toBe('{bad v3')
   })
 })

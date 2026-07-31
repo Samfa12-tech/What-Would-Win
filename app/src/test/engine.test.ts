@@ -142,7 +142,7 @@ describe('simulation engine', () => {
       expect(result.probabilityRange[1]).toBeGreaterThanOrEqual(result.soloWinProbability)
       expect(result.winner).toBe(result.soloWinProbability >= 0.5 ? 'solo' : 'group')
       expect(result.winnerName.length).toBeGreaterThan(0)
-      expect(result.technical.trialCount).toBe(5000)
+      expect(result.technical.trialCount).toBe(15_000)
       expect(result.technical.groupQuantityLog10).toBeCloseTo(parsedQuantity.log10, 12)
       expect(Object.values(result.technical).filter((value): value is number => typeof value === 'number').every(Number.isFinite)).toBe(true)
       expect(Boolean(result.conceptualWarning)).toBe(parsedQuantity.conceptual)

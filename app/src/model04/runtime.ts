@@ -16,13 +16,13 @@ import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from './migrat
 import { decodeModel04Scenario, encodeModel04Scenario } from './persistence'
 import {
   exportModel04CustomCreature,
+  finalizeModel04HistoryItem,
   importModel04CustomCreature,
   loadModel04CustomCreatures,
   migrateSavedCustomCreatureV1,
   saveModel04CustomCreatures,
   loadModel04History,
   saveModel04History,
-  MODEL_04_HISTORY_STORAGE_KEY,
   type HistoryItemV2,
   type SavedCustomCreatureV2,
 } from './persistence'
@@ -211,7 +211,7 @@ export class Model04Runtime {
     const simulated = simulateModel04(profiles, canonicalScenario)
     const solo = profiles.find((profile) => profile.id === canonicalScenario.soloId)
     const group = profiles.find((profile) => profile.id === canonicalScenario.groupId)
-    if (!solo || !group) throw new Error('Scenario references an unknown model 0.4 profile.')
+    if (!solo || !group) throw new Error('Scenario references an unknown current-model profile.')
     return {
       result: simulated.result,
       deterministicState: structuredClone(simulated.deterministicState),
@@ -265,7 +265,7 @@ export class Model04Runtime {
     const v4Items = items.map((item): SavedCustomCreatureV2 => {
       const existing = this.customProfiles.get(item.creature.id)
       return existing
-        ? { ...item, creature: mergeEditedV3Fields(existing, item.creature), migration: { sourceStorageVersion: 2, notices: [] } }
+        ? { ...item, creature: mergeEditedV3Fields(existing, item.creature), migration: { sourceStorageVersion: 3, notices: [] } }
         : migrateSavedCustomCreatureV1(item)
     })
     saveModel04CustomCreatures(storage, v4Items)
@@ -279,7 +279,7 @@ export class Model04Runtime {
   exportCustom(item: SavedCustomCreature): unknown {
     const existing = this.customProfiles.get(item.creature.id)
     return exportModel04CustomCreature(existing
-      ? { ...item, creature: mergeEditedV3Fields(existing, item.creature), migration: { sourceStorageVersion: 2, notices: [] } }
+      ? { ...item, creature: mergeEditedV3Fields(existing, item.creature), migration: { sourceStorageVersion: 3, notices: [] } }
       : migrateSavedCustomCreatureV1(item))
   }
 
@@ -296,7 +296,7 @@ export class Model04Runtime {
         const { schemaVersion: _schema, soloResources, groupResources: _group, ...scenario } = item.scenario
         const snapshot = item.result.status === 'current' ? item.result : item.result.legacySnapshot
         return {
-          formatVersion: 2,
+          formatVersion: 3,
           modelVersion: item.result.status === 'current' ? MODEL_04_VERSION : item.source.modelVersion ?? '0.3.0',
           dataVersion: item.result.status === 'current' ? MODEL_04_DATA_VERSION : item.source.dataVersion ?? '0.3.1',
           id: item.id,
@@ -325,13 +325,23 @@ export class Model04Runtime {
     const existingById = new Map(existing.map((item) => [item.id, item]))
     const v2 = items.map((item, index): HistoryItemV2 => {
       const existingItem = existingById.get(item.id)
-      if (existingItem) return {
-        ...existingItem,
-        ...(item.storySeed === undefined ? {} : { presentation: { storySeed: item.storySeed >>> 0 } }),
+      if (existingItem) {
+        const retained = existingItem.result.status !== 'current'
+          && item.modelVersion === MODEL_04_VERSION
+          && item.dataVersion === MODEL_04_DATA_VERSION
+          ? finalizeModel04HistoryItem(existingItem, {
+              winnerName: item.winnerName,
+              soloWinProbability: item.soloWinProbability,
+            })
+          : existingItem
+        return {
+          ...retained,
+          ...(item.storySeed === undefined ? {} : { presentation: { storySeed: item.storySeed >>> 0 } }),
+        }
       }
       return {
-      formatVersion: 2,
-      source: { shareFormat: 'storage-v2', modelVersion: MODEL_04_VERSION, dataVersion: MODEL_04_DATA_VERSION },
+      formatVersion: 3,
+      source: { shareFormat: 'storage-v3', modelVersion: MODEL_04_VERSION, dataVersion: MODEL_04_DATA_VERSION },
       id: item.id,
       createdAt: item.createdAt,
       scenario: scenarioV4(item.scenario, index === 0 ? newestResources : {
@@ -352,6 +362,6 @@ export class Model04Runtime {
   }
 
   clearHistory(storage: Storage): void {
-    storage.removeItem(MODEL_04_HISTORY_STORAGE_KEY)
+    saveModel04History(storage, [])
   }
 }

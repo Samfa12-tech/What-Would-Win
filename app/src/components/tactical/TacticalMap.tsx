@@ -361,21 +361,18 @@ function drawPlan(context: CanvasRenderingContext2D, width: number, height: numb
 
   context.fillStyle = '#aebac4'
   context.font = '10px system-ui'
-  context.fillText('SOLO ●  |  ACTIVE FRONT ○  |  RESERVE dashed ○', 18, height - 54)
-  context.fillText('EFFECTIVE PATH solid →  |  BLOCKED / COUNTERED dashed →  |  REJECTED dashed ○', 18, height - 40)
-  context.fillText('RANGE dashed ring  |  AREA dotted ring  |  FIXED HAZARD', 18, height - 26)
   const scaleBar = tacticalMapRadius(transform, 10)
   context.beginPath()
-  context.moveTo(18, height - 10)
-  context.lineTo(18 + scaleBar, height - 10)
-  context.moveTo(18, height - 14)
-  context.lineTo(18, height - 6)
-  context.moveTo(18 + scaleBar, height - 14)
-  context.lineTo(18 + scaleBar, height - 6)
+  context.moveTo(18, height - 18)
+  context.lineTo(18 + scaleBar, height - 18)
+  context.moveTo(18, height - 22)
+  context.lineTo(18, height - 14)
+  context.moveTo(18 + scaleBar, height - 22)
+  context.lineTo(18 + scaleBar, height - 14)
   context.strokeStyle = '#eef4f8'
   context.lineWidth = 2
   context.stroke()
-  context.fillText('10 m', 24 + scaleBar, height - 7)
+  context.fillText('10 m', 24 + scaleBar, height - 15)
   context.font = '12px system-ui'
   context.fillText('← SOLO SIDE', 18, 24)
   context.textAlign = 'right'
@@ -410,7 +407,7 @@ export function TacticalMap({ storyboard, contestants, scenario, beat, beatProgr
   return (
     <div className="tactical-map-shell" data-testid="tactical-map" style={compact ? { height: '100%', minHeight: 0 } : undefined}>
       <canvas ref={canvasRef} aria-hidden="true" />
-      <p className="sr-only">Tactical map for {beat.callout.who}: {beat.callout.what}. {beat.callout.result}. {beat.callout.why} Legend: solo marker, active front, dashed reserve, solid effective path, dashed blocked or countered path, dashed rejected source, range ring, area ring, fixed hazard, and a 10 metre scale bar.</p>
+      <p className="sr-only">Tactical map for {beat.callout.who}: {beat.callout.what}. {beat.callout.result}. {beat.callout.why} The responsive legend following the map explains solo and group markers, active frontage, reserves, paths, ranges, areas and fixed hazards. A 10 metre scale bar is included.</p>
     </div>
   )
 }

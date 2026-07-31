@@ -1,11 +1,11 @@
 import type { Creature, Scenario } from '../types'
 
-export const MODEL_04_DRAFT_VERSION = '0.4.2' as const
-export const MODEL_04_VERSION = '0.4.2' as const
-export const MODEL_04_DATA_VERSION = '0.4.1' as const
-export const MODEL_04_SHARE_FORMAT_VERSION = 4 as const
-export const MODEL_04_CUSTOM_STORAGE_VERSION = 2 as const
-export const MODEL_04_HISTORY_STORAGE_VERSION = 2 as const
+export const MODEL_04_DRAFT_VERSION = '0.5.0' as const
+export const MODEL_04_VERSION = '0.5.0' as const
+export const MODEL_04_DATA_VERSION = '0.5.0' as const
+export const MODEL_04_SHARE_FORMAT_VERSION = 5 as const
+export const MODEL_04_CUSTOM_STORAGE_VERSION = 3 as const
+export const MODEL_04_HISTORY_STORAGE_VERSION = 3 as const
 
 export type Physiology =
   | 'living'
@@ -28,6 +28,7 @@ export interface LocomotionProfile {
   aquatic: boolean
   amphibious: boolean
   land: boolean
+  arboreal?: boolean
 }
 
 export type AbilityKind =
@@ -99,6 +100,7 @@ export interface AbilityEffect {
 
 export interface AbilityCondition {
   requiresLineOfSight?: boolean
+  preparationDependent?: boolean
   /** @deprecated Model 0.4 profiles must declare the relevant participant explicitly. */
   requiresFacing?: boolean
   requiresAttackerFacing?: boolean
@@ -106,6 +108,7 @@ export interface AbilityCondition {
   requiresMutualFacing?: boolean
   minimumDistanceM?: number
   maximumDistanceM?: number
+  minimumAttackerQuantity?: number
   minimumTargetMassKg?: number
   maximumTargetMassKg?: number
   terrains?: string[]
@@ -193,7 +196,7 @@ export interface ScenarioSharePayloadV4 {
 }
 
 export interface Model04SourceIdentity {
-  shareFormat: number | 'unversioned' | 'storage-v1' | 'storage-v2'
+  shareFormat: number | 'unversioned' | 'storage-v1' | 'storage-v2' | 'storage-v3'
   modelVersion: string | null
   dataVersion: string | null
 }

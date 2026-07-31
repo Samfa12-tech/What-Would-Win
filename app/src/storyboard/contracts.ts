@@ -3,7 +3,7 @@ import type { Model04DeterministicState, Model04SensitivityPoint } from '../mode
 import type { SimulationResult } from '../types'
 
 export const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
-export const STORYBOARD_VERSION = 2 as const
+export const STORYBOARD_VERSION = 3 as const
 export const MAX_VISIBLE_ACTORS = 80
 
 export type StoryboardSide = 'solo' | 'group'
@@ -206,9 +206,14 @@ export interface BattleStoryboard {
   caveats: string[]
 }
 
+export type DecisiveSimulationResult = SimulationResult & {
+  outcome: 'solo-win' | 'group-win'
+  winner: StoryboardSide
+}
+
 export interface BattleReconstructionInput {
   scenario: ScenarioV4Draft
-  result: SimulationResult
+  result: DecisiveSimulationResult
   deterministicState: Model04DeterministicState
   abilityResolutions: AbilityResolution[]
   sensitivity: Model04SensitivityPoint[]

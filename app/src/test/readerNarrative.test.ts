@@ -27,7 +27,7 @@ function input(
   const run = runtime.simulate({ ...defaultScenario(creatures), ...overrides }, resourceState)
   return {
     scenario: run.scenario,
-    result: run.result,
+    result: run.result as BattleReconstructionInput['result'],
     deterministicState: run.deterministicState,
     abilityResolutions: run.abilityResolutions,
     sensitivity: run.sensitivity,
@@ -232,5 +232,6 @@ describe('reader battle narrative', () => {
       }
     }
     expect(failures).toEqual([])
-  }, 15_000)
+  // 139 profiles in both roles each execute the fixed 15,000-trial authoritative adapter.
+  }, 60_000)
 })

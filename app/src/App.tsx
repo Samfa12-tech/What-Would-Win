@@ -17,7 +17,7 @@ import type { Model04Runtime, Model04RuntimeResources, Model04RuntimeResult } fr
 import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
 import type { Model04SensitivityPoint } from './model04/engineV4'
 import { HISTORY_ITEM_FORMAT_VERSION, historyItemNeedsRecalculation } from './legacyHistory'
-import type { BattleReconstructionInput } from './storyboard'
+import type { BattleReconstructionInput, DecisiveSimulationResult } from './storyboard'
 
 const CustomCreatureEditor = lazy(async () => {
   const module = await import('./components/CustomCreatureEditor')
@@ -364,16 +364,24 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const soloResourceAbilities = model04Runtime.resourceAbilities(scenario.soloId)
   const groupResourceAbilities = model04Runtime.resourceAbilities(scenario.groupId)
   const isDirty = JSON.stringify(scenario) !== JSON.stringify(simulatedScenario) || JSON.stringify(resources) !== JSON.stringify(simulatedResources)
-  const storyboardInput = useMemo<BattleReconstructionInput>(() => ({
-    scenario: simulatedV4Scenario,
-    result,
-    deterministicState,
-    abilityResolutions,
-    sensitivity,
-    contestants: simulatedV4Contestants,
-    simulationSeed: result.technical.seed,
-    storySeed,
-  }), [abilityResolutions, deterministicState, result, sensitivity, simulatedV4Contestants, simulatedV4Scenario, storySeed])
+  const storyboardInput = useMemo<BattleReconstructionInput | null>(() => {
+    if (result.outcome === 'draw' || result.winner === null) return null
+    const decisiveResult: DecisiveSimulationResult = {
+      ...result,
+      outcome: result.outcome,
+      winner: result.winner,
+    }
+    return {
+      scenario: simulatedV4Scenario,
+      result: decisiveResult,
+      deterministicState,
+      abilityResolutions,
+      sensitivity,
+      contestants: simulatedV4Contestants,
+      simulationSeed: result.technical.seed,
+      storySeed,
+    }
+  }, [abilityResolutions, deterministicState, result, sensitivity, simulatedV4Contestants, simulatedV4Scenario, storySeed])
 
   function update<K extends keyof Scenario>(key: K, value: Scenario[K]) {
     setScenario((current) => ({ ...current, [key]: value }))
@@ -618,15 +626,20 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   }
 
   async function downloadResultJson() {
-    const {
-      assertValidBattleStoryboard,
-      buildBattleNarrative,
-      buildBattleStoryboard,
-      buildSafeReaderBattleNarrative,
-    } = await import('./storyboard')
-    const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
-    const battleNarrative = buildBattleNarrative(storyboard)
-    const readerNarrative = buildSafeReaderBattleNarrative(storyboardInput, storyboard)
+    let storyboard = null
+    let battleNarrative = null
+    let readerNarrative = null
+    if (storyboardInput) {
+      const {
+        assertValidBattleStoryboard,
+        buildBattleNarrative,
+        buildBattleStoryboard,
+        buildSafeReaderBattleNarrative,
+      } = await import('./storyboard')
+      storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
+      battleNarrative = buildBattleNarrative(storyboard)
+      readerNarrative = buildSafeReaderBattleNarrative(storyboardInput, storyboard)
+    }
     const payload = {
       app: 'What Would Win',
       applicationVersion: APPLICATION_VERSION,
@@ -644,12 +657,17 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       storyboard,
       battleNarrative,
       readerNarrative,
+      presentationNotice: result.outcome === 'draw' ? 'No winner storyboard or battle narrative is generated for a modelled draw.' : null,
       result,
     }
     downloadBlob('what-would-win-result.json', new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
   }
 
   async function downloadStoryboard() {
+    if (!storyboardInput) {
+      setShareStatus('No storyboard is generated for a modelled draw.')
+      return
+    }
     const { assertValidBattleStoryboard, buildBattleStoryboard, exportStoryboardJson } = await import('./storyboard')
     const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(storyboardInput), storyboardInput)
     downloadBlob('what-would-win-storyboard.json', new Blob([exportStoryboardJson(storyboard)], { type: 'application/json' }))
@@ -705,7 +723,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
         </div>
         <div className="header-meta">
           <a href="https://samfa12.com/apps/">← Back to Apps</a>
-          <span>134 profiles · deterministic + Monte Carlo · non-graphic</span>
+          <span>139 profiles · deterministic + Monte Carlo · non-graphic</span>
         </div>
       </header>
 
@@ -1106,7 +1124,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                       ? 'Unavailable: missing custom profile'
                       : historyItemNeedsRecalculation(item)
                         ? `Recalculate under model ${MODEL_VERSION} when opened`
-                        : `Winner: ${item.winnerName}`}</small>
+                        : `Result: ${item.winnerName}`}</small>
                   </button>
                 )
               })}

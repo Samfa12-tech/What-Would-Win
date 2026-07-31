@@ -96,7 +96,7 @@ describe('active model 0.4 full-engine adapter', () => {
     const atCrossover = resolveModel04Deterministic(canonical, { ...exportedScenario, groupQuantity: String(crossover) })
 
     expect(run.result.winner).toBe('group')
-    expect(run.result.groupWinProbability).toBeCloseTo(0.7888834077728151, 12)
+    expect(run.result.groupWinProbability).toBeCloseTo(0.792093860409306, 12)
     expect(run.result.coinFlipQuantity).toBe('about 20')
     expect(before.groupLogPower).toBeLessThan(before.soloLogPower)
     expect(atCrossover.groupLogPower).toBeGreaterThanOrEqual(atCrossover.soloLogPower)
@@ -104,7 +104,7 @@ describe('active model 0.4 full-engine adapter', () => {
 
   test('combines physical and bilateral ability factors under model 0.4 identity', () => {
     const run = simulateModel04(canonical, scenario({ soloId: 'medusa', groupId: 'unarmed-peak-adult-human', startingDistanceM: 15 }))
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.2', dataVersion: '0.4.1' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.5.0' })
     const abilityFactors = run.result.appliedFactors.filter((factor) => factor.id.startsWith('ability:'))
     expect(abilityFactors.length).toBeGreaterThan(0)
     expect(abilityFactors.every((factor) => factor.logDelta !== 0)).toBe(true)

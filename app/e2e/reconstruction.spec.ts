@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
-const HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
+const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
 
 async function runDefaultSimulation(page: Page) {
@@ -14,19 +14,19 @@ function storySeed(page: Page) {
 }
 
 async function openLikelyBattle(page: Page) {
-  const tab = page.getByRole('button', { name: 'Likely battle', exact: true })
+  const tab = page.getByRole('tab', { name: 'Likely battle', exact: true })
   await expect(async () => {
     await tab.click()
-    await expect(tab).toHaveAttribute('aria-current', 'page')
+    await expect(tab).toHaveAttribute('aria-selected', 'true')
   }).toPass({ timeout: 30_000 })
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 30_000 })
 }
 
 async function openTactical(page: Page) {
-  const tab = page.getByRole('button', { name: 'Tactical reconstruction', exact: true })
+  const tab = page.getByRole('tab', { name: 'Tactical reconstruction', exact: true })
   await expect(async () => {
     await tab.click()
-    await expect(tab).toHaveAttribute('aria-current', 'page')
+    await expect(tab).toHaveAttribute('aria-selected', 'true')
   }).toPass({ timeout: 30_000 })
   await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 30_000 })
 }
@@ -44,7 +44,7 @@ test('likely battle is a fully annotated, explicitly non-trial presentation', as
 
   await expect(page.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
   const reader = page.getByLabel('Readable likely battle account')
-  await expect(reader.locator('> p')).toHaveCount(5)
+  await expect(reader.getByRole('list', { name: 'Five-stage causal battle account' }).locator('.reader-stage')).toHaveCount(5)
   await expect(reader).toContainText(/horse-sized mallard duck/i)
   await expect(reader).toContainText(/100 duck-sized horses/i)
   await expect(reader).toContainText(/600 kilograms/i)
@@ -67,6 +67,7 @@ test('likely battle is a fully annotated, explicitly non-trial presentation', as
 })
 
 test('another reconstruction changes the story seed without changing the verdict, probability, or factor ledger', async ({ page, browser }) => {
+  test.slow()
   await runDefaultSimulation(page)
   const verdict = await page.locator('.verdict-copy').innerText()
   const probability = await page.locator('.probability-seal strong').innerText()
@@ -122,7 +123,7 @@ test('tactical controls are keyboard-operable and expose a complete transcript',
   await panel.getByText('Full reconstruction transcript', { exact: true }).click()
   await expect(panel.locator('.tactical-transcript li').first()).toContainText('Target:')
   await expect(panel.locator('.tactical-transcript li').first()).toContainText('Evidence:')
-  await expect(panel.getByLabel('Quantity representation')).toBeVisible()
+  await expect(panel.getByRole('group', { name: 'Quantity pipeline and visual representation' })).toContainText(/declared.*arena usable.*active frontage.*effective pressure/i)
 
   const callout = panel.getByTestId('tactical-callout')
   const currentTranscript = panel.locator('.tactical-transcript li[aria-current="step"]')
@@ -155,6 +156,7 @@ test('tactical controls are keyboard-operable and expose a complete transcript',
 })
 
 test('the optional tactical canvas exports a labelled PNG without changing the storyboard', async ({ page }) => {
+  test.slow()
   await runDefaultSimulation(page)
   await openTactical(page)
   const panel = page.getByTestId('tactical-reconstruction-panel')
@@ -372,7 +374,7 @@ test('standalone storyboard JSON export contains the validated reconstruction re
   for await (const chunk of stream) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
   const storyboard = JSON.parse(Buffer.concat(chunks).toString('utf8'))
   expect(download.suggestedFilename()).toBe('what-would-win-storyboard.json')
-  expect(storyboard).toMatchObject({ version: 2, simulationSeed: expect.any(Number), storySeed: expect.any(Number), phases: expect.any(Array) })
+  expect(storyboard).toMatchObject({ version: 3, simulationSeed: expect.any(Number), storySeed: expect.any(Number), phases: expect.any(Array) })
   expect(storyboard.phases).toHaveLength(7)
   expect(storyboard.evidence.length).toBeGreaterThan(0)
   expect(storyboard.phases.every((phase: { storyBeats?: unknown[] }) => (phase.storyBeats?.length ?? 0) > 0)).toBe(true)

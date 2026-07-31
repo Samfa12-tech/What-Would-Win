@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "targetModel": "0.4.1",
+  "targetModel": "0.5.0",
   "fixtures": [
     {
       "id": "medusa-eyeless-construct",

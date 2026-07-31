@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, hazardRadiusM, mediumFor, rangedLineFormationPositions, representationFor, shouldRenderTacticalPath, tacticalPathPresentation, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
+import { archetypeFor, buildTacticalPlan, environmentSpecFor, eventDestination, eventEffectPreset, formationPositions, hazardRadiusM, mediumFor, rangedLineFormationPositions, relativeDisplayScale, representationFor, tacticalRetreatingSide, shouldRenderTacticalPath, tacticalPathPresentation, TACTICAL_MAX_VISIBLE_ACTORS, usesRangedLine, visualProfileFor } from '../components/tactical/contracts'
 import { directedCameraFit, tacticalLabelPlacement, tacticalLabelsCrowded, tacticalSceneRadius } from '../components/tactical/TacticalScene'
 import type { BattleEvent, BattleStoryboard } from '../storyboard'
 import type { Ability, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
@@ -10,13 +10,21 @@ const ability = (id: string, patch: Partial<Ability> = {}) => ({ id, name: id, k
 const storyboard = (type: BattleStoryboard['reconstructionType'] = 'representative'): BattleStoryboard => ({ reconstructionType: type, storySeed: 77, representedQuantity: { declaredQuantityLog10: 6, visibleActorCount: 999, representedActorsPerVisibleActor: 12500, effectiveActiveCountLog10: 2, abstractionLabel: 'test' }, phases: [{ id: 'pressure', startSeconds: 0, durationSeconds: 1, advantage: 'group', narration: '', supportingFactorIds: [], events: [{ id: 'hazard', type: 'hazard-pulse', actingSide: 'solo', factorIds: [], activeActorCount: 1, startPosition: [1, 0, 1], endPosition: [9, 0, 9], outcome: 'effective', caption: '' }] }] } as unknown as BattleStoryboard)
 
 describe('tactical planning', () => {
+  it('attributes rout to the routed target and retreat movement to its actor', () => {
+    const rout = { type: 'rout', actingSide: 'solo', targetSide: 'group' } as BattleEvent
+    const retreat = { type: 'retreat', actingSide: 'group', targetSide: 'solo' } as BattleEvent
+    expect(tacticalRetreatingSide(rout)).toBe('group')
+    expect(tacticalRetreatingSide(retreat)).toBe('group')
+  })
   it('covers deterministic primitive fallback archetypes', () => {
     expect(archetypeFor(creature('Western dragon', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }))).toBe('winged-quadruped')
     expect(archetypeFor(creature('Octopus', { locomotion: { land: false, flight: false, aquatic: true, amphibious: false } }))).toBe('cephalopod')
     expect(archetypeFor(creature('Golem', { physiology: 'construct' }))).toBe('construct')
+    expect(archetypeFor(creature('Baboon'))).toBe('primate')
+    expect(archetypeFor(creature('Quetzalcoatlus pterosaur', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }))).toBe('pterosaur')
     expect(representationFor(creature('mouse'))).toBe('adjusted-archetype')
   })
-  it('covers all fifteen reusable archetypes', () => {
+  it('covers all seventeen reusable archetypes', () => {
     const profiles: Array<[CreatureV4Draft, ReturnType<typeof archetypeFor>]> = [
       [creature('wolf'), 'light-quadruped'],
       [creature('elephant', { representative_peak_mass_kg: 4_000 }), 'heavy-quadruped'],
@@ -27,6 +35,8 @@ describe('tactical planning', () => {
       [creature('serpent'), 'serpentine'],
       [creature('eagle', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }), 'flying-bird'],
       [creature('western dragon', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }), 'winged-quadruped'],
+      [creature('pteranodon pterosaur', { locomotion: { land: true, flight: true, aquatic: false, amphibious: false } }), 'pterosaur'],
+      [creature('chimpanzee primate'), 'primate'],
       [creature('orca', { locomotion: { land: false, flight: false, aquatic: true, amphibious: false } }), 'fish-cetacean'],
       [creature('octopus', { locomotion: { land: false, flight: false, aquatic: true, amphibious: false } }), 'cephalopod'],
       [creature('giant spider'), 'arthropod'],
@@ -155,6 +165,20 @@ describe('tactical planning', () => {
     const targetSide = directedCameraFit({ cue: { type: 'follow', side: 'solo' }, event, focusPositions: [] })
     expect(targetSide.target[0]).toBeCloseTo(6.6, 10)
     expect(targetSide.target.slice(1)).toEqual([0, 0])
+  })
+  it('uses one shared physical scale and discloses only readability compression', () => {
+    const elephant = visualProfileFor(creature('elephant', { body_length_m: 6, shoulder_or_body_height_m: 3.2, representative_peak_mass_kg: 4_000 }))
+    const mouse = visualProfileFor(creature('mouse', { body_length_m: 0.09, shoulder_or_body_height_m: 0.04, representative_peak_mass_kg: 0.025 }))
+    const scaled = relativeDisplayScale(elephant, mouse)
+    expect(scaled.solo[0]).toBeGreaterThan(scaled.group[0])
+    expect(scaled.solo[0]).toBeCloseTo(1.55)
+    expect(scaled.group[0]).toBe(0.16)
+    expect(scaled.compressionRatio).toBeGreaterThan(1)
+    expect(scaled.disclosure).toMatch(/compressed.+physical length ratio/i)
+
+    const peers = relativeDisplayScale(visualProfileFor(creature('wolf')), visualProfileFor(creature('dog')))
+    expect(peers.disclosure).toBeNull()
+    expect(peers.solo[0]).toBeCloseTo(peers.group[0])
   })
   it('shows the elephant/wolves pilot as six frontage representatives plus reserves without changing its effective count', () => {
     const pilot = storyboard()

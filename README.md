@@ -1,6 +1,6 @@
 # What Would Win
 
-A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 134-profile database, structured abilities and counters, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
+A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 139-profile database, structured abilities and counters, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
 
 The numerical engine is authoritative. It combines a deterministic model with seeded Monte Carlo variation; generated text does not choose or alter the winner.
 
@@ -24,7 +24,7 @@ node scripts/check-build-budgets.mjs
 node scripts/check-static-subpath.mjs
 ```
 
-`npm run audit:release` runs automatically before tests and production builds. It validates the controlled semantic vocabulary, model-0.4 migration contract, 134-profile provenance record and public legal notices. Install the supported browsers once, then run the production-build browser matrix:
+`npm run audit:release` runs automatically before tests and production builds. It validates the controlled semantic vocabulary, model-0.4 migration contract, 139-profile provenance record and public legal notices. Install the supported browsers once, then run the production-build browser matrix:
 
 The release audit also runs `npm run audit:model04-abilities`, which deterministically verifies that every defining built-in source mechanic reaches an activated structured ability, physiology/locomotion rule or reviewed interpretation.
 
@@ -39,22 +39,22 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.7.1**. Custom-creature and history storage remain format **v2**.
+The active reproducibility identity is **application 0.8.0, model 0.5.0, data 0.5.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
 
-Model 0.4.2 retains the explicit model-0.4 physical/ability decomposition and adds access-aware encounter duration, bounded living-profile exhaustion, reserve rotation and relative surface/metabolic thermal scaling as inspectable ledger factors. Recharge and recovery retain a separate bounded ability clock. Every editable combat stat has an applicable deterministic route, and nonliving/conceptual profiles remain exempt from metabolic fatigue.
+Model 0.5.0 keeps the model-0.4 physical, ability and endurance ledger, fixes every report depth at 15,000 seeded trials, weights group access by each executable route's actual contribution, and adds explicit one-way-win versus mutual non-engagement resolution. Quantity-one symmetry is locked so equal mobility does not manufacture a side advantage. The active contract also supports reviewed arboreal locomotion and preparation-dependent abilities.
 
-The v4 share codec embeds the current structured scenario. Released v4/0.4.0 and v4/0.4.1 plus supported v3, v2, v1 and unversioned inputs are migrated and visibly recalculated when their referenced profiles are available. Version-2 custom/history storage preserves previous outcomes as snapshots rather than silently relabelling an old result. JSON exports preserve the exact canonical v4 scenario, asymmetric/per-ability resources, contestants, resolutions and sensitivity used by the run.
+The roster now contains **139 profiles**: 76 living animals, 21 extinct animals, 38 fantasy/mythology profiles and 4 generic humans. The five additions are Bearded capuchin monkey, Bornean orangutan, Giant anteater, Quetzalcoatlus and Generic wraith. Existing primates and other complex profiles received reviewed structured overrides; the release audit routes 130 defining mechanical source tokens.
 
-The model runtime retains its seven-step ordinary technical explanation and three-step conceptual aggregate explanation, both backed by the applied-factor ledger. Storyboard v2 preserves the complete seven-phase legal event/evidence record. Application 0.7.1 derives a separate concise reader narrative from that immutable record; neither layer is a sampled event timeline, anatomy simulation or alternate winner generator.
+The v5 share codec embeds the current structured scenario and migrates released v4 identities without changing their inputs. V2 custom/history stores are copied forward to v3 with untouched recovery bytes; prior numerical outcomes remain snapshots pending model-0.5 recalculation. Result JSON exports preserve the exact scenario, contestants, resolutions, sensitivity and outcome. A draw export contains no winner storyboard or battle narrative.
 
-Application 0.7.1 uses storyboard v2 to retain evidence-backed story beats, an exact Analyst account and an optional beat-driven tactical diorama while a separate causal plan drives the compact default Story account. Typed medium and behaviour classification, ranked-cause diagnostics, mechanic-specific turning/resolution families, structured identity grammar and a narrow custom-profile fallback improve that Story layer without changing the simulation. The storyboard consumes the already-computed model-0.4 snapshot and never re-runs combat. Hover/focus/tap evidence explanations supplement rather than replace the complete HTML record. The primitive 3D scene is an optional enhancement with explicit beat callouts, Story camera, a synchronized 2D Canvas tactical map, Free look, transcript, quantity disclosure, reduced motion and a useful no-WebGL map fallback. PNG/WebM canvas capture never creates or alters events. See `docs/BATTLE_RECONSTRUCTION.md`.
-
+Application 0.8.0 makes the battle easier to read without changing numerical authority: a three-way probability bar and uncertainty band, declared-to-effective quantity pipeline, keyboard result tabs, five-stage causal Story rail, evidence-derived tactical HUD/state strips, responsive HTML legend, relative-scale disclosures, and primate/pterosaur visual archetypes. Story and tactical builders accept decisive results only; mutual non-engagement is presented directly and never converted into an invented battle sequence. See `docs/QUALITY_FEATURE_PASS_0.8.0.md` and `docs/BATTLE_RECONSTRUCTION.md`.
 ## Documentation
 
 - `docs/What_Would_Win_Product_Plan.md` — canonical product, active model and roadmap specification.
 - `docs/MODEL_NOTES.md` — compact active-engine contract and change discipline.
 - `docs/CODEX_HANDOFF.md` — practical continuation guide and paste-ready Codex prompt.
 - `docs/QA_REPORT.md` — current automated evidence and outstanding manual checks.
+- docs/QUALITY_FEATURE_PASS_0.8.0.md — implemented model, roster, presentation, migration and deliberately deferred scope.
 - `docs/MODEL_AUDIT_0.3.md` — historical model-0.3 physical-foundation audit and calibration guardrails.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — historical data-0.3.1 semantic audit and migration decisions.
 - `docs/MODEL_0.4_CALIBRATION_COMPARISON.md` — reproducible 16-fixture model-0.3 versus model-0.4 probability table and movement review.
@@ -73,7 +73,7 @@ Private custom profiles use `custom:` IDs and remain in the current browser unle
 
 ## Hosting on samfa12.com
 
-Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward. Application 0.7.1 remains a source candidate until its exact reviewed tree is deliberately synced through the website repository and verified.
+Upload the contents of `app/dist/` to the intended web root or subdirectory. Assets use relative paths and share links use query parameters, so the current build does not require SPA route rewriting. Run the static-subpath check before upload and perform a deployed-path smoke test afterward. An application release is public only after its exact reviewed tree is deliberately synced through the website repository and verified.
 
 ## Public-repository hygiene
 

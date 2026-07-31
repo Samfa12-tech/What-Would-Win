@@ -70,10 +70,10 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
 }
 
 describe('active model 0.4 canonical ability data', () => {
-  test('validates the override contract and all 134 merged draft profiles', () => {
+  test('validates the override contract and all 139 merged draft profiles', () => {
     expect(validateOverrides(complexOverridesJson), ajv.errorsText(validateOverrides.errors)).toBe(true)
-    expect(draft.creatures).toHaveLength(134)
-    expect(Object.keys(draft.reviews)).toHaveLength(29)
+    expect(draft.creatures).toHaveLength(139)
+    expect(Object.keys(draft.reviews)).toHaveLength(37)
     for (const creature of draft.creatures) {
       expect(validateCreature(creature), `${creature.id}: ${ajv.errorsText(validateCreature.errors)}`).toBe(true)
       expect(new Set(creature.abilities.map((ability) => ability.id)).size).toBe(creature.abilities.length)
@@ -88,8 +88,8 @@ describe('active model 0.4 canonical ability data', () => {
 
   test('accepts conservative simple-profile migrations only after the activation review gate', () => {
     const activated = activateCanonicalModel04Data(draft)
-    expect(activated).toMatchObject({ reviewedComplexCount: 29, acceptedConservativeMigrationCount: 105 })
-    expect(activated.creatures).toHaveLength(134)
+    expect(activated).toMatchObject({ reviewedComplexCount: 37, acceptedConservativeMigrationCount: 102 })
+    expect(activated.creatures).toHaveLength(139)
     expect(activated.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(activated.creatures.every((creature) => creature.abilities.every((ability) => ability.legacyGenerated !== true))).toBe(true)
     for (const creature of activated.creatures) {
@@ -143,8 +143,42 @@ describe('active model 0.4 canonical ability data', () => {
     expect(unicorn.review?.interpretation).toContain('restorative magic')
   })
 
+  test('activates the reviewed primate, pterosaur, anteater and spirit mechanics', () => {
+    expect(profile('silverback-gorilla').abilities.map((ability) => ability.id)).toEqual([
+      'gorilla-bite', 'gorilla-grapple', 'gorilla-strike',
+    ])
+    expect(profile('chimpanzee').abilities.find((ability) => ability.id === 'prepared-improvised-tool')).toMatchObject({
+      delivery: 'ranged',
+      conditions: { preparationDependent: true },
+      resource: { pool: 'ability', capacity: 3 },
+    })
+    expect(profile('olive-baboon').abilities.find((ability) => ability.id === 'troop-coordinated-assault')).toMatchObject({
+      targetLimit: 'frontage',
+    })
+    expect(profile('bearded-capuchin-monkey')).toMatchObject({
+      locomotion: { arboreal: true },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'prepared-stone-throw', conditions: { preparationDependent: true } })]),
+    })
+    expect(profile('bornean-orangutan')).toMatchObject({
+      contact_reach_m: 1.3,
+      locomotion: { arboreal: true },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'long-reach-grapple', kind: 'restraint' })]),
+    })
+    expect(profile('giant-anteater').abilities.map((ability) => ability.id)).toEqual(['foreclaw-rake', 'forelimb-clinch'])
+    expect(profile('quetzalcoatlus').locomotion).toMatchObject({ flight: true, land: true })
+
+    const wraith = profile('generic-wraith')
+    expect(wraith).toMatchObject({
+      physiology: 'spirit',
+      channelModifiers: { 'physical-piercing': 0, 'physical-slashing': 0, 'physical-crushing': 0 },
+    })
+    expect(wraith.abilities.find((ability) => ability.id === 'spectral-touch')?.effects[0]).toMatchObject({ channel: 'incorporeal' })
+    expect(wraith.abilities.find((ability) => ability.id === 'dread-aura')?.effects[0]).toMatchObject({ kind: 'morale', channel: 'fear' })
+  })
+
   test('locks the exact 16 handoff mythology fixtures to valid profiles and scenarios', () => {
     expect(mythologyFixturesJson.fixtures).toHaveLength(16)
+    expect(mythologyFixturesJson.targetModel).toBe('0.5.0')
     expect(new Set(mythologyFixturesJson.fixtures.map((fixture) => fixture.id)).size).toBe(16)
     for (const fixture of mythologyFixturesJson.fixtures) {
       expect(creatureMap.has(fixture.soloId), `${fixture.id} solo`).toBe(true)

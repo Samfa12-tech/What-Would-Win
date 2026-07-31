@@ -35,17 +35,18 @@
       "stopping-bypass": ["electric-shock", "whirlpool"],
       "area-control": ["tail-club", "tail-spike"]
     },
-    "descriptive": ["antler", "axe", "beak", "bite", "body-slam", "charge", "club", "club-strike", "constrict", "crush", "death-roll", "devour", "dive", "drag", "drop", "fist", "grapple", "hair-defense", "hoof-strike", "kick", "knife", "many-bites", "neck-swing", "peck", "pounce", "quill-contact", "ram", "shield", "stomp", "strike", "suction", "tail", "tail-strike", "tentacle", "trample", "wing-strike"]
+    "descriptive": ["antler", "axe", "beak", "bite", "body-slam", "charge", "club", "club-strike", "constrict", "crush", "death-roll", "devour", "dive", "drag", "dread-aura", "drop", "fist", "grapple", "hair-defense", "hoof-strike", "improvised-tool", "kick", "knife", "many-bites", "neck-swing", "peck", "pounce", "quill-contact", "ram", "shield", "spectral-touch", "stomp", "strike", "suction", "tail", "tail-strike", "tentacle", "trample", "wing-strike"]
   },
   "traits": {
     "mechanical": {
       "capability-source": ["aquatic", "construct", "flight", "ranged", "regeneration", "undead", "venom"],
-      "environment": ["ambush", "amphibious", "climber", "cold-adapted", "echolocation", "fire", "formation", "heat-adapted", "land-capable", "night-vision", "runner", "semi-aquatic", "sprinter", "thick-fur"],
-      "group-aggregation": ["eusocial", "formation", "pack-hunter", "swarm"],
-      "special-factor": ["armored", "electric", "fire", "heavy-armor", "many-heads", "many-limbs", "petrification"],
-      "ability-requirement": ["healing", "hypnosis", "limited-ammunition", "magic"],
+      "environment": ["ambush", "amphibious", "arboreal", "climber", "cold-adapted", "echolocation", "fire", "formation", "heat-adapted", "land-capable", "night-vision", "runner", "semi-aquatic", "sprinter", "thick-fur"],
+      "group-aggregation": ["eusocial", "formation", "pack-hunter", "swarm", "troop"],
+      "special-factor": ["armored", "electric", "fire", "heavy-armor", "incorporeal", "many-heads", "many-limbs", "petrification"],
+      "ability-requirement": ["healing", "hypnosis", "limited-ammunition", "magic", "morale", "tool-use"],
+      "fear-resistance": ["fearless"],
       "stopping-bypass": ["cavitation-strike", "electric", "petrification"]
     },
-    "descriptive": ["apex-predator", "armored-skull", "burrower", "camouflage", "colossal", "deep-diver", "domestic", "electroreception", "endurance", "equipment", "extinct", "extreme-speed", "fearless", "feathered", "flock", "giant", "hands", "height", "herd", "hooks", "impenetrable-hide", "pack-compatible", "pack-possible", "plates", "quills", "silent-flight", "swimmer", "tail-balance", "thick-hide", "tool-potential", "tool-use", "trained", "troop"]
+    "descriptive": ["apex-predator", "armored-skull", "burrower", "camouflage", "colossal", "deep-diver", "domestic", "electroreception", "endurance", "equipment", "extinct", "extreme-speed", "feathered", "flock", "giant", "hands", "height", "herd", "hooks", "impenetrable-hide", "pack-compatible", "pack-possible", "plates", "quills", "silent-flight", "swimmer", "tail-balance", "thick-hide", "tool-potential", "trained"]
   }
 }

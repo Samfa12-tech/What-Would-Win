@@ -13,7 +13,7 @@ const v3Creatures = creaturesJson as Creature[]
 const canonical = buildCanonicalModel04Draft(v3Creatures, complexOverridesJson as ComplexProfileOverrideStore).creatures
 const printCalibration = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.PRINT_MODEL041_PHYSICAL_CALIBRATION === '1'
 
-const MODEL041_ACCEPTANCE: Record<string, { min: number; max: number; winner: 'solo' | 'group'; rationale: string }> = {
+const MODEL041_ACCEPTANCE: Record<string, { min: number; max: number; winner: 'solo' | 'group' | 'draw'; rationale: string }> = {
   'duck-horse-classic-functional': { min: 0.9, max: 0.99, winner: 'solo', rationale: 'Resized body scale and bounded area control remain decisive.' },
   'elephant-wolves': { min: 0.9, max: 0.99, winner: 'solo', rationale: 'Per-member stopping and frontage preserve the megafauna advantage.' },
   'gorilla-ducks': { min: 0.88, max: 0.99, winner: 'solo', rationale: 'Tiny group members cannot convert raw count into unlimited pressure.' },
@@ -25,7 +25,7 @@ const MODEL041_ACCEPTANCE: Record<string, { min: number; max: number; winner: 's
   'spinosaurus-nile-crocodiles': { min: 0.7, max: 0.92, winner: 'solo', rationale: 'Resolved river access and body scale retain the theropod lead.' },
   'bigfoot-humans-fixed': { min: 0.35, max: 0.49, winner: 'group', rationale: 'Explicit execution and aggregation narrowly reverse the former combined-quality result.' },
   'medusa-spear-group': { min: 0.02, max: 0.2, winner: 'group', rationale: 'Structured gaze is bounded by geometry, preparedness and group pressure.' },
-  'charybdis-orcas-hazard': { min: 0.02, max: 0.15, winner: 'group', rationale: 'The stationary 40 m hazard is unavailable from the fixture starting distance of 80 m.' },
+  'charybdis-orcas-hazard': { min: 0, max: 0, winner: 'group', rationale: 'The stationary hazard has no executable route at 80 m while the orca pod retains an approach-and-contact route, producing a one-way result.' },
   'dog-mouse-mouse-kangaroos-functional': { min: 0.75, max: 0.97, winner: 'solo', rationale: 'Functional resizing and individual stopping preserve the larger body advantage.' },
   'rhinoceros-mouse-swarm': { min: 0.9, max: 0.99, winner: 'solo', rationale: 'Tiny physical effects retain a mass stopping barrier.' },
   'eagle-million-mice-access': { min: 0.9, max: 0.99, winner: 'solo', rationale: 'A structured flight-access ceiling prevents reserve count from creating contact.' },
@@ -66,8 +66,8 @@ function ordinaryScenario(overrides: Partial<ScenarioV4Draft> = {}): ScenarioV4D
   }
 }
 
-describe('model 0.4.2 physical foundation', () => {
-  test('runs every original model-0.3 fixture through v4 with reviewed winner and probability acceptance', () => {
+describe('model 0.5.0 physical foundation', () => {
+  test('runs every original model-0.3 fixture through model 0.5 with reviewed winner and probability acceptance', () => {
     expect(scenariosJson).toHaveLength(16)
     for (const fixture of scenariosJson) {
       const scenario = scenarioFromFixture(fixture)

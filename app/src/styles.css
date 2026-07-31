@@ -1930,3 +1930,29 @@ footer strong {
     width: 100%;
   }
 }
+
+/* 0.8 result confidence, draw and quantity communication */
+.outcome-reason{max-width:72ch;margin:12px 0 0;padding-left:12px;border-left:3px solid var(--gold);color:var(--muted)}
+.outcome-reason.outcome-draw{border-color:#a9b8c6;color:#d9e1e8}
+.probability-track{position:relative;overflow:visible}
+.probability-solo{position:absolute;inset:0 auto 0 0}
+.probability-draw{position:absolute;inset-block:0;background:repeating-linear-gradient(135deg,#8a98a5 0 5px,#b3bdc6 5px 10px)}
+.probability-midpoint{position:absolute;z-index:3;top:-6px;bottom:-6px;left:50%;width:2px;background:#fff;box-shadow:0 0 0 1px #07121d}
+.probability-band{position:absolute;z-index:4;top:-5px;height:4px;border-inline:2px solid #fff;background:#fff;box-shadow:0 0 0 1px #07121d}
+.probability-comparison p strong{color:#e8eef6}
+.result-view-nav button[aria-selected="true"]{border-color:var(--gold);color:#0b1220;background:var(--gold-light);font-weight:800}
+.quantity-pipeline{margin-top:28px;padding:20px;border:1px solid var(--line);border-radius:14px;background:rgba(7,14,24,.56)}
+.quantity-pipeline h3{margin:4px 0 0;color:#eef3fa}
+.quantity-pipeline ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0 12px;padding:0;list-style:none}
+.quantity-pipeline li{position:relative;display:grid;gap:4px;padding:13px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel-soft)}
+.quantity-pipeline li:not(:last-child)::after{content:"→";position:absolute;z-index:2;top:50%;right:-11px;color:var(--gold);transform:translateY(-50%)}
+.quantity-pipeline li>span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;color:#07121d;background:var(--gold-light);font-size:11px;font-weight:900}
+.quantity-pipeline small{color:var(--faint);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.quantity-pipeline strong{overflow-wrap:anywhere;color:#f2dfb5}
+.quantity-pipeline>p{margin-bottom:0;color:var(--muted);font-size:13px}
+.draw-presentation{margin:20px 0;padding:24px;border:1px solid var(--line-strong);border-radius:14px;background:rgba(13,21,34,.72)}
+.draw-presentation h3{margin:6px 0 12px;color:#eef3fa;text-transform:none}
+.draw-presentation p:last-child{color:var(--muted)}
+.result-export-note{margin:0 0 8px;padding:9px 10px;border-left:3px solid var(--line-strong);color:var(--muted);font-size:.8rem;line-height:1.45}
+@media(max-width:760px){.quantity-pipeline ol{grid-template-columns:1fr}.quantity-pipeline li:not(:last-child)::after{content:"↓";top:auto;right:50%;bottom:-15px;transform:translateX(50%)}.probability-labels{align-items:flex-start;flex-direction:column;gap:4px}}
+@media(forced-colors:active){.probability-midpoint,.probability-band{background:CanvasText;box-shadow:none}.probability-draw{background:Canvas;border:2px dashed CanvasText}.quantity-pipeline li>span{color:Canvas;background:CanvasText}}

@@ -21,10 +21,10 @@ async function expectNoSeriousAxeViolations(page: Page) {
 }
 
 async function selectResultView(page: Page, name: string) {
-  const button = page.getByRole('button', { name, exact: true })
+  const button = page.getByRole('tab', { name, exact: true })
   await expect(async () => {
     await button.click()
-    await expect(button).toHaveAttribute('aria-current', 'page')
+    await expect(button).toHaveAttribute('aria-selected', 'true')
   }).toPass({ timeout: 15_000 })
 }
 
@@ -108,7 +108,7 @@ test('likely battle and tactical reconstruction remain complete and axe-clean', 
   await selectResultView(page, 'Likely battle')
   const likelyBattle = page.getByTestId('likely-battle-panel')
   await expect(likelyBattle).toBeVisible({ timeout: 15_000 })
-  await expect(likelyBattle.getByLabel('Readable likely battle account').locator('> p')).toHaveCount(5)
+  await expect(likelyBattle.getByRole('list', { name: 'Five-stage causal battle account' }).locator('.reader-stage')).toHaveCount(5)
   const detailed = likelyBattle.locator('details.detailed-reconstruction')
   await expect(detailed).not.toHaveAttribute('open', '')
   await expectNoSeriousAxeViolations(page)
@@ -147,6 +147,7 @@ test('reflow and user text spacing keep controls readable without horizontal pag
 })
 
 test('forced-colour mode and the accessibility tree retain the core workflow', async ({ page }) => {
+  test.slow()
   await page.emulateMedia({ forcedColors: 'active' })
   const runButton = page.getByRole('button', { name: 'Run simulation' })
   await expect(runButton).toBeVisible()

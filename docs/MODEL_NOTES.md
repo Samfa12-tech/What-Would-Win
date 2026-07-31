@@ -1,6 +1,6 @@
 # What Would Win — model notes for implementers
 
-This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.4.2, data 0.4.1, share format v4, custom storage v2 and history storage v2**.
+This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **model 0.5.0, data 0.5.0, share format v5, custom storage v3 and history storage v3**; application presentation uses storyboard v3.
 
 `app/src/version.ts` exposes the active identity and separately named frozen `LEGACY_*` model-0.3 constants used only by retained migration/compatibility code.
 
@@ -27,8 +27,16 @@ Model 0.4 retains the audited model-0.3 physical aggregate calculation, then res
 - Applied ability factors use stable `ability:*` identifiers and expose their log delta. They are deterministic inputs to the same seeded result authority as the physical factors.
 - Four deterministic sensitivity points remain available at all depths. Technical depth adds a bounded set for active potency, activation, range, reach, resistance, coordination and stopping assumptions without publishing a second winner.
 
-The v4 share codec serializes the structured scenario. Custom creatures and history use v2 storage contracts with recovery for incompatible/corrupt payloads. Supported legacy v3, v2, v1 and unversioned scenarios are migrated and visibly recalculated; unavailable referenced custom profiles remain pending.
+The v5 share codec serializes the structured scenario and migrates released v4 identities. Custom creatures and history use v3 storage contracts with recovery for incompatible/corrupt payloads. Supported released v4 plus legacy v3, v2, v1 and unversioned scenarios are migrated and visibly recalculated; unavailable referenced custom profiles remain pending.
 
+## Model 0.5 authoritative quality rules
+
+- `AUTHORITATIVE_TRIAL_COUNT` is 15,000 at every report depth.
+- Group access pressure is weighted by each executable opposing contribution; a rejected route has zero access weight.
+- Mutual lack of materially effective accessible opposing routes resolves as `draw`; one-way access resolves to that side without Monte Carlo inventing opposition.
+- Quantity-one and equal-mobility scenarios preserve side symmetry.
+- Optional `locomotion.arboreal` and `conditions.preparationDependent` are active, versioned mechanics.
+- Draw results cannot enter the decisive `BattleReconstructionInput` contract.
 ## Important design distinctions
 
 - deterministic log power is not probability;

@@ -191,7 +191,7 @@ export function CreaturePanel(props: CreaturePanelProps) {
       <details className="creature-data" onToggle={(event) => {
         if (event.currentTarget.open) setDossierRequested(true)
       }}>
-        <summary>Model 0.4 abilities and counters</summary>
+        <summary>Model 0.5 abilities and counters</summary>
         {dossierRequested && (
           <Suspense fallback={<p role="status">Loading the activated model dossier…</p>}>
             <Model04Dossier dossier={props.dossier} />

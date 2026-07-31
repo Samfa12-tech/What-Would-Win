@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
-const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
-const HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
+const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v3'
+const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const CUSTOM_NAME = 'Codex Field Beast'
 
 function soloPanel(page: Page) {
@@ -73,10 +73,10 @@ async function openSharedScenarioInCleanBrowser(browser: Browser, shareUrl: stri
 }
 
 async function selectResultView(page: Page, name: string) {
-  const button = page.getByRole('button', { name, exact: true })
+  const button = page.getByRole('tab', { name, exact: true })
   await expect(async () => {
     await button.click()
-    await expect(button).toHaveAttribute('aria-current', 'page')
+    await expect(button).toHaveAttribute('aria-selected', 'true')
   }).toPass({ timeout: 15_000 })
 }
 
@@ -148,10 +148,10 @@ test('labels mechanical and descriptive-only profile tags in the dossier', async
   await expect(soloPanel(page).getByText(/Mechanical tags affect at least one current model rule/)).toBeVisible()
 })
 
-test('keeps the activated model 0.4 dossier compact until requested', async ({ page }) => {
+test('keeps the activated model 0.5 dossier compact until requested', async ({ page }) => {
   await page.getByTestId('solo-creature-select').selectOption('western-dragon')
   await expect(page.getByTestId('model04-dossier')).toHaveCount(0)
-  await soloPanel(page).getByText('Model 0.4 abilities and counters', { exact: true }).click()
+  await soloPanel(page).getByText('Model 0.5 abilities and counters', { exact: true }).click()
 
   const dossier = soloPanel(page).getByTestId('model04-dossier')
   await expect(dossier).toBeVisible()
@@ -206,7 +206,7 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await expect(page.getByText('Heuristic group losses', { exact: true }).locator('..')).toContainText('not physically meaningful')
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByLabel('Readable likely battle account').locator('> p')).toHaveCount(5, { timeout: 15_000 })
+  await expect(page.getByRole('list', { name: 'Five-stage causal battle account' }).locator('.reader-stage')).toHaveCount(5, { timeout: 15_000 })
   await expect(page.locator('details.detailed-reconstruction')).not.toHaveAttribute('open', '')
   await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/conceptual scale.*not literalised|not literalised.*conceptual scale/i)
   await expect(page.getByRole('alert')).toHaveCount(0)
@@ -344,7 +344,7 @@ test('clones, names, edits, saves, reloads and uses a private custom profile', a
   test.slow()
   const customId = await createSavedCustom(page)
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), CUSTOM_STORAGE_KEY)
-  expect(stored.storageVersion).toBe(2)
+  expect(stored.storageVersion).toBe(3)
   expect(stored.items[0].creature).toMatchObject({ id: customId, name: CUSTOM_NAME, attack: 73 })
 
   await page.reload()
@@ -393,7 +393,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     await clean.context.close()
   }
 
-  expect(payload).toMatchObject({ formatVersion: 4, modelVersion: '0.4.2', dataVersion: '0.4.1' })
+  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.5.0' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -433,17 +433,18 @@ test('corrupt custom-profile storage recovers visibly without overwriting the st
   await page.evaluate((key) => localStorage.setItem(key, '{not valid json'), CUSTOM_STORAGE_KEY)
   await page.reload()
 
-  await expect(page.getByRole('alert')).toContainText('Saved model 0.4 custom profiles contain invalid JSON')
+  await expect(page.getByRole('alert')).toContainText('Saved current-model custom profiles contain invalid JSON')
+  await expect(page.getByRole('alert')).not.toContainText(/model 0\.4/i)
   await expect(page.getByRole('alert')).toContainText('stored data was left untouched')
   expect(await page.evaluate((key) => localStorage.getItem(key), CUSTOM_STORAGE_KEY)).toBe('{not valid json')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
-test('version 2 history persists while corrupt history remains untouched', async ({ page }) => {
+test('version 3 history persists while corrupt history remains untouched', async ({ page }) => {
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
-  expect(current.storageVersion).toBe(2)
-  expect(current.items[0]).toMatchObject({ formatVersion: 2, result: { status: 'current', modelVersion: '0.4.2', dataVersion: '0.4.1' } })
+  expect(current.storageVersion).toBe(3)
+  expect(current.items[0]).toMatchObject({ formatVersion: 3, result: { status: 'current', modelVersion: '0.5.0', dataVersion: '0.5.0' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
@@ -477,7 +478,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.7.1')
+  expect(exported.applicationVersion).toBe('0.8.0')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))

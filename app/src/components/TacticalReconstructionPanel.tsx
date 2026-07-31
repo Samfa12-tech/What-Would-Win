@@ -1,8 +1,8 @@
 import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactNode } from 'react'
-import { assertValidBattleStoryboard, buildBattleStoryboard, RECONSTRUCTION_NOTICE, type BattleReconstructionInput } from '../storyboard'
+import { assertValidBattleStoryboard, buildBattleStoryboard, RECONSTRUCTION_NOTICE, type BattleReconstructionInput, type BattleStoryboardPhase } from '../storyboard'
 import { EvidenceTooltip } from './EvidenceTooltip'
-import { buildTacticalChoreography, phaseStartBeatIndexes } from './tactical/beatPlan'
-import { buildTacticalPlan } from './tactical/contracts'
+import { buildTacticalChoreography, phaseStartBeatIndexes, type TacticalChoreographyBeat } from './tactical/beatPlan'
+import { buildTacticalPlan, tacticalRetreatingSide, type TacticalActorPlan } from './tactical/contracts'
 import { TacticalMap } from './tactical/TacticalMap'
 import './reconstruction.css'
 import './tactical-guidance.css'
@@ -84,6 +84,71 @@ export function tacticalCompositeEvidenceLines(details: { solo: string; group: s
   }
 }
 
+export interface TacticalStateStrip {
+  id: 'access' | 'reserves' | 'cohesion' | 'resources' | 'retreat'
+  label: string
+  value: string
+  tone: 'steady' | 'limited' | 'changing'
+}
+
+function percent(value: number): string {
+  return `${Math.max(0, Math.min(100, value * 100)).toFixed(0)}%`
+}
+
+function logQuantity(log10: number): string {
+  return log10 <= 6 ? formatQuantity(10 ** log10) : `10^${log10.toFixed(2)}`
+}
+
+function modelOutcome(input: BattleReconstructionInput): { label: string; probability: number } {
+  if (input.result.outcome === 'solo-win') return { label: input.contestants.solo.name, probability: input.result.soloWinProbability }
+  return { label: `${input.contestants.group.name} group`, probability: input.result.groupWinProbability }
+}
+
+/** Builds only evidence-backed aggregate states; it never invents wounds or actor casualties. */
+export function buildTacticalStateStrips(
+  input: BattleReconstructionInput,
+  phase: BattleStoryboardPhase,
+  beat: TacticalChoreographyBeat,
+  completedEvents: BattleStoryboardPhase['events'],
+): TacticalStateStrip[] {
+  const arenaUsableCount = Math.max(1, Math.round(10 ** Math.min(12, input.result.technical.groupUsableQuantityLog10)))
+  const activeFrontage = Math.max(1, Math.min(arenaUsableCount, Math.round(input.result.technical.groupFrontageCapacity)))
+  const reserveCount = Math.max(0, arenaUsableCount - activeFrontage)
+  const resourceDepleted = input.abilityResolutions.find((resolution) => !resolution.active && resolution.rejectionReason === 'resource-depleted')
+  const finiteResource = input.abilityResolutions.find((resolution) => resolution.resolvedUses !== null)
+  const retreat = [...completedEvents, ...beat.events].find((event) => event.type === 'retreat' || event.type === 'rout')
+  const retreatingSide = retreat ? tacticalRetreatingSide(retreat) : undefined
+  const phaseBalance = phase.advantage === 'contested' || phase.advantage === 'neutral'
+    ? 'Contested pressure'
+    : `${phase.advantage === 'solo' ? input.contestants.solo.name : `${input.contestants.group.name} group`} advantage`
+  return [
+    {
+      id: 'access', label: 'Attack access',
+      value: `${input.contestants.solo.name} ${percent(input.result.technical.soloAttackAccess)} · ${input.contestants.group.name} ${percent(input.result.technical.groupAttackAccess)}`,
+      tone: Math.min(input.result.technical.soloAttackAccess, input.result.technical.groupAttackAccess) < 0.5 ? 'limited' : 'steady',
+    },
+    {
+      id: 'reserves', label: 'Reserve pressure',
+      value: reserveCount > 0 ? `${formatQuantity(reserveCount)} arena-usable beyond active frontage` : 'No arena-usable reserve gap',
+      tone: reserveCount > 0 ? 'changing' : 'steady',
+    },
+    { id: 'cohesion', label: 'Cohesion', value: `${phaseBalance} · ${input.scenario.coordinationDoctrine}`, tone: phase.advantage === 'contested' ? 'changing' : 'steady' },
+    {
+      id: 'resources', label: 'Resources',
+      value: resourceDepleted
+        ? `${resourceDepleted.side === 'solo' ? input.contestants.solo.name : input.contestants.group.name}: depleted`
+        : finiteResource
+          ? `${finiteResource.side === 'solo' ? input.contestants.solo.name : input.contestants.group.name}: ${finiteResource.resolvedUses?.toLocaleString('en-AU')} usable`
+          : 'No finite-use limit active',
+      tone: resourceDepleted ? 'limited' : finiteResource ? 'changing' : 'steady',
+    },
+    {
+      id: 'retreat', label: 'Retreat state',
+      value: retreat ? `${retreatingSide === 'solo' ? input.contestants.solo.name : retreatingSide === 'group' ? `${input.contestants.group.name} group` : 'Opposing side'}: ${retreat.type === 'rout' ? 'rout resolved' : 'withdrawal shown'}` : 'No validated retreat yet',
+      tone: retreat ? 'changing' : 'steady',
+    },
+  ]
+}
 export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: TacticalReconstructionPanelProps) {
   const storyboard = useMemo(() => assertValidBattleStoryboard(buildBattleStoryboard(input), input), [input])
   const beats = useMemo(() => buildTacticalChoreography(storyboard), [storyboard])
@@ -116,7 +181,16 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
   const phaseBeats = beats.filter((item) => item.phaseId === beat?.phaseId)
   const phaseBeatIndex = Math.max(0, phaseBeats.findIndex((item) => item.id === beat?.id))
   const completedEventIds = beats.slice(0, beatIndex).flatMap((item) => item.eventIds)
+  const completedEvents = storyboard.phases.flatMap((item) => item.events).filter((event) => completedEventIds.includes(event.id))
   const groupActor = tacticalPlan.actors.find((actor) => actor.side === 'group')
+  const activeFrontage = Math.max(1, Math.min(
+    Math.round(10 ** Math.min(12, input.result.technical.groupUsableQuantityLog10)),
+    Math.max(1, Math.round(input.result.technical.groupFrontageCapacity)),
+  ))
+  const activeEvent = beat?.events[0]
+  const activeOutcome = activeEvent?.outcome.replace(/-/g, ' ') ?? (phase?.advantage === 'contested' ? 'contested' : 'established')
+  const resolvedOutcome = modelOutcome(input)
+  const stateStrips = beat && phase ? buildTacticalStateStrips(input, phase, beat, completedEvents) : []
 
   useEffect(() => {
     setBeatIndex(0)
@@ -308,6 +382,25 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
       </div>
       <p className="reconstruction-notice">{RECONSTRUCTION_NOTICE}</p>
 
+      <section className="tactical-hud" data-testid="tactical-hud" aria-labelledby="tactical-hud-title">
+        <header>
+          <div><span>Phase {beat.phaseIndex + 1} of 7</span><strong id="tactical-hud-title">{beat.title}</strong></div>
+          <span className={`tactical-outcome-badge outcome-${activeOutcome.replace(/\s+/g, '-')}`}>{activeOutcome}</span>
+        </header>
+        <dl>
+          <div><dt>Actor</dt><dd>{beat.callout.who}</dd></div>
+          <div><dt>Target</dt><dd>{beat.callout.target ?? 'Battlefield position'}</dd></div>
+          <div><dt>Outcome</dt><dd>{activeOutcome}</dd></div>
+          <div><dt>Result</dt><dd>{beat.callout.result}</dd></div>
+        </dl>
+        <footer>
+          <span><strong>Model outcome:</strong> {resolvedOutcome.label} {percent(resolvedOutcome.probability)}</span>
+          <span><strong>Modelled phase:</strong> {phase.startSeconds.toLocaleString('en-AU')}–{(phase.startSeconds + phase.durationSeconds).toLocaleString('en-AU')} s</span>
+          <span><strong>Playback:</strong> {(beat.displayDurationMs / 1_000).toFixed(1)} s at 1× · {(beatDelayMs / 1_000).toFixed(1)} s selected</span>
+        </footer>
+      </section>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">Phase {beat.phaseIndex + 1}, {beat.title}. {beat.callout.who}. {activeOutcome}. {beat.callout.result}.</p>
+
       <div className={`tactical-viewport mode-${viewMode}`} data-view-mode={viewMode}>
         {showMap ? mapView() : (<>
           <div className="tactical-canvas-shell">
@@ -337,9 +430,19 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
           <div className="tactical-map-inset" style={{ position: 'absolute', right: 10, bottom: 10, width: 'min(34%, 340px)', height: 180 }}>{mapView(true)}</div>
         </>)}
       </div>
+      <div className="tactical-html-legend" role="list" aria-label="Tactical map legend">
+        <span role="listitem"><i className="legend-solo" aria-hidden="true" />Solo</span>
+        <span role="listitem"><i className="legend-group" aria-hidden="true" />Group / active front</span>
+        <span role="listitem"><i className="legend-reserve" aria-hidden="true" />Reserve</span>
+        <span role="listitem"><i className="legend-effective" aria-hidden="true" />Effective path</span>
+        <span role="listitem"><i className="legend-blocked" aria-hidden="true" />Blocked / countered</span>
+        <span role="listitem"><i className="legend-range" aria-hidden="true" />Range / area</span>
+        <span role="listitem"><i className="legend-hazard" aria-hidden="true" />Fixed hazard</span>
+      </div>
+      <p className="tactical-scale-disclosure" role="note">{tacticalPlan.scaleDisclosure ?? 'Contestants use one shared physical scale; side halos and labels identify allegiance.'}</p>
       {!webGlAvailable && <p className="section-intro" data-testid="no-webgl-fallback">WebGL is unavailable; the synchronized tactical map, captions, controls and transcript remain complete.</p>}
 
-      <section className="tactical-callout" data-testid="tactical-callout" aria-live="polite" aria-atomic="true">
+      <section className="tactical-callout" data-testid="tactical-callout">
         <header>
           <span><span className="visually-hidden">Phase {beat.phaseIndex + 1} of 7 · Beat {phaseBeatIndex + 1} of {phaseBeats.length}</span><span aria-hidden="true">P{beat.phaseIndex + 1}/7 · B{phaseBeatIndex + 1}/{phaseBeats.length}</span></span>
           <strong>{beat.title}</strong>
@@ -354,7 +457,14 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
         <p><strong>Evidence:</strong> {beat.evidenceIds.join(', ') || 'Validated scenario conditions'}</p>
       </section>
 
-      <div className="tactical-primary-controls" aria-label="Tactical playback controls">
+      <section className="tactical-state" aria-labelledby="tactical-state-heading">
+        <div><h4 id="tactical-state-heading">Battle state</h4><p>Aggregate evidence only—no individual wounds or casualty sequence is invented.</p></div>
+        <div className="tactical-state-strips" role="list">
+          {stateStrips.map((strip) => <article key={strip.id} role="listitem" data-tone={strip.tone}><span>{strip.label}</span><strong>{strip.value}</strong></article>)}
+        </div>
+      </section>
+
+      <div className="tactical-primary-controls" role="group" aria-label="Tactical playback controls">
         <button type="button" onClick={() => setPlaying((current) => !current)} disabled={reducedMotion} aria-pressed={playing}>{playing ? 'Pause reconstruction' : 'Play reconstruction'}</button>
         <button type="button" onClick={() => moveBeat(-1)} disabled={beatIndex === 0}>Previous beat</button>
         <button type="button" onClick={() => moveBeat(1)} disabled={beatIndex === beats.length - 1}>Next beat</button>
@@ -362,7 +472,7 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
         <label>Speed <select value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value={0.5}>0.5×</option><option value={1}>1×</option><option value={2}>2×</option></select></label>
       </div>
 
-      <div className="tactical-view-switch" aria-label="Tactical camera mode">
+      <div className="tactical-view-switch" role="group" aria-label="Tactical camera mode">
         <button type="button" aria-pressed={viewMode === 'story'} disabled={!webGlAvailable || storyboard.reconstructionType === 'conceptual-scale'} onClick={() => setViewMode('story')}>Story camera</button>
         <button type="button" aria-pressed={viewMode === 'map'} onClick={() => setViewMode('map')}>Tactical map</button>
         <button type="button" aria-pressed={viewMode === 'free'} disabled={!webGlAvailable || storyboard.reconstructionType === 'conceptual-scale'} onClick={() => setViewMode('free')}>Free look</button>
@@ -388,12 +498,13 @@ export function TacticalReconstructionPanel({ input, onAnotherReconstruction }: 
         })}
       </nav>
 
-      <div className="tactical-count-chips" aria-label="Quantity representation">
+      <div className="tactical-count-chips" role="group" aria-label="Quantity pipeline and visual representation">
         <EvidenceTooltip label="The group quantity entered for the authoritative simulation." technicalDetail={`Declared quantity log10: ${storyboard.representedQuantity.declaredQuantityLog10}.`}><strong>{input.scenario.groupQuantity}</strong> declared</EvidenceTooltip>
+        <EvidenceTooltip label="The declared group remaining after arena occupancy limits." technicalDetail={`Arena-usable quantity log10: ${input.result.technical.groupUsableQuantityLog10}.`}><strong>{logQuantity(input.result.technical.groupUsableQuantityLog10)}</strong> arena usable</EvidenceTooltip>
+        <EvidenceTooltip label="The group members that can contribute at the resolved physical frontage." technicalDetail={`Frontage capacity: ${input.result.technical.groupFrontageCapacity}.`}><strong>{formatQuantity(activeFrontage)}</strong> active frontage</EvidenceTooltip>
+        <EvidenceTooltip label="The aggregate count basis after arena, access, frontage and bounded reserve weighting." technicalDetail={`Effective quantity log10: ${input.result.technical.groupEffectiveQuantityLog10}.`}><strong>{logQuantity(input.result.technical.groupEffectiveQuantityLog10)}</strong> effective pressure</EvidenceTooltip>
         <EvidenceTooltip label="The capped number of representative group figures visible in the reconstruction." technicalDetail="Visible figures are capped at 80 and never change the simulation."><strong>{groupActor?.visibleCount ?? 0}</strong> shown</EvidenceTooltip>
         <EvidenceTooltip label="The approximate declared quantity represented by each visible group figure." technicalDetail={storyboard.representedQuantity.abstractionLabel}><strong>{storyboard.representedQuantity.representedActorsPerVisibleActor === null ? 'aggregate' : `≈${formatQuantity(storyboard.representedQuantity.representedActorsPerVisibleActor)}`}</strong> per figure</EvidenceTooltip>
-        <EvidenceTooltip label="The figures that can contribute at the resolved frontage now." technicalDetail={`Effective active count log10: ${storyboard.representedQuantity.effectiveActiveCountLog10 ?? 'not applicable'}.`}><strong>{groupActor?.visibleActiveCount ?? 0}</strong> active-front figures</EvidenceTooltip>
-        <EvidenceTooltip label="Visible representative figures staged behind the active frontage. Their broader reserve contribution is represented by the authoritative quantity model." technicalDetail={`${formatQuantity(groupActor?.reserveCount ?? 0)} declared members remain beyond the active count.`}><strong>{groupActor?.visibleReserveCount ?? 0}</strong> reserve figures</EvidenceTooltip>
       </div>
 
       <details className="tactical-advanced-controls">

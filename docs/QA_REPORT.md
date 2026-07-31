@@ -1,107 +1,83 @@
-# What Would Win — application 0.7.1 release QA report
+# What Would Win — application 0.8.0 release QA report
 
-**QA date:** 28 July 2026
+**QA date:** 31 July 2026
 
-**Release identity:** application **0.7.1**, model **0.4.2**, data **0.4.1**, storyboard **v2**, share format **v4**, custom/history storage **v2**
+**Release identity:** application **0.8.0**, model **0.5.0**, data **0.5.0**, storyboard **v3**, share format **v5**, custom/history storage **v3**
 
 ## Verified automated checks on the current worktree
 
-- `npm test`: **374/374 tests passed across 29 Vitest files** after the complete release audit.
-- `npm run audit:narrative`: **90/90 focused tests passed** across reader narrative, storyboard and tactical choreography.
-- `npm run audit:narrative-semantics`: **75/75 focused tests passed** across identity grammar, battlefield semantics, causal selection, fallback and reader validation.
-- Release audits passed: **134 profiles**, 33 habitats, 58 attack modes and 68 traits; the semantic audit reported **0 errors and 0 warnings**.
-- The model-0.4 migration contract covered all **134 profiles** and the ability audit routed **118/118 mechanical source tokens**.
-- Provenance covered **134 records**; public legal and bundled-runtime notice checks passed.
+- `npm test`: **393/393 tests passed across 30 Vitest files** after the complete release audit.
+
+- `npm run audit:narrative`: **90/90 passed**.
+- `npm run audit:narrative-semantics`: **75/75 passed**.
+- Semantic audit: **139 profiles**, 33 habitats, 61 attack modes and 71 traits; **0 errors and 0 warnings**.
+- Ability audit: **130 defining mechanical source tokens** routed across all 139 profiles.
+- Provenance: **139/139 generated records** verified.
 - `npm run typecheck`: passed.
-- `npm run test:simulation-budget`: **1/1 passed** below its two-second gate.
+- `npm run test:simulation-budget`: **1/1 passed in 95 ms**, below its two-second gate.
 - `npm run build`: passed with Vite 8.1.5 and **178 transformed modules**.
-- `node scripts/check-build-budgets.mjs`: every original-core, presentation and aggregate ceiling passed.
-- `node scripts/check-static-subpath.mjs`: all **7** local references resolved inside `/apps/what-would-win/`.
-- Complete Playwright matrix: **192 passed, 20 intentional project-scope skips, 0 failed** across desktop Chromium, touch/mobile Chromium, desktop Firefox and desktop WebKit.
+- `node scripts/check-static-subpath.mjs`: **7/7 local references** resolved inside `/apps/what-would-win/`.
+- `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
+- Complete Playwright matrix: **220 total tests: 200 passed, 20 intentional project-scope skips, 0 failed** in 7.6 minutes across desktop Chromium, mobile 360 Chromium, desktop Firefox and desktop WebKit.
+- The initial four-worker local run exposed five overload-sensitive timeouts or Firefox teardown failures. Each affected scenario passed in focused reruns, and the final two-worker matrix above passed cleanly; local execution now matches CI concurrency.
 
-The unit suite preserves the historical 16 calibration fixtures, reviewed winners and exact six-pilot outcome goldens. The 0.7.1 matrix adds typed medium/archetype coverage, mechanic-specific turning/resolution checks, exact/relative and singleton grammar, identity-safe custom names, forced quality fallback, plain-language tooltips, ranked-cause diagnostics and an explicit proof that Story generation does not mutate the authoritative result, factors, abilities, sensitivity or deterministic state. New narrative coverage adds resolved identity, physical contact reach, causal selection, relevance filtering, paragraph/word/sentence quality, story-seed invariance, conceptual scale, close contests, depleted ranged resources, countered regeneration, dry-land aquatic-event omission and reader renderability for all 134 profiles in both ordinary matchup roles. Storyboard-v2 evidence, actor continuity, hazards and the 80-actor cap remain covered.
+## Authoritative model and compatibility coverage
 
-Validator mutation tests reject altered prose or evidence, unknown or unscoped references, successful rejected abilities, ignored counters, wrong phase/event links, understated or excessive geometry, discontinuous or pursuing hazards, unsupported media, hidden compression, duplicate event coverage, graphic injury and a closing outcome that disagrees with the authoritative result.
+The 0.5 contract fixes every report depth at 15,000 seeded trials, contribution-weights only executable group routes, gives rejected or inaccessible routes zero access, preserves quantity-one/equal-mobility side symmetry and distinguishes mutual non-engagement from one-way and two-way contests. Calculated log powers are canonicalized below model precision before they select the seeded trial stream, so JS-runtime math noise cannot change the authoritative outcome. Tests cover decisive outcomes, one-way access, deterministic draws, report-depth invariance, quantity symmetry, arboreal locomotion and preparation-dependent abilities.
 
-## Pilot choreography evidence
+Storyboard-v3 creation now requires a decisive simulation result at the TypeScript boundary. Draw result JSON emits `null` storyboard, battle-narrative and reader-narrative fields with an explicit notice; the Story and tactical panels refuse to invent phases, attacks, injuries or a winner. Storyboard-only export is disabled for draws.
 
-1. **African bush elephant vs 100 gray wolves:** spread, elephant charge, replacement wave and rout; active-front wolves are separated from reserves.
-2. **Golden eagle vs 1,000,000 house mice:** altitude/shadow, representative density pressure and compressed resolution; 48 figures disclose roughly 20,833 mice per figure.
-3. **Western dragon vs 200 prepared archers:** volley, flight/approach angle and bounded fire area; bow resources and resolved geometry remain visible.
-4. **Medusa vs 20 armoured spear carriers:** facing/line-of-sight setup, authoritative gaze resolution and disciplined advance.
-5. **Giant spider vs one white rhinoceros:** web attempt, restraint/mass ceiling and supply, then contact resolution.
-6. **Charybdis vs one orca:** fixed 40 m hazard boundary, inward orca trajectory and boundary resolution; every Charybdis event remains origin-anchored.
+V5 shares migrate released v4 model/data identities without changing scenario or custom inputs. V2 custom/history bytes are copied to v3 and retained as recovery copies, v2 custom profiles default `arboreal` to `false`, and prior results stay labelled as snapshots pending explicit model-0.5 recalculation.
 
-The complete technical storyboard still contains every legal beat. The default reader account now selects only the evidence-backed causal spine. For the supplied horse-sized mallard versus 100 duck-sized horses regression, the previously exposed brief-plus-phases account was **818 words**; the 0.7.1 default is **233 words in five paragraphs** while adding the resolved **600 kg versus 1.5 kg** bodies, physical contact reach, roughly **six** simultaneous attackers, an explicit access turning point and a concrete minority path. No unrestricted generated prose is used.
+## Roster and presentation coverage
+
+The canonical 139-profile roster is 76 living, 21 extinct, 38 fantasy/mythology and 4 generic human profiles. The release adds exactly five profiles: bearded capuchin monkey, Bornean orangutan, giant anteater, Quetzalcoatlus and generic wraith. Thirty-seven complex profiles have reviewed overrides, including the existing chimpanzee, gorilla and baboon assumptions.
+
+The browser matrix covers the probability display and 50% marker, uncertainty band, quantity pipeline, keyboard result tabs, five-stage causal rail, evidence markers, “What could flip it”, tactical HUD/state strips, responsive legend, shared-scale disclosure, primate and pterosaur visual archetypes, reduced motion, forced colours, text spacing, narrow reflow, no-WebGL fallback, exports, share/history migration and draw-safe suppression. Essential meaning remains in HTML rather than relying on colour, canvas or hover.
 
 ## Production build snapshot
 
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 451,365 bytes | 455,000 bytes |
+| Entry JavaScript | 456,762 bytes | 460,000 bytes |
 | Optional UI JavaScript | 18,632 bytes | 21,000 bytes |
-| Presentation JavaScript | 125,220 bytes | 128,000 bytes |
-| Lazy tactical runtime JavaScript | 942,594 bytes | 950,000 bytes |
-| Largest archetype asset | 0 bytes | 350,000 bytes |
-| Largest environment asset | 0 bytes | 500,000 bytes |
-| Largest audio asset | 0 bytes | 250,000 bytes |
-| Selected tactical assets | 0 bytes | 1,200,000 bytes |
-| Model-0.4 runtime JavaScript | 96,294 bytes | 100,000 bytes |
-| Original core JavaScript | 566,291 bytes | 575,000 bytes |
-| Total JavaScript | 1,634,105 bytes | 1,640,000 bytes |
-| Creature roster | 120,725 bytes | 125,000 bytes |
-| Core CSS | 25,733 bytes | 26,000 bytes |
-| Reconstruction CSS | 6,621 bytes | 6,750 bytes |
-| Total CSS | 32,354 bytes | 32,750 bytes |
-| Original core deployable payload | 823,900 bytes | 835,000 bytes |
-| Total deployable payload | 1,898,335 bytes | 1,905,000 bytes |
+| Presentation JavaScript | 126,711 bytes | 150,000 bytes |
+| Lazy tactical runtime JavaScript | 949,295 bytes | 980,000 bytes |
+| Model runtime JavaScript | 112,318 bytes | 115,000 bytes |
+| Original core JavaScript | 587,712 bytes | 590,000 bytes |
+| Total JavaScript | 1,663,718 bytes | 1,750,000 bytes |
+| Creature roster | 125,270 bytes | 132,000 bytes |
+| Core CSS | 28,510 bytes | 29,000 bytes |
+| Reconstruction CSS | 11,883 bytes | 12,000 bytes |
+| Total CSS | 40,393 bytes | 41,000 bytes |
+| Original core deployable payload | 852,643 bytes | 855,000 bytes |
+| Total deployable payload | 1,940,532 bytes | 2,050,000 bytes |
 | Social image | 238,563 bytes | 300,000 bytes |
 
-The largest lazy scene output is 903,863 bytes raw / 240.52 kB gzip. It remains outside the eager verdict graph. Version 0.7.1 adds no dependency or external tactical visual/audio bytes. The reader layer stays in the existing lazy presentation graph.
+The largest lazy tactical scene is 903,715 bytes raw and remains outside the eager verdict graph. The release adds no external tactical model, texture or audio payloads.
 
-## Browser and accessibility evidence
+## Exact headed visual evidence
 
-The exact production build passed the five-paragraph default Story, closed seven-phase detail, Story/Analyst switching, reader-safe evidence tooltips, resolved-size/quantity/turning-point copy, keyboard playback, beat and phase seeking, Story camera, Tactical map and Free look, pointer and pinch gestures, reduced-motion stable states, no-WebGL map fallback, deferred scene loading, transcript parity, composite PNG/WebM capture, storyboard/result exports, sharing, history and story-seed reproduction. The matrix also covers ordinary and mythical one-versus-one grammar, omission of singleton reserve disclosure, Charybdis remaining stationary while the orca approaches through water, useful non-technical tooltip facts and Analyst diagnostic target sizes.
+A headed Chromium session inspected the exact production build at 988 × 900 CSS pixels. It confirmed a decisive 96.0% result, the complete five-stage causal rail, minority path, quantity disclosure, tactical map/HUD/state/legend, and a deterministic Vampire-versus-Charybdis mutual non-engagement draw. The captures were visually reviewed for clipping, overflow and hierarchy; none was found.
 
-- Axe checks passed for the initial app, custom editor, technical/conceptual records, Story, Analyst, expanded evidence, reconstruction and tactical-map states.
-- Keyboard/focus, accessible names, 320/360/412 px reflow, user text spacing, forced-colour mode and ARIA-tree coverage passed in their applicable projects.
-- The 412 px forced-colour/text-spacing stress case explicitly retains **Who, What, Target, Result and Why**, has no serious axe violations and produces no horizontal page overflow.
-- Essential evidence remains in Story/Analyst HTML, callouts and transcript without hover or WebGL. Colour is paired with side markers, patterns, line styles and labels.
-- System and user reduced-motion behavior pauses automatic playback and uses stable before/after states.
-- No-WebGL retains the synchronized 2D Canvas map, HTML legend/description, beat controls, captions and transcript.
+| Local ignored capture | Dimensions | Bytes | SHA-256 |
+|---|---:|---:|---|
+| `output/playwright/quality-pass-0.8.0/decisive-likely-battle-final.png` | 886 × 1,438 | 317,995 | `6e89c8df3edd927cbc949047e5f5deffd99275930f93655ac91187085ab28ff1` |
+| `output/playwright/quality-pass-0.8.0/decisive-tactical-map-final.png` | 871 × 1,840 | 280,114 | `cbfbb3b3d6db6efbebfb831ebe3bd592ade1551ff18deaf02b4e3578309f58aa` |
+| `output/playwright/quality-pass-0.8.0/tactical-state-final.png` | 886 × 136 | 22,321 | `5e09ca14316a2f0cbde4458068e3dddc35b12b01299009f9570cc5369ebecc0d` |
+| `output/playwright/quality-pass-0.8.0/tactical-timeline-final.png` | 886 × 103 | 9,801 | `4662ca6559f462ef8404867d28dbe5d3e8e622224e9137c576f43071c2fbd029` |
+| `output/playwright/quality-pass-0.8.0/tactical-quantity-final.png` | 886 × 41 | 14,948 | `0132f629ac5d0dcf9c7a768e950213209ff2116bee8b1e2dddeef9a50a12c349` |
+| `output/playwright/quality-pass-0.8.0/draw-non-engagement-final.png` | 871 × 232 | 30,853 | `eedc3fd81772a1cd6baa6d9a5617fad9d32083b1531d9d888e9fee7aab469614` |
 
-The tracked captures below are retained 0.6.0 visual evidence, not exact 0.7.1 capture evidence. Application 0.7.1 materially changes the default Story layout, so those images are historical comparison evidence only. The exact 0.7.1 production artifact is covered by the current four-project Playwright matrix.
+The headed session reported no console errors. Its one warning is Three.js' upstream `THREE.Clock` deprecation; context loss was logged when the lazy tactical canvas was deliberately removed for the draw state.
 
-| Tracked evidence | Bytes | SHA-256 |
-|---|---:|---|
-| [`dragon-archers-story-desktop.png`](assets/evidence-0.6.0/dragon-archers-story-desktop.png) | 325,138 | `07c4698cc4c964a46b46eadc51e6c5ff221b04586d010569602f89276dd2fa19` |
-| [`dragon-archers-guided-desktop.png`](assets/evidence-0.6.0/dragon-archers-guided-desktop.png) | 259,534 | `2c2950758d5901399e8753a312edfac8d2cce44892a63c02fb89dfeb48dfb229` |
-| [`eagle-mice-story-mobile.png`](assets/evidence-0.6.0/eagle-mice-story-mobile.png) | 1,084,569 | `6df344d5a5e3000a04d95b7eab3a4eb6e169ab33ac662ea8f1265833b972de2f` |
-| [`eagle-mice-guided-mobile.png`](assets/evidence-0.6.0/eagle-mice-guided-mobile.png) | 1,087,739 | `fb4b273ca5f45e1fb4a75abd85bd671c9254b0053eebb90592382d4cd3bfb236` |
-| [`runtime-evidence.json`](assets/evidence-0.6.0/runtime-evidence.json) | 643 | `51f2177ad5cf78f5e1268a4593c632fd3cd36cb1ac5ed5df9165c45e1928956c` |
+## Evidence boundaries and remaining risks
 
-Headless Chromium observed 16.6658 ms mean / 16.7 ms p95 / 16.8 ms maximum animation-frame intervals and 17.1 MB used JavaScript heap for dragon/archers at 1440 × 1000. Eagle/mice at 412 × 915 touch observed 16.6664 ms mean / 16.8 ms p95 / 16.8 ms maximum and 11.2 MB. These are browser-pipeline and JavaScript-heap observations, not physical GPU or total scene-memory measurements.
-
-## Investigation discrepancy
-
-Repository documentation still described application 0.7.0 as awaiting website sync even though the prior release had already been deployed. The 0.7.1 work therefore treated those status lines as stale and requires a fresh website-repository sync plus live-route verification before claiming this release is public.
-
-## Prior physical-device evidence and current deployment status
-
-- The prior 0.6.0 candidate build was served by the **laptop** from `0.0.0.0:4175`; laptop browsers used `http://localhost:4175/` and the phone was a same-LAN client of the laptop host. The phone did not host the application.
-- A prior near-final physical run on the SM-S948B (Android 16, Chrome 150) passed native touch controls, Free look, pinch, pinned tooltips, dragon/eagle callout assertions and Adreno 840 WebGL rendering. Its p95 frame interval was 16.8 ms; observed JavaScript heaps were 21.6 MB and 36.5 MB, and process private dirty memory was about 145,004 KiB. Those process/heap observations are not a direct GPU-plus-scene-memory measurement.
-- The user independently confirmed the eagle case communicated actor, action, target, result and eventual winner. Human dragon comprehension sign-off remains pending.
-- A recapture on the exact final candidate remains pending because `adb devices -l` later returned no devices. The prior physical run must not be described as exact-final-build device evidence.
-- Real NVDA, VoiceOver and TalkBack checks and physical iOS/Safari checks remain **not performed**; automated axe and accessibility-tree coverage must not be described as real screen-reader validation.
-- Physical-device PNG/WebM/JSON download checks remain **not performed**.
-- Website publication is tracked and verified separately in the Samfa12 website repository; this source QA report records artifact gates and must not be used alone as evidence of current live state.
-
-## Known QA gaps and risks
-
-- Recapture dragon and eagle on the exact final candidate once ADB exposes the SM-S948B, and obtain the remaining human dragon comprehension sign-off. The tester must identify both sides, current actor, action, target, result and eventual winner without opening the transcript.
-- Run real NVDA/TalkBack/VoiceOver and physical iOS/Safari passes. The 192 MB GPU-plus-scene-memory target still needs a direct device-appropriate measurement; JavaScript heap and process private dirty figures are supporting observations, not substitutes.
-- Primitive archetypes are explanatory tokens, not anatomical models; there are no bespoke glTF models, authored creature animations or audio assets.
-- Canvas recording support remains browser-dependent.
-- Structured abilities remain aggregate factors rather than per-projectile, anatomy or individual Monte Carlo event histories.
-- Dense imported custom profiles may exceed the 18-beat presentation target when their authoritative events cannot be legally grouped; the storyboard preserves evidence and chronology instead of merging non-equivalent actions.
-- Physical inputs, ordinary duration/loss heuristics and selected sensitivity perturbations require continued scientific, cultural and game-systems review.
+- Exact-final physical iOS/Safari and Android validation was **not performed**. Prior Android evidence belongs to an older build and is not 0.8 evidence.
+- Real NVDA, VoiceOver and TalkBack validation was **not performed**. Automated axe, keyboard and accessibility-tree results are not substitutes for real assistive-technology checks.
+- Physical-device PNG/WebM/JSON download checks and direct GPU/total-scene-memory measurements were **not performed**.
+- Website publication is handled by the separate website release workflow after this exact source tree is merged and synced.
+- Primitive archetypes communicate category, side and scale; they are not bespoke anatomical models or authored creature animation.
+- The model remains aggregate. It does not simulate wounds, anatomy, individual projectiles, delayed disease/venom, mixed teams or per-trial event histories.
+- Authored biological, extinct and mythology values still benefit from continued zoological, palaeontological and cultural review.
+- Canvas recording remains browser-dependent. The upstream Three.js clock deprecation should be retired during the next dependency/runtime maintenance pass.

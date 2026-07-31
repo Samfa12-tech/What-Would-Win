@@ -1,10 +1,12 @@
-# What Would Win — 134-profile data dictionary
+# What Would Win — 139-profile data dictionary
 
 ## Purpose
 
-This directory contains the editable model database and behavioural fixtures for the prototype. It contains **134 profiles**: 73 living animals, 20 extinct animals, 37 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles.
+This directory contains the editable model database and behavioural fixtures for the prototype. It contains **139 profiles**: 76 living animals, 21 extinct animals, 38 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles.
 
 The database is selected for mechanics coverage and scenario value. It is not a complete taxonomy and is not a validated zoological dataset. The 0.2 breadth pass is documented in `docs/SUBREDDIT_RESEARCH.md`.
+
+The 0.8 quality slice adds exactly five reviewed profiles: Bearded capuchin monkey, Bornean orangutan, giant anteater, Quetzalcoatlus and generic wraith. It also replaces conservative migration for gorilla, chimpanzee and olive baboon with reviewed bite, grapple, strike, prepared-tool and troop routes. Prepared primate tools remain unavailable without declared preparation; arboreal access, spirit physiology, incorporeal interaction and morale pressure are structured mechanics.
 
 ## Files
 
@@ -57,7 +59,7 @@ These scores are **authored game-model inputs**, not measurements. Future data s
 
 - `habitats` are mechanically active exact terrain-affinity labels because the scenario schema remains open to non-UI terrain strings; reviewed subsets also provide dry-land or aquatic inference.
 - `attack_modes` route into capability derivation, stopping/access mechanics and explanatory copy, or describe contact delivery without an independent coefficient.
-- `traits` route into capabilities and specialised mechanics such as swarm, pack, formation, fire, electric, many-limbs, armour, night vision and cold adaptation, or provide descriptive profile context.
+- `traits` route into capabilities and specialised mechanics such as swarm, pack, troop, formation, prepared tool use, arboreal access, incorporeal interaction, morale pressure, fire, electric, many-limbs, armour, night vision and cold adaptation, or provide descriptive profile context.
 - capability booleans provide fast, explicit checks for flight, aquatic movement, venom, range, regeneration and undead/construct physiology.
 
 `mechanics-vocabulary.json` is the controlled registry for all built-in tag strings and records whether each token is mechanically consumed or descriptive. Some mechanical tokens appear in more than one family because the engine uses them in more than one calculation. `npm run audit:semantics` rejects unknown built-in tags and inconsistent derived capabilities with stable, sorted diagnostics.

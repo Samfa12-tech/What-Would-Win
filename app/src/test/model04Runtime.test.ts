@@ -1,9 +1,10 @@
 import { describe, expect, test, vi } from 'vitest'
 import creaturesJson from '../../../data/creatures.json'
 import { cloneAsCustom } from '../customCreatures'
-import { migrateCreatureV3ToV4Draft } from '../model04/migrateV3'
-import { MODEL_04_CUSTOM_STORAGE_KEY } from '../model04/persistence'
+import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from '../model04/migrateV3'
+import { MODEL_04_CUSTOM_STORAGE_KEY, MODEL_04_HISTORY_STORAGE_KEY } from '../model04/persistence'
 import { defaultScenario } from '../simulation/engine'
+import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from '../model04/contracts'
 import { Model04Runtime } from '../model04/runtime'
 import { simulateModel04 } from '../model04/engineV4'
 import type { Creature, HistoryItem } from '../types'
@@ -20,16 +21,41 @@ class MemoryStorage implements Storage {
   setItem(key: string, value: string) { this.values.set(key, value) }
 }
 
+const PREVIOUS_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
+
+function previousHistoryStore() {
+  const scenario = migrateScenarioV3ToV4Draft(defaultScenario(creatures))
+  return {
+    storageVersion: 2,
+    items: [{
+      formatVersion: 2,
+      source: { shareFormat: 'storage-v2', modelVersion: '0.4.2', dataVersion: '0.4.1' },
+      id: 'migrated-history-item',
+      createdAt: '2026-07-19T00:00:00.000Z',
+      scenario,
+      soloName: 'Previous solo',
+      groupName: 'Previous group',
+      result: {
+        status: 'current',
+        modelVersion: '0.4.2',
+        dataVersion: '0.4.1',
+        winnerName: 'Previous winner',
+        soloWinProbability: 0.75,
+      },
+      migrationNotices: [],
+    }],
+  }
+}
 describe('model 0.4 activation runtime boundary', () => {
-  test('activates 134 reviewed profiles and simulates from the existing UI scenario shape', () => {
+  test('activates 139 reviewed profiles and simulates from the existing UI scenario shape', () => {
     const runtime = new Model04Runtime(creatures)
-    expect(runtime.creatures).toHaveLength(134)
+    expect(runtime.creatures).toHaveLength(139)
     expect(runtime.creatures.every((creature) => !creature.migration.reviewRequired)).toBe(true)
     const run = runtime.simulate(defaultScenario(creatures), {
       solo: { defaultPercent: 100, abilityPercent: {} },
       group: { defaultPercent: 50, abilityPercent: {} },
     })
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.4.2', dataVersion: '0.4.1' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.5.0' })
     expect(run.scenario).toMatchObject({ schemaVersion: 4, soloResources: { defaultPercent: 100 }, groupResources: { defaultPercent: 50 } })
     expect(run.contestants).toMatchObject({ solo: { id: run.scenario.soloId, schemaVersion: 4 }, group: { id: run.scenario.groupId, schemaVersion: 4 } })
     expect(run.abilityResolutions.length).toBeGreaterThan(0)
@@ -130,6 +156,57 @@ describe('model 0.4 activation runtime boundary', () => {
     expect(runtime.historyInputs(storage, historyItem.id)?.resources.solo.abilityPercent['legacy-contact']).toBe(17)
   })
 
+  test('finalizes a pending migrated history item with the current recalculated result', () => {
+    const runtime = new Model04Runtime(creatures)
+    const storage = new MemoryStorage()
+    storage.setItem(PREVIOUS_HISTORY_STORAGE_KEY, JSON.stringify(previousHistoryStore()))
+    const loaded = runtime.loadHistory(storage, creatures)
+    const inputs = runtime.historyInputs(storage, loaded.items[0].id)
+    if (!inputs) throw new Error('Expected migrated history inputs.')
+    const recalculated: HistoryItem = {
+      ...loaded.items[0],
+      modelVersion: MODEL_04_VERSION,
+      dataVersion: MODEL_04_DATA_VERSION,
+      winnerName: 'Recalculated winner',
+      soloWinProbability: 0.625,
+    }
+
+    runtime.saveHistory(storage, [recalculated], inputs.resources)
+
+    const saved = JSON.parse(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY) ?? '{}')
+    expect(saved.items[0]).toMatchObject({
+      result: {
+        status: 'current',
+        modelVersion: MODEL_04_VERSION,
+        dataVersion: MODEL_04_DATA_VERSION,
+        winnerName: 'Recalculated winner',
+        soloWinProbability: 0.625,
+      },
+    })
+    expect(saved.items[0].migrationNotices).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'history-result-pending-model-050' }),
+    ]))
+    expect(runtime.loadHistory(storage, creatures).items[0]).toMatchObject({
+      modelVersion: MODEL_04_VERSION,
+      dataVersion: MODEL_04_DATA_VERSION,
+      winnerName: 'Recalculated winner',
+      soloWinProbability: 0.625,
+    })
+  })
+
+  test('clears current history with an empty tombstone without deleting or reviving recovery bytes', () => {
+    const runtime = new Model04Runtime(creatures)
+    const storage = new MemoryStorage()
+    const previousRaw = JSON.stringify(previousHistoryStore())
+    storage.setItem(PREVIOUS_HISTORY_STORAGE_KEY, previousRaw)
+    expect(runtime.loadHistory(storage, creatures).items).toHaveLength(1)
+
+    runtime.clearHistory(storage)
+
+    expect(storage.getItem(PREVIOUS_HISTORY_STORAGE_KEY)).toBe(previousRaw)
+    expect(JSON.parse(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY) ?? '{}')).toEqual({ storageVersion: 3, items: [] })
+    expect(runtime.loadHistory(storage, creatures).items).toEqual([])
+  })
   test('preserves imported structured custom abilities when legacy fields are edited and saved', () => {
     const runtime = new Model04Runtime(creatures)
     const storage = new MemoryStorage()
@@ -150,8 +227,8 @@ describe('model 0.4 activation runtime boundary', () => {
       notes: 'User-authored structured ability.',
     })
     storage.setItem(MODEL_04_CUSTOM_STORAGE_KEY, JSON.stringify({
-      storageVersion: 2,
-      items: [{ ...saved, creature: profile, migration: { sourceStorageVersion: 2, notices: [] } }],
+      storageVersion: 3,
+      items: [{ ...saved, creature: profile, migration: { sourceStorageVersion: 3, notices: [] } }],
     }))
 
     const [loaded] = runtime.loadCustoms(storage).items
@@ -171,7 +248,7 @@ describe('model 0.4 activation runtime boundary', () => {
       name: 'Authored fire burst',
     })
     expect(runtime.exportCustom({ ...loaded, creature: { ...loaded.creature, name: 'Edited without ability loss' } })).toMatchObject({
-      storageVersion: 2,
+      storageVersion: 3,
       item: { creature: { name: 'Edited without ability loss', channelModifiers: { fire: 0.25 } } },
     })
   })

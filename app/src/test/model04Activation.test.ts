@@ -61,20 +61,20 @@ function resultIdentity(run: Model04RuntimeResult) {
 describe('model 0.4 atomic activation contract', () => {
   test('locks application and active model, data, share, custom and history identities explicitly', () => {
     expect(packageJson.version).toBe(APPLICATION_VERSION)
-    expect(String(APPLICATION_VERSION)).toBe('0.7.1')
+    expect(String(APPLICATION_VERSION)).toBe('0.8.0')
     expect(String(MODEL_VERSION)).toBe(MODEL_04_VERSION)
     expect(String(DATA_VERSION)).toBe(MODEL_04_DATA_VERSION)
     expect(Number(SHARE_FORMAT_VERSION)).toBe(MODEL_04_SHARE_FORMAT_VERSION)
-    expect(MODEL_04_CUSTOM_STORAGE_VERSION).toBe(2)
-    expect(MODEL_04_HISTORY_STORAGE_VERSION).toBe(2)
-    expect(MODEL_04_CUSTOM_STORAGE_KEY).toMatch(/-v2$/)
-    expect(MODEL_04_HISTORY_STORAGE_KEY).toMatch(/-v2$/)
+    expect(MODEL_04_CUSTOM_STORAGE_VERSION).toBe(3)
+    expect(MODEL_04_HISTORY_STORAGE_VERSION).toBe(3)
+    expect(MODEL_04_CUSTOM_STORAGE_KEY).toMatch(/-v3$/)
+    expect(MODEL_04_HISTORY_STORAGE_KEY).toMatch(/-v3$/)
   })
 
   test('activates the complete reviewed canonical roster without legacy markers', () => {
-    expect(runtime.creatures).toHaveLength(134)
+    expect(runtime.creatures).toHaveLength(139)
     expect(runtime.creatures.map((creature) => creature.id)).toEqual(creatures.map((creature) => creature.id))
-    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(134)
+    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(139)
     expect(runtime.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(runtime.creatures.every((creature) => creature.abilities.every((ability) => !('legacyGenerated' in ability)))).toBe(true)
   })

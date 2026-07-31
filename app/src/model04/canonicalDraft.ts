@@ -17,7 +17,7 @@ export interface ComplexProfileOverride {
 
 export interface ComplexProfileOverrideStore {
   schemaVersion: 1
-  targetModel: '0.4.1'
+  targetModel: '0.5.0'
   profiles: ComplexProfileOverride[]
 }
 
@@ -94,7 +94,7 @@ export function activateCanonicalModel04Data(draft: CanonicalModel04Draft): Acti
       review: {
         status: 'reviewed' as const,
         interpretation: 'Conservative model 0.3 migration',
-        note: 'Accepted for model 0.4.1 only where the release ability-coverage audit confirms that every mechanical source token has a truthful route or a documented descriptive-only decision.',
+        note: 'Accepted for model 0.5.0 only where the release ability-coverage audit confirms that every mechanical source token has a truthful route or a documented descriptive-only decision.',
       },
     }
   })

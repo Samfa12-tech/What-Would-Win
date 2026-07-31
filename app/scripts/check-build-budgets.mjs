@@ -9,29 +9,32 @@ const budgets = {
   // Keep startup code, optional code and authored data visible as separate costs.
   // A split must reduce the eager path; moving bytes between chunks cannot conceal
   // growth in total JavaScript or in the complete published artifact.
-  entryJavascript: 455_000,
+  entryJavascript: 460_000,
   optionalUiJavascript: 21_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
-  // Application 0.7.1 adds the deterministic medium/archetype planner, causal diagnostics,
-  // mechanic-specific prose and safe fallback to this lazy presentation graph.
-  presentationJavascript: 128_000,
-  tacticalRuntimeJavascript: 950_000,
+  // Application 0.8.0 adds outcome uncertainty, a causal rail and evidence-backed
+  // tactical state communication while keeping the presentation graph lazy.
+  presentationJavascript: 150_000,
+  tacticalRuntimeJavascript: 980_000,
   // Procedural 0.5 scenes ship no external media. These gates reserve explicit
   // per-file limits for later selected-only archetype, environment and audio assets.
   archetypeAssetMax: 350_000,
   environmentAssetMax: 500_000,
   audioAssetMax: 250_000,
   selectedTacticalAssets: 1_200_000,
-  model04RuntimeJavascript: 100_000,
-  coreJavascript: 575_000,
-  javascript: 1_640_000,
-  creatureRoster: 125_000,
-  coreCss: 26_000,
-  reconstructionCss: 6_750,
-  css: 32_750,
-  total: 1_905_000,
-  coreDeployable: 835_000,
+  model04RuntimeJavascript: 115_000,
+  // Model 0.5 adds explicit outcome fields, v2-to-v3 recovery and the verdict
+  // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling keeps
+  // 3.7 kB headroom over the exact 0.8.0 candidate rather than hiding it in total.
+  coreJavascript: 590_000,
+  javascript: 1_750_000,
+  creatureRoster: 132_000,
+  coreCss: 29_000,
+  reconstructionCss: 12_000,
+  css: 41_000,
+  total: 2_050_000,
+  coreDeployable: 855_000,
   socialImage: 300_000,
 }
 
@@ -103,7 +106,7 @@ const coreDeployable = total - presentationJavascript - tacticalRuntimeJavascrip
 
 if (rosterFiles.length !== 1) throw new Error(`Expected one emitted creature roster, found ${rosterFiles.length}.`)
 const roster = JSON.parse(await readFile(rosterFiles[0].path, 'utf8'))
-if (!Array.isArray(roster) || roster.length !== 134) throw new Error(`Expected 134 emitted creature profiles, found ${Array.isArray(roster) ? roster.length : 'a non-array value'}.`)
+if (!Array.isArray(roster) || roster.length !== 139) throw new Error(`Expected 139 emitted creature profiles, found ${Array.isArray(roster) ? roster.length : 'a non-array value'}.`)
 
 const entrySources = await Promise.all(sizes.filter((file) => entryFiles.has(relative(distRoot, file.path).replaceAll('\\', '/'))).map((file) => readFile(file.path, 'utf8')))
 if (entrySources.some((source) => source.includes('African bush elephant'))) {

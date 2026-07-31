@@ -115,7 +115,10 @@ add('Honey badger','animal','small-predator',16,0.9,0.3,30,0.35,54,64,62,62,76,5
 add('Silverback gorilla','animal','primate',220,1.8,1.7,40,1.0,78,67,78,62,64,78,72,48,86,25,42,['forest'],['bite','grapple','strike'],['hands'], 'Gorilla','high',icon='🦍')
 add('Chimpanzee','animal','primate',70,1.2,1.4,40,0.75,62,46,56,78,68,86,78,78,84,12,38,['forest'],['bite','grapple','strike'],['hands','tool-use'], 'Chimpanzee','high',icon='🐒')
 add('Olive baboon','animal','primate',50,1.1,0.75,45,0.55,55,45,52,72,70,68,82,82,80,10,30,['savanna','forest'],['bite','grapple'],['troop'], 'Olive baboon','high',icon='🐒')
+add('Bearded capuchin monkey','animal','primate',5,0.55,0.45,32,0.4,30,28,30,90,70,82,62,84,68,4,20,['forest','jungle'],['bite','grapple','improvised-tool'],['hands','tool-use','arboreal'], 'Bearded capuchin','medium','Unarmed baseline. Prepared improvised-tool use is a bounded scenario-dependent ability, not permanent equipment.',icon='🐒')
+add('Bornean orangutan','animal','primate',100,1.5,1.5,20,1.3,68,56,66,66,62,88,48,30,76,14,34,['forest','jungle'],['bite','grapple','strike'],['hands','climber','arboreal'], 'Bornean orangutan','high','Large adult male profile; long-reach grappling and arboreal mobility are represented separately.',icon='🦧')
 add('Giant panda','animal','large-mammal',160,1.9,0.9,32,0.7,58,61,68,48,55,48,42,20,68,34,30,['forest','mountain'],['bite','claw','grapple'],['thick-fur'], 'Giant panda','high',icon='🐼')
+add('Giant anteater','animal','large-mammal',50,2.1,0.9,30,0.9,56,52,60,58,72,36,58,18,80,20,38,['savanna','forest','scrub'],['claw','grapple'],['thick-hide'], 'Giant anteater','high','Defensive foreclaw and clinching profile; no invented bite attack.',icon='🐜')
 add('Mastiff-type dog','animal','domestic-predator',90,1.3,0.8,45,0.55,58,46,57,64,68,58,72,70,80,12,28,['farm','urban','open'],['bite','grapple'],['domestic','pack-compatible'], 'English Mastiff','medium',icon='🐕')
 add('House cat','animal','small-predator',7,0.75,0.3,48,0.3,32,24,30,90,58,57,70,28,72,6,18,['urban','farm','forest'],['bite','claw','pounce'],['ambush','climber'], 'Cat','high',icon='🐈')
 add('Brown rat','animal','small-mammal',0.65,0.5,0.12,13,0.1,20,18,24,70,78,52,68,86,72,4,12,['urban','sewer','farm'],['bite'],['swarm','burrower'], 'Brown rat','high',icon='🐀')
@@ -163,6 +166,7 @@ add('Stegosaurus','extinct','dinosaur',5000,9.0,4.0,15,2.2,82,90,90,27,78,30,64,
 add('Woolly mammoth','extinct','megafauna',7000,6.0,3.5,35,3.0,92,94,96,32,84,58,66,65,90,80,72,['snow','steppe'],['tusk','trample','charge'],['extinct','cold-adapted','thick-fur'], 'Woolly mammoth','medium',icon='🐘')
 add('Smilodon','extinct','apex-predator',280,2.1,1.1,50,1.0,84,64,75,68,58,52,80,25,84,30,46,['prehistoric-open','forest'],['saber-bite','claw','grapple'],['extinct','ambush'], 'Smilodon','medium',icon='🐅')
 add('Megalodon','extinct','marine-predator',60000,18.0,3.5,35,3.0,100,94,100,45,86,42,84,12,96,52,72,['prehistoric-ocean'],['bite','ram'],['extinct','aquatic','apex-predator'], 'Megalodon','low','Size and performance estimates vary substantially; this is a cinematic but biologically bounded reconstruction.',icon='🦈')
+add('Quetzalcoatlus','extinct','pterosaur',250,5.5,5.2,100,2.5,76,56,66,76,72,48,68,20,80,18,46,['prehistoric-open','sky'],['beak','strike','stomp'],['extinct','flight','land-capable'], 'Quetzalcoatlus','low','Large adult reconstruction with uncertain mass and flight performance; terrestrial and aerial movement are both explicit.',icon='🪽')
 
 # Generic humans
 add('Unarmed peak adult human','human','human',100,1.9,1.9,32,0.8,42,37,46,66,66,88,62,72,72,8,28,['urban','open','forest'],['strike','kick','grapple'],['hands','tool-potential'], 'Human','high','Assumes a large, healthy peak adult with no equipment and no specialised combat training.',icon='🧍')
@@ -189,6 +193,7 @@ add('Werewolf','fantasy','humanoid',180,2.2,2.2,65,1.0,84,68,84,88,86,68,98,42,9
 add('Vampire','fantasy','undead',95,1.9,1.9,80,1.2,78,66,82,94,96,92,82,38,98,20,54,['urban','castle','night'],['bite','claw','grapple'],['undead','regeneration','hypnosis'], 'Vampire','modelled',icon='🧛')
 add('Zombie','fantasy','undead',85,1.8,1.8,7,0.7,34,48,72,18,100,18,100,82,100,6,24,['urban','open'],['bite','grapple'],['undead','swarm','fearless'], 'Zombie','modelled',icon='🧟')
 add('Stone golem','fantasy','construct',3000,3.5,3.5,15,2.2,88,98,100,18,100,35,100,18,100,100,66,['cave','urban','fortification'],['fist','stomp','grapple'],['construct','armored','fearless'], 'Golem','modelled',icon='🗿')
+add('Generic wraith','fantasy','spirit',80,1.8,1.8,50,1.5,72,88,78,84,100,78,78,42,100,0,72,['ruin','cave','night'],['spectral-touch','dread-aura'],['incorporeal','morale'], 'Wraith','modelled','Fixed generic fantasy spirit. Physical dimensions and mass are apparent combat scale, not literal biological measurements.',icon='👻')
 add('Unicorn','fantasy','mythic-beast',650,2.6,1.8,85,1.8,78,68,78,76,88,74,68,52,94,34,50,['forest','open'],['horn','kick','charge'],['magic','healing'], 'Unicorn','modelled',icon='🦄')
 add('Basilisk','fantasy','mythic-beast',400,5.0,1.1,25,8.0,88,76,82,55,74,66,92,20,96,62,66,['desert','cave','ruin'],['bite','gaze','venom'],['venom','ranged','petrification'], 'Basilisk','modelled',icon='🐍')
 add('Cerberus','fantasy','mythic-beast',900,4.0,2.4,60,1.6,88,74,86,70,88,70,96,52,98,38,82,['underworld','cave','open'],['many-bites','claw','pounce'],['many-heads','fearless'], 'Cerberus','modelled',icon='🐕')
@@ -239,7 +244,7 @@ add('Scylla','fantasy','mythic-beast',20000,20,10,30,10,100,92,98,50,94,64,98,35
 add('Charybdis','fantasy','mythic-hazard',500000,80,20,0,40,100,95,100,5,100,30,100,0,100,85,100,['ocean','coast'],['whirlpool','drag','devour'],['aquatic','colossal','ranged'], 'Charybdis','modelled','Stationary personified whirlpool treated as a combatant-shaped environmental hazard; results are especially abstract.',icon='🌀')
 add('Siren','fantasy','mythic-humanoid',70,1.8,1.8,60,50,58,45,50,82,74,82,72,80,84,8,88,['coast','sky'],['song','claw','grapple'],['flight','ranged','hypnosis'], 'Siren (mythology)','modelled','Classical bird-bodied singer interpretation rather than the later mermaid form.',icon='🎶')
 
-assert len(entries) == 134, len(entries)
+assert len(entries) == 139, len(entries)
 
 # Derived boolean capability fields used by the engine and convenient for CSV users.
 for e in entries:

@@ -21,6 +21,12 @@ const REQUIREMENTS = [
   { source: 'trait', token: 'many-limbs', family: 'reviewed-frontage', test: reviewedCoverageRoute },
   { source: 'trait', token: 'regeneration', family: 'regeneration', test: routeWithEffectKind('regeneration') },
   { source: 'trait', token: 'limited-ammunition', family: 'finite-capacity', test: finiteRangedRoute },
+  { source: 'trait', token: 'tool-use', family: 'prepared-tool-delivery', test: preparedToolRoute },
+  { source: 'trait', token: 'troop', family: 'reviewed-troop-frontage', test: reviewedTroopRoute },
+  { source: 'trait', token: 'arboreal', family: 'arboreal-locomotion', test: (profile) => profile.explicitOverride && profile.locomotion.arboreal ? ['locomotion.arboreal'] : [] },
+  { source: 'trait', token: 'incorporeal', family: 'spirit-incorporeal-interaction', test: incorporealRoute },
+  { source: 'trait', token: 'morale', family: 'morale-effect', test: routeWithEffectKind('morale') },
+  { source: 'trait', token: 'fearless', family: 'fear-resistance', test: (profile) => profile.traits.includes('fearless') ? ['traits.fearless'] : [] },
   { source: 'attack-mode', token: 'fire-breath', family: 'ranged-fire', test: deliveryWithChannel(['ranged', 'area'], 'fire') },
   { source: 'attack-mode', token: 'fire-burst', family: 'ranged-fire', test: deliveryWithChannel(['ranged', 'area'], 'fire') },
   { source: 'attack-mode', token: 'electric-shock', family: 'electric-effect', test: routeWithChannel('electric') },
@@ -97,6 +103,28 @@ function finiteRangedRoute(profile) {
     && ability.resource.capacity > 0)
 }
 
+function preparedToolRoute(profile) {
+  if (!profile.explicitOverride) return []
+  return abilitiesWith(profile, (ability) => ['ranged', 'area'].includes(ability.delivery)
+    && ability.conditions?.preparationDependent === true
+    && ability.resource.pool === 'ability'
+    && (ability.resource.capacity ?? 0) > 0)
+}
+
+function reviewedTroopRoute(profile) {
+  if (!profile.explicitOverride) return []
+  return abilitiesWith(profile, (ability) => ability.targetLimit === 'frontage'
+    && (ability.conditions?.minimumAttackerQuantity ?? 0) > 1
+    && `${ability.id} ${ability.name} ${ability.notes}`.toLowerCase().includes('troop'))
+}
+
+function incorporealRoute(profile) {
+  if (!profile.explicitOverride || profile.physiology !== 'spirit') return []
+  const physicalChannels = ['physical', 'physical-blunt', 'physical-piercing', 'physical-slashing', 'physical-crushing']
+  if (!physicalChannels.every((channel) => profile.channelModifiers?.[channel] === 0)) return []
+  return abilitiesWith(profile, (ability) => ability.effects.some((effect) => effect.channel === 'incorporeal'))
+}
+
 function genericProfile(creature) {
   const abilities = [{
     id: 'legacy-contact', delivery: 'contact', targetLimit: creature.multi_target >= 60 ? 'frontage' : 'single',
@@ -113,7 +141,9 @@ function genericProfile(creature) {
     abilities,
     explicitOverride: false,
     review: null,
-    locomotion: { flight: creature.can_fly, aquatic: creature.aquatic },
+    traits: creature.traits,
+    locomotion: { flight: creature.can_fly, aquatic: creature.aquatic, arboreal: false },
+    channelModifiers: {},
     physiology: creature.undead_or_construct ? 'legacy-nonliving' : 'living',
   }
 }
@@ -126,10 +156,13 @@ function activatedProfile(creature, overrideMap) {
         abilities: override.abilities,
         explicitOverride: true,
         review: override.review,
+        traits: creature.traits,
         locomotion: {
           flight: override.locomotion?.flight ?? creature.can_fly,
           aquatic: override.locomotion?.aquatic ?? creature.aquatic,
+          arboreal: override.locomotion?.arboreal ?? false,
         },
+        channelModifiers: override.channelModifiers,
         physiology: override.physiology,
       }
     : genericProfile(creature)

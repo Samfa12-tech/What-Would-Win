@@ -31,7 +31,7 @@ function input(
   const run = runtime.simulate({ ...defaultScenario(creatures), ...overrides }, resources, customCreatures)
   return {
     scenario: run.scenario,
-    result: run.result,
+    result: run.result as BattleReconstructionInput['result'],
     deterministicState: run.deterministicState,
     abilityResolutions: run.abilityResolutions,
     sensitivity: run.sensitivity,

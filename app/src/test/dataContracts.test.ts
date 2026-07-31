@@ -36,7 +36,7 @@ function scenarioFromFixture(fixture: (typeof canonicalScenariosJson)[number]): 
 
 describe('canonical data contracts', () => {
   test('all canonical creatures satisfy the Draft 2020-12 schema', () => {
-    expect(canonicalCreatures).toHaveLength(134)
+    expect(canonicalCreatures).toHaveLength(139)
     for (const creature of canonicalCreatures) {
       const result = validateCreature(creature)
       expect(result.errors, `${creature.id}: ${result.errors.join('; ')}`).toEqual([])
@@ -44,9 +44,9 @@ describe('canonical data contracts', () => {
   })
 
   test('expanded roster keeps declared category boundaries and fixed cryptid interpretations', () => {
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'animal')).toHaveLength(73)
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'extinct')).toHaveLength(20)
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'fantasy')).toHaveLength(37)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'animal')).toHaveLength(76)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'extinct')).toHaveLength(21)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'fantasy')).toHaveLength(38)
     expect(canonicalCreatures.filter((creature) => creature.kind === 'human')).toHaveLength(4)
 
     const cryptids = canonicalCreatures.filter((creature) => creature.category === 'cryptid')
@@ -56,6 +56,25 @@ describe('canonical data contracts', () => {
       expect(cryptid.data_confidence).toBe('modelled')
       expect(cryptid.model_notes).toMatch(/fixed|composite/i)
     }
+  })
+
+  test('declares the exact 0.8 roster slice and keeps prepared tools out of baseline ranged flags', () => {
+    const expected = {
+      'bearded-capuchin-monkey': ['animal', 'primate'],
+      'bornean-orangutan': ['animal', 'primate'],
+      'giant-anteater': ['animal', 'large-mammal'],
+      quetzalcoatlus: ['extinct', 'pterosaur'],
+      'generic-wraith': ['fantasy', 'spirit'],
+    }
+    for (const [id, [kind, category]] of Object.entries(expected)) {
+      expect(canonicalCreatures.find((creature) => creature.id === id)).toMatchObject({ id, kind, category })
+    }
+    expect(canonicalCreatures.filter((creature) => creature.category === 'primate')).toHaveLength(5)
+    expect(canonicalCreatures.find((creature) => creature.id === 'bearded-capuchin-monkey')).toMatchObject({
+      ranged: false,
+      attack_modes: ['bite', 'grapple', 'improvised-tool'],
+      traits: ['hands', 'tool-use', 'arboreal'],
+    })
   })
 
   test('canonical and bundled data stay synchronized with unique built-in IDs', () => {

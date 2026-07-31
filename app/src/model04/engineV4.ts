@@ -1,5 +1,5 @@
-import type { AppliedModelFactor, BattleNarrativePhase, Creature, NarrativeAdvantage, ResolvedCombatant, Scenario, SimulationResult } from '../types'
-import { resolveModel03Deterministic, sampleOutcomeFromPowers, simulate, TRIALS_BY_DEPTH, type Model03DeterministicSnapshot } from '../simulation/engine'
+import type { AppliedModelFactor, BattleNarrativePhase, Creature, NarrativeAdvantage, ResolvedCombatant, Scenario, SimulationOutcome, SimulationResult } from '../types'
+import { AUTHORITATIVE_TRIAL_COUNT, resolveModel03Deterministic, sampleOutcomeFromPowers, simulate, type Model03DeterministicSnapshot } from '../simulation/engine'
 import { formatLogQuantity, parseQuantity } from '../simulation/quantity'
 import { resolveAbilityKernel } from './abilityKernel'
 import {
@@ -21,6 +21,7 @@ const ABILITY_BACKED_TAGS = new Set([
 ])
 
 const EPSILON = 1e-12
+const MATERIAL_OPPOSING_ROUTE_LOG_DELTA = 1e-4
 
 interface PhysicalFoundation {
   factors: AppliedModelFactor[]
@@ -316,6 +317,8 @@ function abilityPhysicalAccess(
   attacker: ResolvedCombatant,
   target: ResolvedCombatant,
   scenario: ScenarioV4Draft,
+  attackerProfile: CreatureV4Draft,
+  targetProfile: CreatureV4Draft,
 ): number {
   if (ability.delivery === 'self') return 1
   let access = 1
@@ -325,6 +328,13 @@ function abilityPhysicalAccess(
     || scenario.waterDepthM > Math.max(attacker.scaledHeightM, target.scaledHeightM)
 
   if (contactLike && target.creature.can_fly && !attacker.creature.can_fly) access *= 0.2
+  if (
+    contactLike
+    && scenario.terrain === 'forest'
+    && targetProfile.locomotion.arboreal
+    && !attackerProfile.locomotion.arboreal
+    && !attackerProfile.locomotion.flight
+  ) access *= 0.28
   if (contactLike && deepWater && target.creature.aquatic && !attacker.creature.aquatic && !attacker.creature.can_fly) access *= 0.08
   if (contactLike && !waterTerrain && attacker.creature.aquatic && !attacker.creature.can_fly) {
     const landCapable = attacker.creature.traits.some((trait) => ['amphibious', 'semi-aquatic', 'land-capable'].includes(trait))
@@ -342,6 +352,11 @@ function effectStoppingFactor(
   coefficientScale = 1,
 ): number {
   if (!['harm', 'restraint', 'morale'].includes(effectKind)) return 1
+  if (effectKind === 'morale' && channel === 'fear') {
+    const moraleFactor = 1 - 0.7 * clamp(target.stats.morale / 100, 0, 1)
+    const fearlessFactor = target.creature.traits.includes('fearless') ? 0.2 : 1
+    return clamp(moraleFactor * fearlessFactor, 0.05, 1)
+  }
   if (!['physical', 'physical-blunt', 'physical-piercing', 'physical-slashing', 'physical-crushing', 'restraint'].includes(channel)) return 1
 
   const resistance = target.stats.defense * 0.2 + target.stats.durability * 0.35 + target.stats.armor * 0.45
@@ -381,9 +396,21 @@ function applyPhysicalAbilityDecomposition(
     const target = resolution.side === 'solo' ? physical.group : physical.solo
     const ability = attackerSide.creature.abilities.find((candidate) => candidate.id === resolution.abilityId)
     if (!ability) return resolution
+    if (ability.conditions?.preparationDependent && scenario.preparationMinutes <= 0) {
+      return {
+        ...resolution,
+        active: false,
+        rejectionReason: 'condition-unmet' as const,
+        accessFactor: 0,
+        channelFactor: 0,
+        logDelta: 0,
+        effects: [],
+        conditionFailures: [...new Set([...(resolution.conditionFailures ?? []), 'preparation'])],
+      }
+    }
 
     const executionFactor = abilityExecutionFactor(attacker, ability)
-    const physicalAccessFactor = abilityPhysicalAccess(ability, attacker, target, scenario)
+    const physicalAccessFactor = abilityPhysicalAccess(ability, attacker, target, scenario, attackerSide.creature, targetSide.creature)
     const multiTargetFactor = targetSide.targetQuantityLog10 > EPSILON && ability.targetLimit !== 'single'
       ? clamp(0.75 + attacker.stats.multi_target / 200, 0.75, 1.25)
       : 1
@@ -493,15 +520,31 @@ function abilityFactors(kernel: AbilityKernelResult, profiles: Map<string, Creat
 function groupAccessPressure(
   kernel: AbilityKernelResult,
   physical: Model03DeterministicSnapshot,
+  groupProfile: CreatureV4Draft,
   unconstrainedEffectiveQuantityLog10: number,
 ): GroupAccessPressure {
   if (unconstrainedEffectiveQuantityLog10 <= EPSILON) {
     return { effectiveQuantityLog10: unconstrainedEffectiveQuantityLog10 }
   }
-  const access = clamp(Math.max(0, ...kernel.resolutions
-    .filter((resolution) => resolution.side === 'group' && resolution.active)
-    .filter((resolution) => resolution.effects.some((effect) => effect.recipient === 'opponent' && effect.logDelta > EPSILON))
-    .map((resolution) => resolution.physicalAccessFactor ?? 1)), 0, 1)
+  const routes = kernel.resolutions
+    .filter((resolution) => resolution.side === 'group')
+    .map((resolution) => {
+      const ability = groupProfile.abilities.find((candidate) => candidate.id === resolution.abilityId)
+      const intrinsicOpponentPotency = ability?.effects
+        .filter((effect) => ability.delivery !== 'self' && ['harm', 'restraint', 'morale'].includes(effect.kind))
+        .reduce((sum, effect) => sum + effect.potency / 100, 0) ?? 0
+      return {
+        access: resolution.active
+          ? clamp(resolution.physicalAccessFactor ?? resolution.accessFactor, 0, 1)
+          : 0,
+        contribution: ability ? Math.log10(1 + intrinsicOpponentPotency * ability.activationRate) : 0,
+      }
+    })
+    .filter((route) => route.contribution > EPSILON)
+  const totalContribution = routes.reduce((sum, route) => sum + route.contribution, 0)
+  const access = totalContribution > EPSILON
+    ? clamp(routes.reduce((sum, route) => sum + route.access * route.contribution, 0) / totalContribution, 0, 1)
+    : 0
   if (access >= 1 - EPSILON) return { effectiveQuantityLog10: unconstrainedEffectiveQuantityLog10 }
 
   const pressureCeilingLog10 = access <= 0.2
@@ -517,8 +560,8 @@ function groupAccessPressure(
     effectiveQuantityLog10,
     factor: {
       id: 'group-ability-access-limit-v4', phase: 'approach', side: 'group', logDelta,
-      explanation: `The group's best applied opponent delivery has ${(access * 100).toFixed(1)}% combined geometry and locomotion access, capping useful group pressure at a ${formatLogQuantity(effectiveQuantityLog10)} effective-count basis.`,
-      caveat: 'Additional reserves cannot create new attack opportunities when every applied delivery shares the same access restriction.',
+      explanation: `The group's contribution-weighted opponent delivery has ${(access * 100).toFixed(1)}% combined geometry and locomotion access, capping useful group pressure at a ${formatLogQuantity(effectiveQuantityLog10)} effective-count basis.`,
+      caveat: 'A weak accessible effect cannot unlock the pressure of stronger deliveries that remain inaccessible.',
     },
   }
 }
@@ -711,6 +754,8 @@ function buildNarrativeV4(
   profiles: Map<string, CreatureV4Draft>,
   soloProbability: number,
   winnerName: string,
+  outcome: SimulationOutcome,
+  outcomeReason: string,
 ): BattleNarrativePhase[] {
   const solo = profiles.get(scenario.soloId)
   const group = profiles.get(scenario.groupId)
@@ -745,8 +790,10 @@ function buildNarrativeV4(
         factorIds: factorIdsForPhase(state, 'pressure'),
       },
       {
-        id: 'uncertainty', title: 'Interpretation', advantage: soloProbability >= 0.5 ? 'solo' : 'group',
-        text: `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Monte Carlo draws express uncertainty around the deterministic ledger; duration and losses are not physical claims at conceptual scale.`,
+        id: 'uncertainty', title: 'Interpretation', advantage: outcome === 'draw' ? 'neutral' : soloProbability >= 0.5 ? 'solo' : 'group',
+        text: outcome === 'draw'
+          ? `${outcomeReason} Duration and losses are not physical claims at conceptual scale.`
+          : `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Monte Carlo draws express uncertainty around the deterministic ledger; duration and losses are not physical claims at conceptual scale.`,
         factorIds: state.factors.filter((factor) => !['briefing', 'pressure'].includes(factor.phase)).map((factor) => factor.id),
       },
     ]
@@ -779,8 +826,10 @@ function buildNarrativeV4(
       factorIds: factorIdsForPhase(state, 'pressure'),
     },
     {
-      id: 'resolution', title: 'Resolution', advantage: soloProbability >= 0.5 ? 'solo' : 'group',
-      text: `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Exhaustion uses ${durationText}; healing, regeneration and revival retain a separate bounded ${Math.round(state.abilityDurationSeconds)}-second ability window plus the explicit pre-ability ledger share (${formatPercent(state.preAbilitySoloShare)} solo).`,
+      id: 'resolution', title: 'Resolution', advantage: outcome === 'draw' ? 'neutral' : soloProbability >= 0.5 ? 'solo' : 'group',
+      text: outcome === 'draw'
+        ? `${outcomeReason} The encounter resolves as non-engagement rather than a forced binary winner.`
+        : `${winnerName} is favoured at ${formatPercent(Math.max(soloProbability, 1 - soloProbability))}. Exhaustion uses ${durationText}; healing, regeneration and revival retain a separate bounded ${Math.round(state.abilityDurationSeconds)}-second ability window plus the explicit pre-ability ledger share (${formatPercent(state.preAbilitySoloShare)} solo).`,
       factorIds: factorIdsForPhase(state, 'resolution'),
     },
     {
@@ -799,32 +848,35 @@ export function resolveModel04Deterministic(
   const profileMap = new Map(creatures.map((creature) => [creature.id, creature]))
   const soloProfile = profileMap.get(scenario.soloId)
   const groupProfile = profileMap.get(scenario.groupId)
-  if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown model 0.4 profile.')
+  if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown current-model profile.')
   const quantity = parseQuantity(scenario.groupQuantity)
   if (!quantity.valid) throw new Error('Enter a whole-number quantity, scientific notation such as 1e100, or 10^100.')
+  const resolutionScenario = quantity.log10 <= EPSILON
+    ? { ...scenario, coordinationDoctrine: 'instinctive' as const, casualtyTolerance: 'natural' as const }
+    : scenario
 
-  const physicalScenario = toPhysicalScenarioV3(scenario)
+  const physicalScenario = toPhysicalScenarioV3(resolutionScenario)
   const physicalCreatures = creatures.map(toPhysicalV3)
   const physical = resolveModel03Deterministic(physicalCreatures, physicalScenario, quantity.log10)
   const soloSide = scaledSide(soloProfile, physical.solo.targetMassKg, 0, physical.groupFrontageCapacity)
   const groupSide = scaledSide(groupProfile, physical.group.targetMassKg, quantity.log10, physical.groupFrontageCapacity)
-  let foundation = physicalFoundation(physical, scenario, soloProfile, groupProfile, quantity.conceptual)
+  let foundation = physicalFoundation(physical, resolutionScenario, soloProfile, groupProfile, quantity.conceptual)
   const bootstrapSoloLogPower = foundation.factors.filter((factor) => factor.side === 'solo').reduce((sum, factor) => sum + factor.logDelta, 0)
   const bootstrapGroupLogPower = foundation.factors.filter((factor) => factor.side === 'group').reduce((sum, factor) => sum + factor.logDelta, 0)
   const bootstrapMargin = clamp(bootstrapSoloLogPower - bootstrapGroupLogPower, -12, 12)
   const bootstrapShare = 1 / (1 + 10 ** -bootstrapMargin)
   const bootstrapResolved = resolveBilateralAbilities(
-    soloSide, groupSide, physical, scenario, bootstrapShare, foundation.abilityDurationSeconds, options,
+    soloSide, groupSide, physical, resolutionScenario, bootstrapShare, foundation.abilityDurationSeconds, options,
   )
   let accessPressure = groupAccessPressure(
-    bootstrapResolved.kernel, physical, foundation.groupEffectiveQuantityLog10,
+    bootstrapResolved.kernel, physical, groupProfile, foundation.groupEffectiveQuantityLog10,
   )
   let resolved = bootstrapResolved
   let preAbilitySoloShare = bootstrapShare
   let converged = false
   const resolveAtAccess = (access: GroupAccessPressure) => {
     const nextFoundation = physicalFoundation(
-      physical, scenario, soloProfile, groupProfile, quantity.conceptual, access.effectiveQuantityLog10,
+      physical, resolutionScenario, soloProfile, groupProfile, quantity.conceptual, access.effectiveQuantityLog10,
     )
     const preAbilitySoloLogPower = nextFoundation.factors
       .filter((factor) => factor.side === 'solo')
@@ -836,11 +888,11 @@ export function resolveModel04Deterministic(
     const causalMargin = clamp(preAbilitySoloLogPower - accessAdjustedGroupLogPower, -12, 12)
     const nextPreAbilitySoloShare = 1 / (1 + 10 ** -causalMargin)
     const nextResolved = resolveBilateralAbilities(
-      soloSide, groupSide, physical, scenario, nextPreAbilitySoloShare,
+      soloSide, groupSide, physical, resolutionScenario, nextPreAbilitySoloShare,
       nextFoundation.abilityDurationSeconds, options,
     )
     const nextAccess = groupAccessPressure(
-      nextResolved.kernel, physical, nextFoundation.groupEffectiveQuantityLog10,
+      nextResolved.kernel, physical, groupProfile, nextFoundation.groupEffectiveQuantityLog10,
     )
     return {
       foundation: nextFoundation,
@@ -873,7 +925,7 @@ export function resolveModel04Deterministic(
     }
   }
   if (!converged) {
-    throw new Error('Model 0.4 access and endurance pressure did not converge.')
+    throw new Error('Current-model access and endurance pressure did not converge.')
   }
   const kernel = resolved.kernel
   const factors = abilityFactors(kernel, profileMap)
@@ -902,6 +954,79 @@ export function resolveModel04Deterministic(
   }
 }
 
+interface Model05OutcomeDecision {
+  outcome: SimulationOutcome
+  winner: SimulationResult['winner']
+  soloWinProbability: number
+  groupWinProbability: number
+  drawProbability: number
+  probabilityRange: [number, number]
+  outcomeReason: string
+  forced: boolean
+}
+
+function hasMaterialOpposingRoute(
+  kernel: AbilityKernelResult,
+  side: 'solo' | 'group',
+  winCondition: Scenario['winCondition'],
+): boolean {
+  return kernel.resolutions.some((resolution) => (
+    resolution.side === side
+    && resolution.active
+    && resolution.accessFactor > EPSILON
+    && resolution.effects
+      .filter((effect) => effect.recipient === 'opponent' && (winCondition !== 'death' || effect.kind === 'harm'))
+      .reduce((sum, effect) => sum + effect.logDelta, 0) >= MATERIAL_OPPOSING_ROUTE_LOG_DELTA
+  ))
+}
+
+function resolveOutcomeDecision(
+  kernel: AbilityKernelResult,
+  sampled: ReturnType<typeof sampleOutcomeFromPowers>,
+  winCondition: Scenario['winCondition'],
+): Model05OutcomeDecision {
+  const soloHasRoute = hasMaterialOpposingRoute(kernel, 'solo', winCondition)
+  const groupHasRoute = hasMaterialOpposingRoute(kernel, 'group', winCondition)
+  if (!soloHasRoute && !groupHasRoute) {
+    return {
+      outcome: 'draw', winner: null,
+      soloWinProbability: 0, groupWinProbability: 0, drawProbability: 1,
+      probabilityRange: [0, 0],
+      outcomeReason: `Neither side has a materially effective accessible opposing route under the declared geometry and selected ${winCondition} condition.`,
+      forced: true,
+    }
+  }
+  if (soloHasRoute && !groupHasRoute) {
+    return {
+      outcome: 'solo-win', winner: 'solo',
+      soloWinProbability: 1, groupWinProbability: 0, drawProbability: 0,
+      probabilityRange: [1, 1],
+      outcomeReason: `Only the solo side has a materially effective accessible opposing route under the declared geometry and selected ${winCondition} condition.`,
+      forced: true,
+    }
+  }
+  if (!soloHasRoute && groupHasRoute) {
+    return {
+      outcome: 'group-win', winner: 'group',
+      soloWinProbability: 0, groupWinProbability: 1, drawProbability: 0,
+      probabilityRange: [0, 0],
+      outcomeReason: `Only the group side has a materially effective accessible opposing route under the declared geometry and selected ${winCondition} condition.`,
+      forced: true,
+    }
+  }
+  const soloWins = sampled.soloProbability >= 0.5
+  return {
+    outcome: soloWins ? 'solo-win' : 'group-win',
+    winner: soloWins ? 'solo' : 'group',
+    soloWinProbability: sampled.soloProbability,
+    groupWinProbability: sampled.groupProbability,
+    drawProbability: 0,
+    probabilityRange: sampled.probabilityRange,
+    outcomeReason: 'Both sides retain materially effective opposing routes; the fixed seeded numerical comparison resolves the modelled advantage.',
+    forced: false,
+  }
+}
+
 function simulateCore(
   creatures: CreatureV4Draft[],
   scenario: ScenarioV4Draft,
@@ -910,7 +1035,7 @@ function simulateCore(
   const profileMap = new Map(creatures.map((creature) => [creature.id, creature]))
   const soloProfile = profileMap.get(scenario.soloId)
   const groupProfile = profileMap.get(scenario.groupId)
-  if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown model 0.4 profile.')
+  if (!soloProfile || !groupProfile) throw new Error('Scenario references an unknown current-model profile.')
   const physicalScenario = toPhysicalScenarioV3(scenario)
   const base = simulate(creatures.map(toPhysicalV3), physicalScenario)
   const sampled = sampleOutcomeFromPowers({
@@ -923,26 +1048,44 @@ function simulateCore(
     soloKind: soloProfile.kind,
     groupKind: groupProfile.kind,
     scenarioSeed: scenario.seed,
-    trials: TRIALS_BY_DEPTH[scenario.reportDepth],
+    trials: AUTHORITATIVE_TRIAL_COUNT,
     conceptual: deterministic.conceptual,
   })
-  const soloWins = sampled.soloProbability >= 0.5
-  const winnerName = soloWins ? soloProfile.name : `${formatLogQuantity(deterministic.quantityLog10)} × ${groupProfile.name}`
+  const decision = resolveOutcomeDecision(deterministic.abilityKernel, sampled, scenario.winCondition)
+  const winnerName = decision.outcome === 'draw'
+    ? 'Draw / non-engagement'
+    : decision.winner === 'solo'
+      ? soloProfile.name
+      : `${formatLogQuantity(deterministic.quantityLog10)} × ${groupProfile.name}`
+  const winnerProbability = decision.winner === 'solo' ? decision.soloWinProbability : decision.groupWinProbability
   const appliedFactors = deterministic.factors
-  const narrative = buildNarrativeV4(deterministic, scenario, profileMap, sampled.soloProbability, winnerName)
-  const groupLossShare = Math.max(0.02, Math.min(0.97, sampled.soloProbability * 0.82 + 0.08))
-  const groupCasualties = deterministic.conceptual
-    ? 'group losses are not physically meaningful at this scale'
-    : `about ${Math.round(groupLossShare * 100)}% expected group removals under the selected win condition (model 0.4 heuristic)`
+  const narrative = buildNarrativeV4(
+    deterministic, scenario, profileMap, decision.soloWinProbability, winnerName, decision.outcome, decision.outcomeReason,
+  )
+  const groupLossShare = Math.max(0.02, Math.min(0.97, decision.soloWinProbability * 0.82 + 0.08))
+  const groupCasualties = decision.outcome === 'draw'
+    ? 'no forced removals because neither side can establish a materially effective opposing route'
+    : deterministic.conceptual
+      ? 'group losses are not physically meaningful at this scale'
+      : `about ${Math.round(groupLossShare * 100)}% expected group removals under the selected win condition (model 0.5 heuristic)`
   const result: SimulationResult = {
     ...base,
-    soloWinProbability: sampled.soloProbability,
-    groupWinProbability: sampled.groupProbability,
-    winner: soloWins ? 'solo' : 'group',
+    soloWinProbability: decision.soloWinProbability,
+    groupWinProbability: decision.groupWinProbability,
+    drawProbability: decision.drawProbability,
+    outcome: decision.outcome,
+    outcomeReason: decision.outcomeReason,
+    winner: decision.winner,
     winnerName,
-    confidenceLabel: confidenceLabelV4(soloProfile, groupProfile, sampled.soloProbability, deterministic.conceptual),
-    probabilityRange: sampled.probabilityRange,
-    verdict: `${winnerName} is favoured in ${formatPercent(soloWins ? sampled.soloProbability : sampled.groupProbability)} of model trials.`,
+    confidenceLabel: decision.outcome === 'draw'
+      ? 'Deterministic non-engagement'
+      : confidenceLabelV4(soloProfile, groupProfile, decision.soloWinProbability, deterministic.conceptual),
+    probabilityRange: decision.probabilityRange,
+    verdict: decision.outcome === 'draw'
+      ? `Draw: ${decision.outcomeReason}`
+      : decision.forced
+        ? `${winnerName} wins: ${decision.outcomeReason}`
+        : `${winnerName} is favoured in ${formatPercent(winnerProbability)} of model trials.`,
     narrative,
     appliedFactors,
     keyFactors: [...appliedFactors]
@@ -952,13 +1095,20 @@ function simulateCore(
     assumptions: [
       ...base.assumptions.filter((assumption) => !assumption.includes('displayed probability reserves')),
       `The displayed probability reserves ${Math.round((1 - sampled.epistemicCompression) * 100)}% of outcome weight for unmodelled uncertainty; the final structured model raw trial tally was ${formatPercent(sampled.rawSoloTrialRate)} for the solo side.`,
-      'Model 0.4 removes the legacy combined special-capability multiplier and applies structured abilities bilaterally through explicit conditions, channels and resources.',
+      'Model 0.5 removes the legacy combined special-capability multiplier, applies structured abilities bilaterally and resolves non-engagement before publishing a winner.',
+      'Every report depth uses the same fixed 15,000-trial authoritative sample; report detail changes presentation only.',
       'Living-profile exhaustion begins only after sustained exposure; relative surface area L^2 and metabolic heat M^0.75 modify the bounded penalty, while access-effective reserve rotation, ambient weather, size-relative water cooling and scaling mode alter load. Climate-adaptation traits remain in the separate environment factor. This is not a body-temperature simulation.',
       'Sensitivity values are alternate calculations of the same scenario; they do not select or replace the baseline winner.',
     ],
     groupCasualties,
-    estimatedDuration: deterministic.conceptual ? 'not physically meaningful at conceptual scale' : `${Math.round(deterministic.durationSeconds)} seconds (access- and reserve-aware aggregate estimate)`,
-    soloIncapacitationRisk: `${formatPercent(sampled.groupProbability)} modelled risk under the selected ${scenario.winCondition} condition`,
+    estimatedDuration: decision.outcome === 'draw'
+      ? 'non-engagement under the declared geometry and conditions'
+      : deterministic.conceptual
+        ? 'not physically meaningful at conceptual scale'
+        : `${Math.round(deterministic.durationSeconds)} seconds (access- and reserve-aware aggregate estimate)`,
+    soloIncapacitationRisk: decision.outcome === 'draw'
+      ? '0% forced incapacitation risk under the non-engagement gate'
+      : `${formatPercent(decision.groupWinProbability)} modelled risk under the selected ${scenario.winCondition} condition`,
     coinFlipQuantity: coinFlipQuantityV4(creatures, scenario),
     technical: {
       ...base.technical,
@@ -972,7 +1122,7 @@ function simulateCore(
       probabilityStandardError: sampled.probabilityStandardError,
       rawSoloTrialRate: sampled.rawSoloTrialRate,
       epistemicCompression: sampled.epistemicCompression,
-      trialCount: TRIALS_BY_DEPTH[scenario.reportDepth],
+      trialCount: AUTHORITATIVE_TRIAL_COUNT,
       encounterDurationSeconds: deterministic.durationSeconds,
       abilityDurationSeconds: deterministic.abilityDurationSeconds,
       soloRelativeSurfaceArea: deterministic.endurance.solo.relativeSurfaceArea,

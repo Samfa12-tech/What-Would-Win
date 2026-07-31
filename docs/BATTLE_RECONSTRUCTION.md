@@ -1,22 +1,23 @@
 # Battle reconstruction contract
 
-Application 0.7.1 develops the explanatory presentation layer over the
-unchanged model-0.4.2/data-0.4.1 numerical result into a concise causal reader
-account, a complete Analyst record and a beat-driven tactical explanation.
+Application 0.8.0 develops the explanatory presentation layer over the
+model-0.5.0/data-0.5.0 numerical result into a concise causal reader account,
+a complete Analyst record and a beat-driven tactical explanation. Presentation
+remains downstream of the authoritative result.
 
 > One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.
 
 The sentence above is mandatory in every likely-battle and tactical view.
 
-Application 0.7.1 adds typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. See `NARRATIVE_SEMANTICS_0.7.1.md`.
+Application 0.8.0 retains typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. See `NARRATIVE_SEMANTICS_0.7.1.md`.
 
 ## Authority and data flow
 
 ```text
 ScenarioV4Draft
-  → model-0.4 deterministic state and seeded Monte Carlo result
+  → model-0.5 deterministic state and fixed 15,000-trial seeded result
   → immutable Model04RuntimeResult snapshot
-  → validated BattleStoryboard v2
+  → validated decisive BattleStoryboard v3
       ├─ complete evidence-backed event/beat ledger
       ├─ Analyst HTML, detailed phases and JSON export
       ├─ beat callouts, captions and tactical transcript
@@ -27,6 +28,11 @@ ScenarioV4Draft
       └─ concise evidence-backed Story HTML and result export
 ```
 
+### Outcome boundary
+
+`BattleReconstructionInput` accepts only `solo-win` or `group-win` results with a non-null winner. A model-0.5 `draw` means neither side has a materially effective accessible opposing route; it is rendered as direct non-engagement and never passed to the Story or tactical builders. Result JSON keeps the authoritative draw record but emits `null` storyboard, battle-narrative and reader-narrative fields.
+
+The verdict display communicates solo/draw/group probability, the 50% midpoint and model-sensitivity band. The quantity pipeline exposes declared, arena-usable, active-frontage and effective-pressure quantities. These values are copied from the result record and cannot feed back into the engine.
 `Model04RuntimeResult` exposes a cloned deterministic state, the final result,
 applied factor ledger, all active/rejected ability resolutions, sensitivity,
 canonical scenario, contestants and simulation seed. The storyboard builder
@@ -36,7 +42,7 @@ a winner or calculate power.
 
 ## Storyboard identity and story seed
 
-`BattleStoryboard.version` is 2. `scenarioHash` covers the complete canonical v4
+`BattleStoryboard.version` is 3. `scenarioHash` covers the complete canonical v4
 scenario and both full contestant records. `resultHash` covers the full final
 result, deterministic state, factor/effect ledgers, ability resolutions and
 sensitivity records.
@@ -50,8 +56,8 @@ wording variants, equivalent legal beat order, camera cues and formation
 positions. It may not change the set of evidence, event legality or beat
 outcomes. Validation and tests prove it cannot change winner, probability,
 margin, factor IDs, ability eligibility, counters or final resolution. The seed
-is persisted as the separate `r` share parameter and optional v2-history
-presentation metadata, so the scenario/share format remains v4.
+is persisted as the separate `r` share parameter and optional v3-history
+presentation metadata, so the scenario/share format is v5.
 
 ## Event legality
 

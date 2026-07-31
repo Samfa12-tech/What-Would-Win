@@ -1,9 +1,9 @@
 # What Would Win
 ## Product planning, simulation specification and Codex handoff
 
-**Document version:** 0.3<br>
-**Status:** audited user-test candidate<br>
-**Updated:** 18 July 2026<br>
+**Document version:** 0.8<br>
+**Status:** application 0.8.0 quality candidate<br>
+**Updated:** 31 July 2026<br>
 **Owner / intended host:** Samfa12-tech, `samfa12.com`<br>
 **Primary implementation:** React + TypeScript + Vite
 
@@ -20,7 +20,7 @@ The first release is deliberately constrained to **one profile versus X copies o
 The handoff includes:
 
 - a working static web demo with no server dependency;
-- a curated **134-profile** database: 73 living animals, 20 extinct animals, 37 fantasy or mythological profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles;
+- a curated **139-profile** database: 76 living animals, 21 extinct animals, 38 fantasy or mythological profiles (including fixed cryptid interpretations) and 4 generic human profiles;
 - CSV and JSON data exports plus JSON Schemas;
 - 16 behavioural calibration scenarios and automated invariant tests;
 - this canonical Markdown product and model specification;
@@ -106,7 +106,7 @@ A technically curious user wants to inspect formulas, raw trial rates, confidenc
 ### 6.1 Included in the working prototype
 
 - One selected solo profile versus X identical group profiles.
-- 134 built-in profiles, grouped by living, extinct, fantasy and generic human.
+- 139 built-in profiles, grouped by living, extinct, fantasy and generic human.
 - Arbitrary positive whole-number quantities expressed as integers, `1e100` or `10^100`.
 - Normal, named, exact-mass and relative-linear size controls.
 - Strict, functional and magical scaling modes.
@@ -260,7 +260,7 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.4.2, data 0.4.1 and share format v4**; the application version is **0.7.1** and exported presentation storyboards are **v2**. Custom-creature and history storage remain format **v2** because their serialized shapes remain compatible. Released v4/0.4.0 and v4/0.4.1 plus supported v3, v2, v1 and unversioned scenarios preserve or migrate their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. Previous v2 outcomes remain snapshots pending recalculation; an unavailable custom reference stays pending rather than receiving current-version metadata beside an old numerical result. Storyboard v2 consumes the completed result and does not change the numerical reproducibility identity. Application 0.7.1 adds only presentation-layer battlefield semantics, behaviour archetypes, causal selection, identity grammar, evidence copy and a narrow reader fallback; none feed values back into the model.
+The current reproducibility identity is **model 0.5.0, data 0.5.0 and share format v5**; the application version is **0.8.0** and decisive presentation storyboards are **v3**. Custom-creature and history storage use **v3** recovery-copy formats. Released v4 scenarios preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. Previous v2 results remain snapshots pending recalculation; recovery bytes are not overwritten. Model 0.5 fixes all report depths at 15,000 seeded trials, contribution-weights executable group access, preserves quantity-one mobility symmetry and distinguishes mutual non-engagement from one-way and two-sided contests. Storyboard v3 accepts decisive results only; application presentation remains downstream and cannot feed values back into the model.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
@@ -425,14 +425,14 @@ Model 0.4.1 reports four fast resource/distance perturbations at all depths. Tec
 
 ### 11.1 Prototype database composition
 
-The 134-profile roster is selected for **scenario value**, not taxonomic completeness:
+The 139-profile roster is selected for **scenario value**, not taxonomic completeness:
 
-- 73 living animals covering megafauna, apex predators, packs, domestic animals, birds, aquatic specialists, venom, flight and swarms;
-- 20 extinct animals covering iconic dinosaurs, prehistoric crocodilians and Pleistocene megafauna;
-- 37 generic or public-domain fantasy/mythology profiles, including 8 fixed cryptid interpretations, covering giants, dragons, regeneration, constructs, undead, magic and colossal aquatic profiles;
+- 76 living animals covering megafauna, apex predators, packs, primates, domestic animals, birds, aquatic specialists, venom, flight and swarms;
+- 21 extinct animals covering iconic dinosaurs, pterosaurs, prehistoric crocodilians and Pleistocene megafauna;
+- 38 generic or public-domain fantasy/mythology profiles covering giants, dragons, regeneration, constructs, undead, spirits, magic and colossal aquatic profiles;
 - 4 generic humans covering unarmed, trained, armoured melee and ranged archetypes.
 
-The selection intentionally maximizes mechanics coverage: body mass, armour, speed, contact reach, locomotion, ability delivery/range/area, senses, venom, regeneration, coordination, area control and unusual scale. Data 0.4 is the canonical structured migration of all 134 profiles. It gives each profile explicit physiology, senses, locomotion, channel modifiers and abilities while retaining traceable migration artifacts from the audited data-0.3.1 records.
+The selection intentionally maximizes mechanics coverage: body mass, armour, speed, contact reach, locomotion, ability delivery/range/area, senses, venom, regeneration, coordination, area control and unusual scale. Data 0.5 adds Bearded capuchin monkey, Bornean orangutan, Giant anteater, Quetzalcoatlus and Generic wraith to the structured canonical roster. All profiles retain explicit physiology, senses, locomotion, channel modifiers and abilities plus traceable provenance/migration records.
 
 ### 11.2 Peak-adult convention
 
@@ -448,7 +448,7 @@ The 0–100 scores are authored inputs. They are not direct zoological measureme
 
 ### 11.4 Current provenance status
 
-The public-beta licensing audit covers all 134 profiles. Each record identifies its CC BY-SA 4.0 Wikipedia orientation link, states that no third-party prose or media is bundled, and separates externally oriented fields from original Samfa12-tech model assumptions and metadata. Automated tests require complete, non-overlapping coverage and reject unclassified external-source domains. This clears the redistribution-licensing gate but remains distinct from scientific validation: many links are broad reference pages, physical inputs remain approximate, and normalized scores are manually authored for model coverage.
+The public-beta licensing audit covers all 139 profiles. Each record identifies its CC BY-SA 4.0 Wikipedia orientation link, states that no third-party prose or media is bundled, and separates externally oriented fields from original Samfa12-tech model assumptions and metadata. Automated tests require complete, non-overlapping coverage and reject unclassified external-source domains. This clears the redistribution-licensing gate but remains distinct from scientific validation: many links are broad reference pages, physical inputs remain approximate, and normalized scores are manually authored for model coverage.
 
 ### 11.5 Production provenance model
 
@@ -673,13 +673,13 @@ The strongest viral loop is: **see absurd result → open reproducible scenario 
 - technical trial-count selection;
 - deterministic reproducibility with the same seed;
 - deterministic power stability across different uncertainty seeds.
-- model-0.4 migration artifacts for all 134 canonical profiles;
-- release-blocking coverage for 118 mechanical source tokens and reviewed explicit routes for complex profiles;
+- model-0.5-compatible migration artifacts for all 139 canonical profiles;
+- release-blocking coverage for 130 mechanical source tokens and 37 reviewed explicit routes for complex profiles;
 - structured bilateral ability access, delivery, conditions, counters, physiology/senses, resources and channel modifiers;
 - stable applied/rejected ability factors, regeneration/revival and environmental-hazard cases;
 - deterministic sensitivity points that do not publish a competing winner;
-- v4 share migration plus v2 custom/history persistence and corrupt/incompatible recovery;
-- released v4/0.4.0 migration, exact custom-reference-set validation and reproducible canonical-v4 JSON export;
+- v5 share migration plus v3 custom/history persistence and corrupt/incompatible recovery;
+- released v4 identity migration, exact custom-reference-set validation and reproducible canonical-v4 scenario JSON export;
 - component build budgets and static `/apps/what-would-win/` reference validation.
 
 The fixtures are behavioural calibration bands, not assertions of objective biological truth.
@@ -762,6 +762,15 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 - v4-native narrative, complete ability diagnostics, activated v4 dossier and canonical reproducible export;
 - all 16 physical fixtures through v4 plus bounded technical sensitivity.
 
+### Phase 1C.2 — application 0.8.0 / model-data 0.5.0 quality pass (delivered)
+
+- fixed 15,000 seeded trials across report depths and explicit draw/non-engagement resolution;
+- contribution-weighted executable access, quantity-one symmetry, arboreal movement and preparation-dependent abilities;
+- five mechanics-gap profiles and 37 reviewed complex overrides, bringing the roster to 139;
+- share v5, storyboard v3 and recovery-copy custom/history v3 migrations;
+- uncertainty/quantity verdict communication, causal Story rail, tactical HUD/state strips, scale disclosure and HTML legend;
+- decisive-only storyboard contracts plus draw-safe HTML and JSON exports.
+
 ### Phase 1D — trustworthy beta (next)
 
 - complete expert-reviewed per-field provenance, licences and cultural-sensitivity review;
@@ -811,7 +820,7 @@ The Stage A semantic cleanup defines a controlled built-in mechanics vocabulary,
 
 ### Delivered in model/data 0.4.1
 
-The active release migrates all 134 profiles into explicit physiology, senses, locomotion, contact reach, channel modifiers and structured abilities, then verifies 118 defining source mechanics through a release audit. It replaces the legacy combined special multiplier and shared resource input with bilateral ability resolution, side/per-ability resources, geometry/facing/use contracts, stable technical factors and deterministic sensitivity. Sharing/custom/history remain v4/v2/v2 with explicit released-v4 migration. The model-0.3 physical audit and data-0.3.1 semantic audit remain historical foundation records.
+The 0.4.1 release migrated 134 profiles into explicit physiology, senses, locomotion, contact reach, channel modifiers and structured abilities, then verified 118 defining source mechanics through a release audit. It replaced the legacy combined special multiplier and shared resource input with bilateral ability resolution, side/per-ability resources, geometry/facing/use contracts, stable technical factors and deterministic sensitivity. At that version, sharing/custom/history were v4/v2/v2 with explicit released-v4 migration. The model-0.3 physical audit and data-0.3.1 semantic audit remain historical foundation records.
 
 ### P0 — user-test and deployment preparation
 

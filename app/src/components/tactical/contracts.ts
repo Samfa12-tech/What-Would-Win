@@ -3,10 +3,16 @@ import type { CreatureV4Draft, ScenarioV4Draft } from '../../model04/contracts'
 
 export const TACTICAL_MAX_VISIBLE_ACTORS = 80
 
+export function tacticalRetreatingSide(event: BattleEvent): StoryboardSide | undefined {
+  if (event.type === 'rout') return event.targetSide
+  if (event.type === 'retreat') return event.actingSide
+  return undefined
+}
+
 export type TacticalArchetype =
   | 'light-quadruped' | 'heavy-quadruped' | 'hoofed-runner' | 'humanoid'
   | 'theropod-biped' | 'low-reptile' | 'serpentine' | 'flying-bird'
-  | 'winged-quadruped' | 'fish-cetacean' | 'cephalopod' | 'arthropod'
+  | 'winged-quadruped' | 'pterosaur' | 'primate' | 'fish-cetacean' | 'cephalopod' | 'arthropod'
   | 'swarm' | 'construct' | 'environmental-hazard'
 
 export type TacticalRepresentation = 'bespoke' | 'adjusted-archetype' | 'silhouette' | 'labelled-token'
@@ -59,6 +65,8 @@ export interface TacticalActorPlan {
   side: StoryboardSide
   archetype: TacticalArchetype
   visualProfile: CreatureVisualProfile
+  displayScale: [number, number, number]
+  scaleCompressionRatio: number
   representation: TacticalRepresentation
   medium: TacticalMedium
   visibleCount: number
@@ -86,6 +94,7 @@ export interface TacticalPlan {
   activeFrontRadius: number
   reserveRadius: number
   aggregatePressure: boolean
+  scaleDisclosure: string | null
 }
 
 export interface TacticalActorStateTransition {
@@ -164,6 +173,7 @@ export function archetypeFor(creature: CreatureV4Draft): TacticalArchetype {
   if (creature.physiology === 'environmental-hazard') return 'environmental-hazard'
   if (creature.physiology === 'construct') return 'construct'
   const value = normalized(`${creature.category} ${creature.name} ${creature.traits.join(' ')}`)
+  if (creature.locomotion.flight && /pterosaur|pterodactyl|pteranodon|quetzalcoatlus/.test(value)) return 'pterosaur'
   if (creature.locomotion.flight && /dragon|wyvern|griffin|pegasus|winged quadruped/.test(value)) return 'winged-quadruped'
   if (creature.locomotion.flight) return 'flying-bird'
   if (creature.locomotion.aquatic && /octopus|squid|cephalopod/.test(value)) return 'cephalopod'
@@ -172,6 +182,7 @@ export function archetypeFor(creature: CreatureV4Draft): TacticalArchetype {
   if (/spider|scorpion|insect|arthropod|crab/.test(value)) return 'arthropod'
   if (/snake|serpent|eel/.test(value)) return 'serpentine'
   if (/crocod|alligator|lizard|turtle|reptile/.test(value)) return 'low-reptile'
+  if (/monkey|ape|gorilla|chimpanzee|orangutan|baboon|macaque|lemur|primate/.test(value)) return 'primate'
   if (/dinosaur|theropod|kangaroo|biped/.test(value)) return 'theropod-biped'
   if (/human|archer|soldier|warrior|medusa|giant|troll/.test(value)) return 'humanoid'
   if (/horse|zebra|deer|antelope|hoof/.test(value)) return 'hoofed-runner'
@@ -249,13 +260,13 @@ export function visualProfileFor(creature: CreatureV4Draft): CreatureVisualProfi
     : creature.physiology === 'construct' ? 'constructed'
       : creature.physiology === 'undead' || creature.physiology === 'spirit' || creature.physiology === 'legacy-nonliving' ? 'spectral'
         : archetype === 'flying-bird' ? 'feathered'
-          : ['low-reptile', 'serpentine', 'winged-quadruped'].includes(archetype) ? 'scaled'
+          : ['low-reptile', 'serpentine', 'winged-quadruped', 'pterosaur'].includes(archetype) ? 'scaled'
             : ['fish-cetacean', 'cephalopod'].includes(archetype) ? 'aquatic'
               : ['arthropod', 'swarm'].includes(archetype) ? 'chitin'
                 : attachments.has('armour-plates') ? 'armoured' : 'natural'
   const length = Math.max(0.12, creature.body_length_m || Math.cbrt(Math.max(0.001, creature.representative_peak_mass_kg)) * 0.22)
   const height = Math.max(0.08, creature.shoulder_or_body_height_m || length * (archetype === 'serpentine' ? 0.12 : 0.55))
-  const widthRatio = ['serpentine', 'fish-cetacean'].includes(archetype) ? 0.22 : archetype === 'humanoid' ? 0.34 : 0.48
+  const widthRatio = ['serpentine', 'fish-cetacean'].includes(archetype) ? 0.22 : ['humanoid', 'primate'].includes(archetype) ? 0.34 : 0.48
   return {
     creatureId: creature.id,
     archetype,
@@ -369,12 +380,41 @@ export function usesRangedLine(creature: CreatureV4Draft, scenario: ScenarioV4Dr
   return (creature.abilities ?? []).some((ability) => ['ranged', 'area'].includes(ability.delivery) && (ability.rangeM ?? 0) >= scenario.startingDistanceM)
 }
 
+export interface RelativeDisplayScale {
+  solo: [number, number, number]
+  group: [number, number, number]
+  compressionRatio: number
+  disclosure: string | null
+}
+
+/** Uses one physical scale for both contestants, then applies only a minimum-readable clamp. */
+export function relativeDisplayScale(solo: CreatureVisualProfile, group: CreatureVisualProfile): RelativeDisplayScale {
+  const profiles = [solo, group]
+  const longest = Math.max(...profiles.flatMap((profile) => [profile.proportions.length, profile.proportions.height, profile.proportions.width]), 0.01)
+  const shortestBody = Math.max(0.01, Math.min(solo.proportions.length, group.proportions.length))
+  const scenePerMetre = 1.55 / longest
+  const minimumReadable = 0.16
+  const axis = (value: number) => Math.max(minimumReadable, Math.min(1.55, value * scenePerMetre))
+  const scaled = (profile: CreatureVisualProfile): [number, number, number] => [axis(profile.proportions.length), axis(profile.proportions.height), axis(profile.proportions.width)]
+  const physicalRatio = Math.max(solo.proportions.length, group.proportions.length) / shortestBody
+  const readableRatio = 1.55 / minimumReadable
+  const compressionRatio = Math.max(1, physicalRatio / readableRatio)
+  return {
+    solo: scaled(solo),
+    group: scaled(group),
+    compressionRatio,
+    disclosure: compressionRatio > 1.01
+      ? `Relative body scale compressed ${compressionRatio.toFixed(1)}× for readability; physical length ratio ${physicalRatio.toFixed(1)}:1.`
+      : null,
+  }
+}
 export function buildTacticalPlan(storyboard: BattleStoryboard, contestants: TacticalSceneProps['contestants'], scenario: ScenarioV4Draft): TacticalPlan {
-  if (storyboard.reconstructionType === 'conceptual-scale') return { conceptual: true, actors: [], hazards: [], activeFrontRadius: 0, reserveRadius: 0, aggregatePressure: true }
+  if (storyboard.reconstructionType === 'conceptual-scale') return { conceptual: true, actors: [], hazards: [], activeFrontRadius: 0, reserveRadius: 0, aggregatePressure: true, scaleDisclosure: null }
   const groupMedium = mediumFor(contestants.group, scenario)
   const soloMedium = mediumFor(contestants.solo, scenario)
   const soloProfile = visualProfileFor(contestants.solo)
   const groupProfile = visualProfileFor(contestants.group)
+  const displayScale = relativeDisplayScale(soloProfile, groupProfile)
   const soloVisible = archetypeFor(contestants.solo) === 'environmental-hazard' ? 0 : 1
   const groupVisible = Math.min(TACTICAL_MAX_VISIBLE_ACTORS - soloVisible, storyboard.representedQuantity.visibleActorCount)
   const declared = 10 ** Math.min(12, storyboard.representedQuantity.declaredQuantityLog10)
@@ -396,13 +436,14 @@ export function buildTacticalPlan(storyboard: BattleStoryboard, contestants: Tac
   return {
     conceptual: false,
     actors: [
-      { id: contestants.solo.id, side: 'solo', archetype: soloProfile.archetype, visualProfile: soloProfile, representation: soloMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.solo), medium: soloMedium, visibleCount: soloVisible, representedPerActor: 1, positions: formationPositions(soloVisible, storyboard.storySeed, 'solo', soloMedium), origin: [-Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), soloMedium === 'air' ? 4 : soloMedium === 'water' ? -0.4 : 0, 0], activeCount: soloVisible, reserveCount: 0, visibleActiveCount: soloVisible, visibleReserveCount: 0 },
-      { id: contestants.group.id, side: 'group', archetype: groupProfile.archetype, visualProfile: groupProfile, representation: groupMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.group), medium: groupMedium, visibleCount: groupVisible, representedPerActor: storyboard.representedQuantity.representedActorsPerVisibleActor, positions: rangedFormation && visibleActive >= groupVisible ? rangedLineFormationPositions(groupVisible, groupMedium) : frontageReserveFormationPositions(groupVisible, visibleActive, groupMedium, rangedFormation), origin: [Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), groupMedium === 'air' ? 4 : groupMedium === 'water' ? -0.4 : 0, 0], activeCount: active, reserveCount: Math.max(0, Math.round(declared) - active), visibleActiveCount: visibleActive, visibleReserveCount: Math.max(0, groupVisible - visibleActive) },
+      { id: contestants.solo.id, side: 'solo', archetype: soloProfile.archetype, visualProfile: soloProfile, displayScale: displayScale.solo, scaleCompressionRatio: displayScale.compressionRatio, representation: soloMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.solo), medium: soloMedium, visibleCount: soloVisible, representedPerActor: 1, positions: formationPositions(soloVisible, storyboard.storySeed, 'solo', soloMedium), origin: [-Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), soloMedium === 'air' ? 4 : soloMedium === 'water' ? -0.4 : 0, 0], activeCount: soloVisible, reserveCount: 0, visibleActiveCount: soloVisible, visibleReserveCount: 0 },
+      { id: contestants.group.id, side: 'group', archetype: groupProfile.archetype, visualProfile: groupProfile, displayScale: displayScale.group, scaleCompressionRatio: displayScale.compressionRatio, representation: groupMedium === 'abstract' ? 'labelled-token' : representationFor(contestants.group), medium: groupMedium, visibleCount: groupVisible, representedPerActor: storyboard.representedQuantity.representedActorsPerVisibleActor, positions: rangedFormation && visibleActive >= groupVisible ? rangedLineFormationPositions(groupVisible, groupMedium) : frontageReserveFormationPositions(groupVisible, visibleActive, groupMedium, rangedFormation), origin: [Math.min(14, Math.max(6, scenario.startingDistanceM) * 0.11), groupMedium === 'air' ? 4 : groupMedium === 'water' ? -0.4 : 0, 0], activeCount: active, reserveCount: Math.max(0, Math.round(declared) - active), visibleActiveCount: visibleActive, visibleReserveCount: Math.max(0, groupVisible - visibleActive) },
     ],
     hazards,
     activeFrontRadius: Math.max(2, Math.sqrt(Math.min(active, 1_000)) * 0.7),
     reserveRadius: Math.max(3, Math.sqrt(groupVisible) * 1.1),
     aggregatePressure: groupVisible === 0 || (storyboard.representedQuantity.representedActorsPerVisibleActor ?? 1) > 1,
+    scaleDisclosure: displayScale.disclosure,
   }
 }
 

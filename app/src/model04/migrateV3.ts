@@ -45,7 +45,7 @@ function migratedLocomotion(creature: Creature): LocomotionProfile {
     || amphibious
     || traits.has('land-capable')
     || creature.habitats.some((habitat) => DRY_HABITATS.has(habitat))
-  return { flight: creature.can_fly, aquatic: creature.aquatic, amphibious, land }
+  return { flight: creature.can_fly, aquatic: creature.aquatic, amphibious, land, arboreal: false }
 }
 
 function baseLegacyAbility(creature: Creature): Ability {

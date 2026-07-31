@@ -115,6 +115,7 @@ function facingFactor(side: 'solo' | 'group', participant: 'attacker' | 'target'
 function evaluateConditions(
   side: 'solo' | 'group',
   ability: Ability,
+  attacker: AbilityKernelSide,
   target: AbilityKernelSide,
   scenario: ScenarioV4Draft,
   context: AbilityKernelContext,
@@ -126,6 +127,10 @@ function evaluateConditions(
   if (conditions.requiresLineOfSight && !(side === 'solo' ? context.soloLineOfSight : context.groupLineOfSight)) failures.push('line-of-sight')
   if (conditions.minimumDistanceM !== undefined && distanceM < conditions.minimumDistanceM) failures.push('minimum-distance')
   if (conditions.maximumDistanceM !== undefined && distanceM > conditions.maximumDistanceM) failures.push('maximum-distance')
+  if (
+    conditions.minimumAttackerQuantity !== undefined
+    && attacker.targetQuantityLog10 + EPSILON < Math.log10(conditions.minimumAttackerQuantity)
+  ) failures.push('minimum-attacker-quantity')
   if (conditions.minimumTargetMassKg !== undefined && target.resolvedMassKg < conditions.minimumTargetMassKg) failures.push('minimum-target-mass')
   if (conditions.maximumTargetMassKg !== undefined && target.resolvedMassKg > conditions.maximumTargetMassKg) failures.push('maximum-target-mass')
   if (conditions.terrains && !conditions.terrains.includes(scenario.terrain)) failures.push('terrain')
@@ -258,7 +263,7 @@ function resolveAbility(
   const opposingChannels = side === 'solo' ? context.groupAppliedChannels : context.soloAppliedChannels
   const geometry = resolvedGeometry(ability, attacker, scenario)
   const coverage = targetCoverage(ability, attacker, conditionTarget, geometry)
-  const conditions = evaluateConditions(side, ability, conditionTarget, scenario, context, distanceM)
+  const conditions = evaluateConditions(side, ability, attacker, conditionTarget, scenario, context, distanceM)
   const uses = resolveUseAvailability(side, ability, suppliedPercent, conditionTarget, coverage, scenario, context)
   const diagnostics = {
     resolvedRangeM: geometry.rangeM,

@@ -21,6 +21,7 @@ const familyLabels: Record<string, string> = {
   'group-aggregation': 'group aggregation',
   'special-factor': 'special capability factor',
   'ability-requirement': 'structured ability requirement',
+  'fear-resistance': 'fear resistance',
 }
 
 const mechanicalFamilies: Record<'attack_modes' | 'traits', Record<string, string[]>> = {
@@ -34,10 +35,11 @@ const mechanicalFamilies: Record<'attack_modes' | 'traits', Record<string, strin
   },
   traits: {
     'capability-source': ['aquatic', 'construct', 'flight', 'ranged', 'regeneration', 'undead', 'venom'],
-    environment: ['ambush', 'amphibious', 'climber', 'cold-adapted', 'echolocation', 'fire', 'formation', 'heat-adapted', 'land-capable', 'night-vision', 'runner', 'semi-aquatic', 'sprinter', 'thick-fur'],
-    'group-aggregation': ['eusocial', 'formation', 'pack-hunter', 'swarm'],
-    'special-factor': ['armored', 'electric', 'fire', 'heavy-armor', 'many-heads', 'many-limbs', 'petrification'],
-    'ability-requirement': ['healing', 'hypnosis', 'limited-ammunition', 'magic'],
+    environment: ['ambush', 'amphibious', 'arboreal', 'climber', 'cold-adapted', 'echolocation', 'fire', 'formation', 'heat-adapted', 'land-capable', 'night-vision', 'runner', 'semi-aquatic', 'sprinter', 'thick-fur'],
+    'group-aggregation': ['eusocial', 'formation', 'pack-hunter', 'swarm', 'troop'],
+    'special-factor': ['armored', 'electric', 'fire', 'heavy-armor', 'incorporeal', 'many-heads', 'many-limbs', 'petrification'],
+    'ability-requirement': ['healing', 'hypnosis', 'limited-ammunition', 'magic', 'morale', 'tool-use'],
+    'fear-resistance': ['fearless'],
     'stopping-bypass': ['cavitation-strike', 'electric', 'petrification'],
   },
 }

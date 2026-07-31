@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import creaturesJson from '../../../data/creatures.json'
 import { cloneAsCustom } from '../customCreatures'
 import { buildTacticalChoreography } from '../components/tactical/beatPlan'
+import { readerCausalStages } from '../components/LikelyBattlePanel'
 import { Model04Runtime, type Model04RuntimeResources } from '../model04/runtime'
 import { defaultScenario } from '../simulation/engine'
 import {
@@ -35,7 +36,7 @@ function reconstruction(
   )
   return {
     scenario: run.scenario,
-    result: run.result,
+    result: run.result as BattleReconstructionInput['result'],
     deterministicState: run.deterministicState,
     abilityResolutions: run.abilityResolutions,
     sensitivity: run.sensitivity,
@@ -491,6 +492,14 @@ describe('custom-profile safety and grammar', () => {
     const account = buildSafeReaderBattleNarrative(input, storyboard, {
       validate: () => [{ code: 'forced-quality', message: 'Forced quality-validation failure.' }],
     })
+    const stages = readerCausalStages(account)
+    expect(stages.map((stage) => stage.title)).toEqual([
+      'The matchup', 'Opening and first exchange', 'Pressure', 'Turning point', 'Outcome',
+    ])
+    expect(stages[3]?.emphasis).toBe(true)
+    expect(stages[4]?.beats).toEqual([account.plan.resolution])
+    expect(stages[4]?.minorityPath).toBe(account.plan.minorityPath)
+
     const probability = input.result.winner === 'solo'
       ? input.result.soloWinProbability
       : input.result.groupWinProbability

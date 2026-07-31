@@ -56,12 +56,14 @@ function primitiveFor(actor: TacticalActorPlan) {
   const archetype = actor.archetype
   if (archetype === 'serpentine') return <sphereGeometry args={[0.5, 8, 6]} />
   if (archetype === 'environmental-hazard' || archetype === 'construct') return <boxGeometry args={[1.1, 1.1, 1.1]} />
+  if (archetype === 'pterosaur') return <tetrahedronGeometry args={[0.62, 0]} />
   if (archetype === 'flying-bird' || archetype === 'winged-quadruped') return <coneGeometry args={[0.45, 1.2, 5]} />
   if (archetype === 'fish-cetacean' || archetype === 'cephalopod') return <sphereGeometry args={[0.7, 8, 6]} />
   if (archetype === 'arthropod' || archetype === 'swarm') return <octahedronGeometry args={[0.45, 0]} />
   if (archetype === 'heavy-quadruped') return <boxGeometry args={[1.3, 0.8, 0.75]} />
   if (archetype === 'hoofed-runner') return <boxGeometry args={[1.05, 0.6, 0.5]} />
   if (archetype === 'low-reptile') return <boxGeometry args={[1.2, 0.35, 0.55]} />
+  if (archetype === 'primate') return <capsuleGeometry args={[0.38, 0.65, 4, 8]} />
   return <capsuleGeometry args={[0.25, archetype === 'humanoid' || archetype === 'theropod-biped' ? 0.85 : 0.7, 3, 6]} />
 }
 
@@ -73,15 +75,8 @@ function attachmentGeometry(attachment: CreatureVisualAttachment) {
   return <sphereGeometry args={[attachment === 'multiple-heads' ? 0.34 : 0.24, 7, 5]} />
 }
 
-function actorScale(actor: TacticalActorPlan, base: number): [number, number, number] {
-  const { length, height, width } = actor.visualProfile.proportions
-  const largest = Math.max(length, height, width, 0.01)
-  const magnitude = Math.max(0.72, Math.min(1.9, Math.cbrt(largest))) * base
-  return [
-    magnitude * Math.max(0.5, Math.min(1.7, length / largest + 0.35)),
-    magnitude * Math.max(0.55, Math.min(1.55, height / largest + 0.45)),
-    magnitude * Math.max(0.5, Math.min(1.45, width / largest + 0.45)),
-  ]
+function actorScale(actor: TacticalActorPlan): [number, number, number] {
+  return actor.displayScale
 }
 
 function materialRoughness(actor: TacticalActorPlan): number {
@@ -89,8 +84,7 @@ function materialRoughness(actor: TacticalActorPlan): number {
 }
 
 function AttachmentInstances({ actor }: { actor: TacticalActorPlan }) {
-  const base = actor.side === 'solo' ? 1.2 : 0.42
-  const scale = actorScale(actor, base)
+  const scale = actorScale(actor)
   const temp = useMemo(() => new Object3D(), [])
   return <>{actor.visualProfile.attachments.map((attachment, attachmentIndex) => <instancedMesh key={`${actor.id}:${attachment}`} args={[undefined, undefined, actor.visibleCount]} ref={(mesh) => {
     if (!mesh) return
@@ -172,7 +166,7 @@ function Formation({ actor, showLabels, labelsCrowded, event, playing, reducedMo
   const mesh = useRef<InstancedMesh>(null)
   const group = useRef<Group>(null)
   const temp = useMemo(() => new Object3D(), [])
-  const scale = useMemo(() => actorScale(actor, actor.side === 'solo' ? 1.2 : 0.42), [actor])
+  const scale = useMemo(() => actorScale(actor), [actor])
   useEffect(() => {
     if (!mesh.current) return
     actor.positions.forEach((position, index) => {

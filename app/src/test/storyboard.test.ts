@@ -46,7 +46,7 @@ function input(overrides: Pilot, storySeed = 90210): BattleReconstructionInput {
   const run: Model04RuntimeResult = runtime.simulate(scenario(overrides), resources)
   return {
     scenario: run.scenario,
-    result: run.result,
+    result: run.result as BattleReconstructionInput['result'],
     deterministicState: run.deterministicState,
     abilityResolutions: run.abilityResolutions,
     sensitivity: run.sensitivity,
@@ -88,7 +88,7 @@ describe('validated likely-battle storyboard pilots', () => {
     for (const event of events.filter((candidate) => candidate.type === 'contact-attack')) {
       expect(event.rangeM).toBe(reconstruction.deterministicState.physical[event.actingSide].scaledReachM)
     }
-    expect(STORYBOARD_VERSION).toBe(2)
+    expect(STORYBOARD_VERSION).toBe(3)
   })
 
   test('keeps the six pilot outcomes locked independently of the generated narrative', () => {
@@ -104,12 +104,12 @@ describe('validated likely-battle storyboard pilots', () => {
       }]
     }))
     expect(outcomes).toEqual({
-      elephantWolves: { scenarioHash: '3b23a542190228d7', winner: 'group', probability: 0.724838, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
-      eagleMice: { scenarioHash: 'b5dfe34c40b00958', winner: 'solo', probability: 0.958853, margin: 1.119766, reconstructionType: 'representative', visible: 48 },
-      dragonArchers: { scenarioHash: '0234d65331418a48', winner: 'solo', probability: 0.938903, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
-      medusaSpears: { scenarioHash: 'f8ab9ac31009b52d', winner: 'group', probability: 0.938903, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
-      spiderRhino: { scenarioHash: 'dd034dd1d4b6430e', winner: 'group', probability: 0.510973, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
-      charybdisOrca: { scenarioHash: '9f556dc6b90c5352', winner: 'solo', probability: 0.559252, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
+      elephantWolves: { scenarioHash: '345d9c64d9b5cbb3', winner: 'group', probability: 0.740595, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
+      eagleMice: { scenarioHash: 'dd551ed68eff0b53', winner: 'solo', probability: 0.959969, margin: 1.119766, reconstructionType: 'representative', visible: 48 },
+      dragonArchers: { scenarioHash: '3e99dcb31140cdd4', winner: 'solo', probability: 0.939971, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
+      medusaSpears: { scenarioHash: '09fb6ff935decaf7', winner: 'group', probability: 0.939501, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
+      spiderRhino: { scenarioHash: '4be2203501d8fdda', winner: 'solo', probability: 0.51361, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
+      charybdisOrca: { scenarioHash: '4776de459e33f935', winner: 'solo', probability: 0.568342, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
     })
   })
 
@@ -831,7 +831,7 @@ describe('validated likely-battle storyboard pilots', () => {
     const run = runtime.simulate(customScenario, resources, [custom])
     const reconstruction: BattleReconstructionInput = {
       scenario: run.scenario,
-      result: run.result,
+      result: run.result as BattleReconstructionInput['result'],
       deterministicState: run.deterministicState,
       abilityResolutions: run.abilityResolutions,
       sensitivity: run.sensitivity,

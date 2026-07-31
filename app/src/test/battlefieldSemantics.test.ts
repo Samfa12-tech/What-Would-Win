@@ -37,7 +37,7 @@ function runtimeInput(overrides: Partial<Scenario> = {}, storySeed = 711): Battl
   }, resources)
   return {
     scenario: run.scenario,
-    result: run.result,
+    result: run.result as BattleReconstructionInput['result'],
     deterministicState: run.deterministicState,
     abilityResolutions: run.abilityResolutions,
     sensitivity: run.sensitivity,

@@ -16,7 +16,7 @@ describe('built-in creature roster loader', () => {
     const creatures = await loadBuiltInCreatures(fetcher, '/assets/creatures.json')
 
     expect(fetcher).toHaveBeenCalledWith('/assets/creatures.json')
-    expect(creatures).toHaveLength(134)
+    expect(creatures).toHaveLength(139)
     expect(creatures[0]).toMatchObject({ id: expect.any(String), name: expect.any(String) })
   })
 

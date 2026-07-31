@@ -17,6 +17,7 @@ export type SpecimenSex = 'unspecified' | 'female' | 'male'
 export type BattlePhaseId = 'briefing' | 'deployment' | 'approach' | 'contact' | 'pressure' | 'resolution' | 'uncertainty'
 export type ModelFactorSide = 'solo' | 'group' | 'neutral'
 export type NarrativeAdvantage = 'solo' | 'group' | 'contested' | 'neutral'
+export type SimulationOutcome = 'solo-win' | 'group-win' | 'draw'
 
 export interface Creature {
   id: string
@@ -235,7 +236,10 @@ export interface SimulationTechnical {
 export interface SimulationResult {
   soloWinProbability: number
   groupWinProbability: number
-  winner: 'solo' | 'group'
+  drawProbability: number
+  outcome: SimulationOutcome
+  outcomeReason: string
+  winner: 'solo' | 'group' | null
   winnerName: string
   confidenceLabel: string
   probabilityRange: [number, number]

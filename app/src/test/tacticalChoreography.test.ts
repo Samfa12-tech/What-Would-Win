@@ -31,7 +31,7 @@ function phase(id: BattleStoryboardPhase['id'], events: BattleEvent[]): BattleSt
 function storyboard(): BattleStoryboard {
   const ids: BattleStoryboardPhase['id'][] = ['briefing', 'deployment', 'approach', 'contact', 'pressure', 'turning-point', 'resolution']
   return {
-    version: 2, modelVersion: '0.4.1', dataVersion: '0.4.1', scenarioHash: 'scenario', resultHash: 'result', simulationSeed: 1, storySeed: 2,
+    version: 3, modelVersion: '0.4.1', dataVersion: '0.4.1', scenarioHash: 'scenario', resultHash: 'result', simulationSeed: 1, storySeed: 2,
     winner: 'solo', winnerProbability: 0.6, deterministicMargin: 0.2, reconstructionType: 'representative', estimatedDurationSeconds: 12,
     representedQuantity: { declaredQuantityLog10: 2, visibleActorCount: 20, representedActorsPerVisibleActor: 5, effectiveActiveCountLog10: Math.log10(6), abstractionLabel: '20 shown.' },
     evidence: [], phases: ids.map((id, index) => phase(id, index === 2 ? [event('advance'), event('volley', 'ranged-attack')] : [])),

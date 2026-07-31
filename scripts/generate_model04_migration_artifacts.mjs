@@ -23,7 +23,7 @@ const booleanProfile = {
 const locomotionProfile = {
   type: 'object', additionalProperties: false,
   required: ['flight', 'aquatic', 'amphibious', 'land'],
-  properties: Object.fromEntries(['flight', 'aquatic', 'amphibious', 'land'].map((key) => [key, { type: 'boolean' }])),
+  properties: Object.fromEntries(['flight', 'aquatic', 'amphibious', 'land', 'arboreal'].map((key) => [key, { type: 'boolean' }])),
 }
 const abilityEffectSchema = {
   type: 'object', additionalProperties: false, required: ['kind', 'channel', 'potency'],
@@ -51,12 +51,14 @@ const abilitySchema = {
       type: 'object', additionalProperties: false,
       properties: {
         requiresLineOfSight: { type: 'boolean' },
+        preparationDependent: { type: 'boolean' },
         requiresFacing: { type: 'boolean' },
         requiresAttackerFacing: { type: 'boolean' },
         requiresTargetFacing: { type: 'boolean' },
         requiresMutualFacing: { type: 'boolean' },
         minimumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
         maximumDistanceM: { type: 'number', minimum: 0, maximum: 10000000 },
+        minimumAttackerQuantity: { type: 'number', minimum: 1, maximum: 1000000000000 },
         minimumTargetMassKg: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
         maximumTargetMassKg: { type: 'number', exclusiveMinimum: 0, maximum: 1000000000000 },
         terrains: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1, maxLength: 80 } },
@@ -104,7 +106,7 @@ const profileReviewSchema = {
 function creatureV4Schema() {
   const schema = structuredClone(creatureV3Schema)
   schema.$id = 'https://samfa12.com/what-would-win/schemas/model-0.4/creature.schema.json'
-  schema.title = 'What Would Win model 0.4.1 creature'
+  schema.title = 'What Would Win model 0.5.0 creature'
   const removed = ['effective_reach_m', 'can_fly', 'aquatic', 'venomous', 'ranged', 'regenerates', 'undead_or_construct']
   schema.required = schema.required.filter((key) => !removed.includes(key))
   for (const key of removed) delete schema.properties[key]
@@ -135,7 +137,7 @@ const sideResourcesSchema = {
 function scenarioV4Schema() {
   const schema = structuredClone(scenarioV3Schema)
   schema.$id = 'https://samfa12.com/what-would-win/schemas/model-0.4/scenario.schema.json'
-  schema.title = 'What Would Win model 0.4.1 scenario'
+  schema.title = 'What Would Win model 0.5.0 scenario'
   schema.required = schema.required.filter((key) => key !== 'resourcesPercent')
   delete schema.properties.resourcesPercent
   schema.required.push('schemaVersion', 'soloResources', 'groupResources')
@@ -152,7 +154,7 @@ function complexOverridesSchema() {
     title: 'What Would Win model 0.4 complex profile overrides',
     type: 'object', additionalProperties: false, required: ['schemaVersion', 'targetModel', 'profiles'],
     properties: {
-      schemaVersion: { const: 1 }, targetModel: { const: '0.4.1' },
+      schemaVersion: { const: 1 }, targetModel: { const: '0.5.0' },
       profiles: {
         type: 'array', minItems: 1, uniqueItems: true,
         items: {
@@ -176,7 +178,7 @@ function complexOverridesSchema() {
 
 const reachMigration = {
   schemaVersion: 1,
-  targetModel: '0.4.1',
+  targetModel: '0.5.0',
   policy: {
     contactReach: 'Conservatively copy model 0.3 effective_reach_m until the profile receives a reviewed anatomical contact value.',
     rangedReach: 'For ranged:true profiles only, generate legacy-ranged with the same old value; canonical abilities must replace it before activation.',
@@ -194,7 +196,7 @@ const reachMigration = {
 
 const resourceMigration = {
   schemaVersion: 1,
-  targetModel: '0.4.1',
+  targetModel: '0.5.0',
   sourceField: 'resourcesPercent',
   targetFields: ['soloResources.defaultPercent', 'groupResources.defaultPercent'],
   policy: {

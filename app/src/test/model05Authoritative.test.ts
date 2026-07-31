@@ -5,7 +5,7 @@ import { buildCanonicalModel04Draft, type ComplexProfileOverrideStore } from '..
 import type { Ability, CreatureV4Draft, ScenarioV4Draft } from '../model04/contracts'
 import { resolveModel04Deterministic, simulateModel04 } from '../model04/engineV4'
 import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from '../model04/migrateV3'
-import { defaultScenario } from '../simulation/engine'
+import { defaultScenario, sampleOutcomeFromPowers } from '../simulation/engine'
 import type { Creature } from '../types'
 
 const v3Creatures = creaturesJson as Creature[]
@@ -324,5 +324,34 @@ describe('model 0.5 authoritative outcome invariants', () => {
     expect(fearlessDread?.stoppingFactor).toBeCloseTo(0.06, 12)
     expect(lowDread!.logDelta).toBeGreaterThan(highDread!.logDelta)
     expect(highDread!.logDelta).toBeGreaterThan(fearlessDread!.logDelta)
+  })
+
+  test('canonicalizes sub-precision log-power noise before selecting seeded trials', () => {
+    const baseline = {
+      soloId: 'stable-solo',
+      groupId: 'stable-group',
+      soloLogPower: 1.25,
+      groupLogPower: 0.75,
+      soloConfidence: 'high' as const,
+      groupConfidence: 'medium' as const,
+      soloKind: 'animal' as const,
+      groupKind: 'animal' as const,
+      scenarioSeed: 481516,
+      trials: 2_000,
+      conceptual: false,
+    }
+    const first = sampleOutcomeFromPowers(baseline)
+    const subPrecision = sampleOutcomeFromPowers({
+      ...baseline,
+      soloLogPower: baseline.soloLogPower + 1e-11,
+      groupLogPower: baseline.groupLogPower - 1e-11,
+    })
+    const modelSignificant = sampleOutcomeFromPowers({
+      ...baseline,
+      soloLogPower: baseline.soloLogPower + 2e-9,
+    })
+
+    expect(subPrecision).toEqual(first)
+    expect(modelSignificant.resolvedSeed).not.toBe(first.resolvedSeed)
   })
 })

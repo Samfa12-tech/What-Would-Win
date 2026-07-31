@@ -104,12 +104,12 @@ describe('validated likely-battle storyboard pilots', () => {
       }]
     }))
     expect(outcomes).toEqual({
-      elephantWolves: { scenarioHash: '345d9c64d9b5cbb3', winner: 'group', probability: 0.740595, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
+      elephantWolves: { scenarioHash: '345d9c64d9b5cbb3', winner: 'group', probability: 0.747647, margin: -0.113614, reconstructionType: 'representative', visible: 50 },
       eagleMice: { scenarioHash: 'dd551ed68eff0b53', winner: 'solo', probability: 0.959969, margin: 1.119766, reconstructionType: 'representative', visible: 48 },
-      dragonArchers: { scenarioHash: '3e99dcb31140cdd4', winner: 'solo', probability: 0.939971, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
-      medusaSpears: { scenarioHash: '09fb6ff935decaf7', winner: 'group', probability: 0.939501, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
-      spiderRhino: { scenarioHash: '4be2203501d8fdda', winner: 'solo', probability: 0.51361, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
-      charybdisOrca: { scenarioHash: '4776de459e33f935', winner: 'solo', probability: 0.568342, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
+      dragonArchers: { scenarioHash: '3e99dcb31140cdd4', winner: 'solo', probability: 0.939853, margin: 1.008946, reconstructionType: 'representative', visible: 64 },
+      medusaSpears: { scenarioHash: '09fb6ff935decaf7', winner: 'group', probability: 0.939619, margin: -0.879923, reconstructionType: 'representative', visible: 20 },
+      spiderRhino: { scenarioHash: '4be2203501d8fdda', winner: 'solo', probability: 0.507861, margin: 0.005914, reconstructionType: 'close-contest', visible: 1 },
+      charybdisOrca: { scenarioHash: '4776de459e33f935', winner: 'solo', probability: 0.568401, margin: 0.043604, reconstructionType: 'close-contest', visible: 1 },
     })
   })
 

@@ -109,6 +109,7 @@ const pilot = {
     scalingMode: 'magical',
     terrain: 'forest',
     startingDistanceM: 12,
+    seed: 16,
   } satisfies Partial<Scenario>,
   hazard: {
     soloId: 'charybdis',

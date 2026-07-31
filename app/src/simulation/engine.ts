@@ -24,6 +24,7 @@ export const NAMED_SIZE_MASS_KG = {
 } as const
 
 export const AUTHORITATIVE_TRIAL_COUNT = 15_000
+const TRIAL_MARGIN_PRECISION = 1_000_000_000
 
 export const TRIALS_BY_DEPTH: Record<ReportDepth, number> = {
   verdict: AUTHORITATIVE_TRIAL_COUNT,
@@ -64,11 +65,16 @@ export interface OutcomeSamplingResult {
 }
 
 export function sampleOutcomeFromPowers(input: OutcomeSamplingInput): OutcomeSamplingResult {
+  // Canonicalize calculated powers before they affect either the seed or the trial
+  // comparisons. JS engines can differ below this precision after transcendental math;
+  // those non-model bits must not select an unrelated Monte Carlo sequence.
+  const stableSoloLogPower = Math.round(input.soloLogPower * TRIAL_MARGIN_PRECISION) / TRIAL_MARGIN_PRECISION
+  const stableGroupLogPower = Math.round(input.groupLogPower * TRIAL_MARGIN_PRECISION) / TRIAL_MARGIN_PRECISION
   const resolvedInputs = {
     soloId: input.soloId,
     groupId: input.groupId,
-    soloLogPower: input.soloLogPower,
-    groupLogPower: input.groupLogPower,
+    soloLogPower: stableSoloLogPower,
+    groupLogPower: stableGroupLogPower,
     soloConfidence: input.soloConfidence,
     groupConfidence: input.groupConfidence,
   }
@@ -79,9 +85,13 @@ export function sampleOutcomeFromPowers(input: OutcomeSamplingInput): OutcomeSam
   let soloWins = 0
   for (let trial = 0; trial < input.trials; trial += 1) {
     const tacticalSwing = normalSample(random) * 0.035
-    const soloTrial = input.soloLogPower + normalSample(random) * soloNoise + tacticalSwing
-    const groupTrial = input.groupLogPower + normalSample(random) * groupNoise - tacticalSwing
-    if (soloTrial >= groupTrial) soloWins += 1
+    const soloTrial = stableSoloLogPower + normalSample(random) * soloNoise + tacticalSwing
+    const groupTrial = stableGroupLogPower + normalSample(random) * groupNoise - tacticalSwing
+    // Math.log/Math.cos can differ in their last bits across JS runtime and libm combinations.
+    // Quantize only the final comparison at 1e-9 log power, far below model input precision,
+    // so the same seeded trials cannot change outcomes because of platform math noise.
+    const stableTrialMargin = Math.round((soloTrial - groupTrial) * TRIAL_MARGIN_PRECISION) / TRIAL_MARGIN_PRECISION
+    if (stableTrialMargin >= 0) soloWins += 1
   }
   const rawSoloTrialRate = (soloWins + 0.5) / (input.trials + 1)
   const includesFantasy = input.soloKind === 'fantasy' || input.groupKind === 'fantasy'

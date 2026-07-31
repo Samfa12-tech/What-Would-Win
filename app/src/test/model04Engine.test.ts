@@ -96,7 +96,7 @@ describe('active model 0.4 full-engine adapter', () => {
     const atCrossover = resolveModel04Deterministic(canonical, { ...exportedScenario, groupQuantity: String(crossover) })
 
     expect(run.result.winner).toBe('group')
-    expect(run.result.groupWinProbability).toBeCloseTo(0.7888834077728151, 12)
+    expect(run.result.groupWinProbability).toBeCloseTo(0.792093860409306, 12)
     expect(run.result.coinFlipQuantity).toBe('about 20')
     expect(before.groupLogPower).toBeLessThan(before.soloLogPower)
     expect(atCrossover.groupLogPower).toBeGreaterThanOrEqual(atCrossover.soloLogPower)

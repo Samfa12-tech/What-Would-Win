@@ -9,6 +9,7 @@
 ### Authoritative model
 
 - All report depths run the same fixed 15,000 seeded trials; changing explanation depth cannot change the numerical result.
+- Calculated log powers are canonicalized below model precision before selecting the seeded trial stream, preventing JS-runtime math noise from changing an outcome.
 - Group access pressure is contribution-weighted across executable ability routes. Rejected, countered or physically inaccessible routes contribute zero access.
 - Outcome resolution distinguishes mutual non-engagement (`draw`) from a one-way executable route and from a two-sided seeded comparison.
 - Equal-mobility and quantity-one cases retain side symmetry rather than receiving group-only access/frontage effects.
@@ -64,13 +65,13 @@ These boundaries are intentional. The deterministic numerical engine remains aut
 
 ## Verification record
 
-- `npm test`: 392/392 Vitest tests passed across 30 files after the complete release audit.
+- `npm test`: 393/393 Vitest tests passed across 30 files after the complete release audit.
 - Semantic audit: 139 profiles, 33 habitats, 61 attack modes, 71 traits, 0 errors and 0 warnings.
 - Ability audit: 130 mechanical source tokens routed across 139 profiles.
 - Provenance: 139 generated records verified.
 - `npm run typecheck`: passed.
 - `npm run build`: passed with 178 transformed modules.
 - `node scripts/check-static-subpath.mjs`: 7/7 local references resolved under `/apps/what-would-win/`.
-- Build budgets: all reviewed ceilings passed; total JavaScript 1,663,672/1,750,000 bytes and total deployable payload 1,940,486/2,050,000 bytes.
-- Complete Playwright matrix: 220 total tests — 200 passed, 20 intentional project-scope skips, 0 failed in 8.8 minutes across desktop Chromium, mobile 360 Chromium, Firefox and WebKit.
+- Build budgets: all reviewed ceilings passed; total JavaScript 1,663,718/1,750,000 bytes and total deployable payload 1,940,532/2,050,000 bytes.
+- Complete Playwright matrix: 220 total tests — 200 passed, 20 intentional project-scope skips, 0 failed in 7.6 minutes across desktop Chromium, mobile 360 Chromium, Firefox and WebKit.
 - Headed exact-build visual review: decisive causal rail, tactical reconstruction and deterministic non-engagement draw captured without observed clipping or overflow.

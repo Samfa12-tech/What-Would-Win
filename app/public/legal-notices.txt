@@ -115,6 +115,7 @@ versions are locked in `app/package-lock.json`.
 | require-from-string 2.0.2 | MIT | Copyright (c) Vsevolod Strukchinsky |
 | fast-uri 3.1.4 | BSD-3-Clause | Copyright (c) Gary Court and the Fastify team |
 | @babel/runtime 7.29.7 | MIT | Copyright (c) 2014-present Sebastian McKenzie and other contributors |
+| @phosphor-icons/react 2.1.10 | MIT | Copyright (c) 2020 Phosphor Icons |
 | @react-three/fiber 9.6.1 | MIT | Copyright (c) Paul Henschel and contributors |
 | @types/react 19.2.17 | MIT | Copyright (c) Microsoft Corporation |
 | @types/react-reconciler 0.28.9 | MIT | Copyright (c) Microsoft Corporation |
@@ -132,7 +133,7 @@ versions are locked in `app/package-lock.json`.
 
 ### MIT-licensed tactical-runtime packages
 
-Copyright notices are listed in the table above for Babel runtime, React
+Copyright notices are listed in the table above for Babel runtime, Phosphor Icons, React
 Three Fiber, Microsoft type definitions, base64-js, buffer, csstype,
 Poimandres utilities, Three.js, Meta's external-store shim and Zustand.
 

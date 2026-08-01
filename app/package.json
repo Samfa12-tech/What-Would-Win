@@ -26,6 +26,7 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@react-three/fiber": "^9.6.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",

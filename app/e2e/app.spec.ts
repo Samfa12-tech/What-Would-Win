@@ -5,6 +5,11 @@ const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v3'
 const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const CUSTOM_NAME = 'Codex Field Beast'
 
+async function openDeepDive(page: Page) {
+  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
+}
+
 function soloPanel(page: Page) {
   return page.locator('.combatant-panel').filter({
     has: page.getByRole('heading', { name: 'The one', exact: true }),
@@ -69,6 +74,7 @@ async function openSharedScenarioInCleanBrowser(browser: Browser, shareUrl: stri
   const context = await browser.newContext()
   const page = await context.newPage()
   await page.goto(shareUrl)
+  await openDeepDive(page)
   return { context, page }
 }
 
@@ -82,18 +88,19 @@ async function selectResultView(page: Page, name: string) {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
+  await openDeepDive(page)
 })
 
 test('loads the production app with its interpretation and privacy disclosures', async ({ page }) => {
   await expect(page).toHaveTitle(/What Would Win/)
-  await expect(page.getByRole('heading', { name: 'What Would Win' })).toBeVisible()
+  await expect(page.getByText('What Would Win', { exact: true }).first()).toBeVisible()
   await expect(page.getByText(/transparent entertainment model, not a scientific prediction/i)).toBeVisible()
   await page.getByText('How the model works', { exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Transparent assumptions, deterministic authority' })).toBeVisible()
   await expect(page.getByText('one versus X', { exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Custom profile tools' })).toContainText('save it only in this browser')
   await expect(page.locator('footer')).toContainText(/Model .+ · Data .+ · React\/TypeScript/)
-  await expect(page.getByRole('link', { name: 'Back to Apps' })).toHaveAttribute('href', 'https://samfa12.com/apps/')
+  await expect(page.locator('.back-to-apps')).toHaveAttribute('href', 'https://samfa12.com/apps/')
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Samfa12' })).toHaveAttribute('href', 'https://samfa12.com/')
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', 'https://samfa12.com/privacy/')
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Licences' })).toHaveAttribute('href', './legal-notices.txt')
@@ -114,7 +121,8 @@ test('shows a durable roster error and retries without mutating stored data', as
 
   await page.unroute('**/assets/creatures-*.json')
   await page.getByRole('button', { name: 'Try again' }).click()
-  await expect(page.getByRole('heading', { name: 'What Would Win' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Build your matchup' })).toBeVisible()
+  await openDeepDive(page)
   await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   await expect(page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).resolves.toBe(storedHistory)
 })
@@ -348,6 +356,7 @@ test('clones, names, edits, saves, reloads and uses a private custom profile', a
   expect(stored.items[0].creature).toMatchObject({ id: customId, name: CUSTOM_NAME, attack: 73 })
 
   await page.reload()
+  await openDeepDive(page)
   await page.getByTestId('solo-creature-select').selectOption(customId)
   await expect(page.getByTestId('solo-creature-select').locator('option:checked')).toHaveText(CUSTOM_NAME)
   await soloPanel(page).getByRole('button', { name: 'Edit custom' }).click()
@@ -404,6 +413,7 @@ test('a share with an unavailable built-in creature reports the default substitu
   sharedScenario.soloId = 'missing-built-in-profile'
 
   await page.goto(`/?s=${encodeSharePayload(payload)}`)
+  await openDeepDive(page)
 
   await expect(page.getByRole('alert')).toContainText('not available in this data version')
   await expect(page.getByRole('alert')).toContainText('reset to the default scenario')
@@ -422,6 +432,7 @@ test('a shared custom profile cannot shadow a saved local profile with the same 
   shared!.name = 'Shared Shadow Beast'
 
   await page.goto(`/?s=${encodeSharePayload(payload)}`)
+  await openDeepDive(page)
 
   await expect(page.getByRole('alert')).toContainText('ignored because a saved local profile uses the same ID')
   await expect(page.getByTestId('solo-creature-select')).toHaveValue(customId)
@@ -432,6 +443,7 @@ test('corrupt custom-profile storage recovers visibly without overwriting the st
   test.slow()
   await page.evaluate((key) => localStorage.setItem(key, '{not valid json'), CUSTOM_STORAGE_KEY)
   await page.reload()
+  await openDeepDive(page)
 
   await expect(page.getByRole('alert')).toContainText('Saved current-model custom profiles contain invalid JSON')
   await expect(page.getByRole('alert')).not.toContainText(/model 0\.4/i)
@@ -448,6 +460,7 @@ test('version 3 history persists while corrupt history remains untouched', async
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
+  await openDeepDive(page)
   await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   expect(await page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).toBe('{bad history json')
 })
@@ -458,6 +471,7 @@ test('history entries referencing a deleted custom profile remain visible but ca
   page.once('dialog', (dialog) => dialog.accept())
   await soloPanel(page).getByRole('button', { name: 'Delete custom' }).click()
   await page.reload()
+  await openDeepDive(page)
 
   await expect(page.getByTestId('history-warning')).toContainText('profile that is no longer available')
   const unavailableCard = page.locator('.history-card').filter({ hasText: 'History Field Beast' })

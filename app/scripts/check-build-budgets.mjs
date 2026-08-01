@@ -10,7 +10,10 @@ const budgets = {
   // A split must reduce the eager path; moving bytes between chunks cannot conceal
   // growth in total JavaScript or in the complete published artifact.
   entryJavascript: 460_000,
-  optionalUiJavascript: 21_000,
+  // The 0.9 simple-mode redesign makes the full dossier, methodology, result
+  // presentation and profile tools explicit lazy entries. This ceiling records
+  // their complete cost while the stricter eager-entry budget remains unchanged.
+  optionalUiJavascript: 60_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
   // Application 0.8.0 adds outcome uncertainty, a causal rail and evidence-backed
@@ -27,14 +30,18 @@ const budgets = {
   // Model 0.5 adds explicit outcome fields, v2-to-v3 recovery and the verdict
   // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling keeps
   // 3.7 kB headroom over the exact 0.8.0 candidate rather than hiding it in total.
-  coreJavascript: 590_000,
+  coreJavascript: 625_000,
   javascript: 1_750_000,
   creatureRoster: 132_000,
-  coreCss: 29_000,
+  // Simple mode adds a responsive three-step workspace and concise result view.
+  // CSS is shared by both modes; total deployable size remains independently gated.
+  coreCss: 42_000,
   reconstructionCss: 12_000,
-  css: 41_000,
+  css: 54_000,
   total: 2_050_000,
-  coreDeployable: 855_000,
+  // Includes the compact contender marks and 28 kB versus-ray asset. The overall
+  // published-artifact ceiling is deliberately unchanged.
+  coreDeployable: 940_000,
   socialImage: 300_000,
 }
 

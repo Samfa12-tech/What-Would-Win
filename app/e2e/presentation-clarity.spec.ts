@@ -4,6 +4,11 @@ import { expect, test, type Browser, type Page } from '@playwright/test'
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
+async function openDeepDive(page: Page) {
+  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
+}
+
 async function expectNoSeriousAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
   const serious = results.violations
@@ -18,12 +23,14 @@ async function expectNoSeriousAxeViolations(page: Page) {
 
 async function runDefaultSimulation(page: Page) {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await expect(page.locator('.results')).toBeVisible()
 }
 
 async function runOneVersusOne(page: Page, soloId: string, groupId: string) {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByTestId('solo-creature-select').selectOption(soloId)
   await page.getByTestId('group-creature-select').selectOption(groupId)
   await page.locator('.combatant-panel').nth(0).getByLabel('Size method').selectOption('normal')
@@ -93,6 +100,7 @@ test('verdict exposes probability context, quantity stages, and keyboard-operabl
 })
 test('a modelled draw never mounts decisive story or tactical reconstruction builders', async ({ page }) => {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByTestId('solo-creature-select').selectOption('vampire')
   await page.getByTestId('group-creature-select').selectOption('charybdis')
   await page.getByLabel('Quantity').fill('1')
@@ -184,6 +192,7 @@ test('ordinary and mythical one-versus-one stories use singular grammar without 
 
 test('Charybdis remains a fixed ocean hazard while the orca approaches through water', async ({ page }) => {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByTestId('solo-creature-select').selectOption('charybdis')
   await page.getByTestId('group-creature-select').selectOption('orca')
   await page.getByLabel('Quantity').fill('1')

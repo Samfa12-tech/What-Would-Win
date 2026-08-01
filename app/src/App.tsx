@@ -1,8 +1,9 @@
-import { lazy, Suspense, useMemo, useRef, useState } from 'react'
-import { CreaturePanel } from './components/CreaturePanel'
-import { ResultPanel } from './components/ResultPanel'
-import { StatControls } from './components/StatControls'
-import { MethodologyPanel } from './components/MethodologyPanel'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft } from '@phosphor-icons/react/ArrowLeft'
+import { ArrowRight } from '@phosphor-icons/react/ArrowRight'
+import { ChartLineUp } from '@phosphor-icons/react/ChartLineUp'
+import { Shuffle } from '@phosphor-icons/react/Shuffle'
+import { SimpleCreaturePanel } from './components/SimpleCreaturePanel'
 import {
   cloneAsCustom,
   cloneSavedItem,
@@ -24,7 +25,35 @@ const CustomCreatureEditor = lazy(async () => {
   return { default: module.CustomCreatureEditor }
 })
 
+const CreaturePanel = lazy(async () => {
+  const module = await import('./components/CreaturePanel')
+  return { default: module.CreaturePanel }
+})
+
+const ResultPanel = lazy(async () => {
+  const module = await import('./components/ResultPanel')
+  return { default: module.ResultPanel }
+})
+
+const StatControls = lazy(async () => {
+  const module = await import('./components/StatControls')
+  return { default: module.StatControls }
+})
+
+const MethodologyPanel = lazy(async () => {
+  const module = await import('./components/MethodologyPanel')
+  return { default: module.MethodologyPanel }
+})
+
+const SimpleResultPanel = lazy(async () => {
+  const module = await import('./components/SimpleResultPanel')
+  return { default: module.SimpleResultPanel }
+})
+
 const MAX_HISTORY_ITEMS = 12
+
+type ExperienceMode = 'simple' | 'deep'
+type SimpleStep = 'matchup' | 'conditions' | 'result'
 
 const scalingModes: Array<{ value: Scenario['scalingMode']; title: string; description: string }> = [
   { value: 'strict', title: 'Strict biology', description: 'Square-cube-style structural stress can cripple extreme resizing.' },
@@ -323,6 +352,7 @@ export interface AppProps {
 
 function App({ builtInCreatures, model04Runtime }: AppProps) {
   const starting = useMemo(() => initialAppState(builtInCreatures, model04Runtime), [builtInCreatures, model04Runtime])
+  const startsFromShare = useMemo(() => new URLSearchParams(window.location.search).has('s'), [])
   const startingScenario = starting.scenario
   const [savedCustoms, setSavedCustoms] = useState<SavedCustomCreature[]>(starting.savedCustoms)
   const [sharedCustoms] = useState<Creature[]>(starting.sharedCustoms)
@@ -356,6 +386,9 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   const [shareStatus, setShareStatus] = useState('')
   const [history, setHistory] = useState<HistoryItem[]>(starting.history)
   const [historyWarning, setHistoryWarning] = useState(starting.historyWarning)
+  const [experienceMode, setExperienceMode] = useState<ExperienceMode>('simple')
+  const [simpleStep, setSimpleStep] = useState<SimpleStep>(startsFromShare ? 'result' : 'matchup')
+  const [hasSimpleResult, setHasSimpleResult] = useState(startsFromShare)
 
   const solo = creatures.find((item) => item.id === scenario.soloId) ?? creatures[0]
   const group = creatures.find((item) => item.id === scenario.groupId) ?? creatures[1]
@@ -382,6 +415,14 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       storySeed,
     }
   }, [abilityResolutions, deterministicState, result, sensitivity, simulatedV4Contestants, simulatedV4Scenario, storySeed])
+
+  useEffect(() => {
+    if (experienceMode !== 'simple') return
+    window.requestAnimationFrame(() => {
+      document.getElementById(`simple-${simpleStep}-title`)?.focus({ preventScroll: true })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    })
+  }, [experienceMode, simpleStep])
 
   function update<K extends keyof Scenario>(key: K, value: Scenario[K]) {
     setScenario((current) => ({ ...current, [key]: value }))
@@ -551,9 +592,30 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     setShareStatus('')
   }
 
+  function randomMatchup() {
+    if (creatures.length < 2) return
+    const soloIndex = Math.floor(Math.random() * creatures.length)
+    let groupIndex = Math.floor(Math.random() * creatures.length)
+    if (groupIndex === soloIndex) groupIndex = (groupIndex + 1) % creatures.length
+    setScenario((current) => ({
+      ...current,
+      soloId: creatures[soloIndex].id,
+      groupId: creatures[groupIndex].id,
+      groupQuantity: String(Math.floor(Math.random() * 99) + 2),
+      soloSize: { method: 'normal', value: 'normal' },
+      groupSize: { method: 'normal', value: 'normal' },
+      soloOverrides: {},
+      groupOverrides: {},
+    }))
+    setError('')
+    setShareStatus('')
+  }
+
   function runAndReveal() {
     if (!run()) return
-    window.requestAnimationFrame(() => document.getElementById('verdict')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    setHasSimpleResult(true)
+    if (experienceMode === 'simple') setSimpleStep('result')
+    else window.requestAnimationFrame(() => document.getElementById('verdict')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   function reroll() {
@@ -608,7 +670,9 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     } else {
       setHistoryWarning('')
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setHasSimpleResult(true)
+    if (experienceMode === 'simple') setSimpleStep('result')
+    else window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function copyShareLink() {
@@ -714,19 +778,160 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <img className="header-mark" src="./icons/icon-192.png" alt="" width="78" height="78" />
-        <div>
-          <p className="eyebrow">THEORETICAL CONFLICT ANALYSIS UNIT</p>
-          <h1>What Would Win</h1>
-          <p className="hero-copy">A mock-serious, textual simulator for one creature versus an effectively unlimited opposing force.</p>
+      <header className="experience-header">
+        <a className="experience-brand" href="./" aria-label="What Would Win home">
+          <img src="./icons/icon-192.png" alt="" width="54" height="54" />
+          <span><strong>What Would Win</strong><small>Creature battle simulator</small></span>
+        </a>
+        <div className="experience-switch" role="group" aria-label="Display mode">
+          <button type="button" className={experienceMode === 'simple' ? 'active' : ''} aria-pressed={experienceMode === 'simple'} onClick={() => setExperienceMode('simple')}>Simple</button>
+          <button type="button" className={experienceMode === 'deep' ? 'active' : ''} aria-pressed={experienceMode === 'deep'} onClick={() => setExperienceMode('deep')}><ChartLineUp aria-hidden="true" /> Deep dive</button>
         </div>
-        <div className="header-meta">
-          <a href="https://samfa12.com/apps/">← Back to Apps</a>
-          <span>139 profiles · deterministic + Monte Carlo · non-graphic</span>
-        </div>
+        <a className="back-to-apps" href="https://samfa12.com/apps/" aria-label="Back to Apps"><ArrowLeft aria-hidden="true" /> Apps</a>
       </header>
 
+      {experienceMode === 'simple' ? (
+        <main className="simple-workspace" data-testid="simple-mode">
+          <nav className="simple-steps" aria-label="Battle setup steps">
+            {([
+              ['matchup', 'Pick contestants'],
+              ['conditions', 'Set the scene'],
+              ['result', 'See the result'],
+            ] as Array<[SimpleStep, string]>).map(([step, label], index) => (
+              <button
+                type="button"
+                key={step}
+                className={simpleStep === step ? 'active' : simpleStep === 'result' || (simpleStep === 'conditions' && step === 'matchup') ? 'complete' : ''}
+                aria-label={label}
+                aria-current={simpleStep === step ? 'step' : undefined}
+                disabled={step === 'result' && !hasSimpleResult}
+                onClick={() => setSimpleStep(step)}
+              ><span>{index + 1}</span><strong>{label}</strong></button>
+            ))}
+          </nav>
+
+          {simpleStep === 'matchup' && (
+            <section className="simple-step simple-matchup-step" aria-labelledby="simple-matchup-title">
+              <div className="simple-step-heading">
+                <p className="eyebrow">STEP 1 OF 3</p>
+                <h1 id="simple-matchup-title" tabIndex={-1}>Build your matchup</h1>
+                <p>Choose each contender, set their size, and let the model handle the rest.</p>
+              </div>
+
+              <div className="simple-matchup-stage">
+                <SimpleCreaturePanel
+                  side="solo"
+                  eyebrow="THE ONE"
+                  creature={solo}
+                  creatures={creatures}
+                  selectedId={scenario.soloId}
+                  size={scenario.soloSize}
+                  onCreatureChange={(id) => selectCreature('solo', id)}
+                  onSizeChange={(size) => update('soloSize', size)}
+                />
+                <div className="simple-versus" aria-hidden="true">
+                  <img src="./assets/simple-mode/versus-rays.png" alt="" />
+                  <span>VS</span>
+                </div>
+                <SimpleCreaturePanel
+                  side="group"
+                  eyebrow="THE MANY"
+                  creature={group}
+                  creatures={creatures}
+                  selectedId={scenario.groupId}
+                  size={scenario.groupSize}
+                  quantity={scenario.groupQuantity}
+                  onCreatureChange={(id) => selectCreature('group', id)}
+                  onSizeChange={(size) => update('groupSize', size)}
+                  onQuantityChange={(quantity) => update('groupQuantity', quantity)}
+                />
+              </div>
+
+              <div className="simple-matchup-summary" aria-label="Current matchup">
+                <span>{solo.name}</span><strong>versus</strong><span>{scenario.groupQuantity} × {group.name}</span>
+              </div>
+
+              <div className="simple-step-actions">
+                <button type="button" className="primary-button" onClick={() => setSimpleStep('conditions')}>Set battle conditions <ArrowRight aria-hidden="true" /></button>
+                <button type="button" className="text-button simple-random" onClick={randomMatchup}><Shuffle aria-hidden="true" /> Random matchup</button>
+              </div>
+            </section>
+          )}
+
+          {simpleStep === 'conditions' && (
+            <section className="simple-step simple-conditions-step" aria-labelledby="simple-conditions-title">
+              <div className="simple-step-heading">
+                <p className="eyebrow">STEP 2 OF 3</p>
+                <h1 id="simple-conditions-title" tabIndex={-1}>Set the scene</h1>
+                <p>Three choices are enough. Deep dive has every advanced control.</p>
+              </div>
+
+              <div className="simple-condition-grid">
+                <label className="simple-condition-card">
+                  <span>Creature resizing</span>
+                  <select aria-label="Creature resizing" value={scenario.scalingMode} onChange={(event) => update('scalingMode', event.target.value as Scenario['scalingMode'])}>
+                    {scalingModes.map((mode) => <option value={mode.value} key={mode.value}>{mode.title}</option>)}
+                  </select>
+                  <small>{scalingModes.find((mode) => mode.value === scenario.scalingMode)?.description}</small>
+                </label>
+                <label className="simple-condition-card">
+                  <span>Battlefield</span>
+                  <select aria-label="Battlefield" value={scenario.terrain} onChange={(event) => update('terrain', event.target.value)}>
+                    {terrainOptions.map((option) => <option key={option} value={option}>{option.replace('-', ' ')}</option>)}
+                  </select>
+                  <small>The terrain can reward movement, cover, flight, or swimming.</small>
+                </label>
+                <label className="simple-condition-card">
+                  <span>Fight style</span>
+                  <select
+                    aria-label="Fight style"
+                    value={scenario.soloMindset === scenario.groupMindset ? scenario.soloMindset : 'natural'}
+                    onChange={(event) => {
+                      const mindset = event.target.value as Scenario['soloMindset']
+                      setScenario((current) => ({ ...current, soloMindset: mindset, groupMindset: mindset }))
+                    }}
+                  >
+                    <option value="natural">Natural behaviour</option>
+                    <option value="committed">Committed</option>
+                    <option value="bloodlusted">Optimal ability use</option>
+                  </select>
+                  <small>How readily both sides press the attack.</small>
+                </label>
+              </div>
+
+              <div className="simple-condition-summary">
+                <p><strong>{solo.name}</strong> vs <strong>{scenario.groupQuantity} × {group.name}</strong></p>
+                <span>{scalingModes.find((mode) => mode.value === scenario.scalingMode)?.title} · {scenario.terrain.replace('-', ' ')} · {scenario.soloMindset === 'bloodlusted' ? 'optimal ability use' : scenario.soloMindset}</span>
+              </div>
+
+              {error && <div className="error-banner" role="alert">{error}</div>}
+              <div className="simple-step-actions split">
+                <button type="button" className="secondary-button" onClick={() => setSimpleStep('matchup')}><ArrowLeft aria-hidden="true" /> Back</button>
+                <button type="button" className="text-button" onClick={() => setExperienceMode('deep')}>More battle options</button>
+                <button type="button" className="primary-button" onClick={runAndReveal}>Who would win? <ArrowRight aria-hidden="true" /></button>
+              </div>
+            </section>
+          )}
+
+          {simpleStep === 'result' && hasSimpleResult && (
+            <Suspense fallback={<div className="method-banner" role="status">Preparing the result…</div>}>
+              <SimpleResultPanel
+                result={result}
+                solo={simulatedSolo}
+                group={simulatedGroup}
+                shareStatus={shareStatus}
+                onEditMatchup={() => setSimpleStep('matchup')}
+                onDeepDive={() => {
+                  setExperienceMode('deep')
+                  window.requestAnimationFrame(() => document.getElementById('verdict')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+                }}
+                onCopyShare={() => void copyShareLink()}
+              />
+            </Suspense>
+          )}
+        </main>
+      ) : (
+        <Suspense fallback={<main className="simple-workspace"><div className="method-banner" role="status">Opening Deep dive…</div></main>}>
       <nav className="workspace-nav" aria-label="Workspace sections">
         <div className="workspace-links">
           <a href="#matchup"><span>01</span> Matchup</a>
@@ -1136,6 +1341,8 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
           <MethodologyPanel />
         </section>
       </main>
+        </Suspense>
+      )}
 
       <footer>
         <div className="footer-identity">

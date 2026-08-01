@@ -3,6 +3,11 @@ import { expect, test, type Page } from '@playwright/test'
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
+async function openDeepDive(page: Page) {
+  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
+}
+
 function seriousViolations(violations: Awaited<ReturnType<AxeBuilder['analyze']>>['violations']) {
   return violations
     .filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')
@@ -30,6 +35,13 @@ async function selectResultView(page: Page, name: string) {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
+  await openDeepDive(page)
+})
+
+test('default simple mode has no serious axe violations', async ({ page }) => {
+  await page.getByRole('button', { name: 'Simple' }).click()
+  await expect(page.getByRole('heading', { name: 'Build your matchup' })).toBeVisible()
+  await expectNoSeriousAxeViolations(page)
 })
 
 test('initial application and expanded custom editor have no serious axe violations', async ({ page }) => {

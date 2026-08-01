@@ -3,8 +3,14 @@ import { expect, test, type Browser, type Page } from '@playwright/test'
 const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
 
+async function openDeepDive(page: Page) {
+  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
+}
+
 async function runDefaultSimulation(page: Page) {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await expect(page.locator('.results')).toBeVisible()
 }
@@ -35,6 +41,7 @@ async function cleanSharedPage(browser: Browser, url: string) {
   const context = await browser.newContext()
   const page = await context.newPage()
   await page.goto(url)
+  await openDeepDive(page)
   return { context, page }
 }
 
@@ -335,6 +342,7 @@ test('no-WebGL keeps the accessible tactical fallback and transcript', async ({ 
 
 test('conceptual quantities never initialise a literal tactical battlefield', async ({ page }) => {
   await page.goto('/')
+  await openDeepDive(page)
   await page.getByLabel('Quantity').fill('10^100')
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await openTactical(page)

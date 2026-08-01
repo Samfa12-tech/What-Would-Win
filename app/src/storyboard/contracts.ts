@@ -2,7 +2,7 @@ import type { AbilityResolution, CreatureV4Draft, ScenarioV4Draft } from '../mod
 import type { Model04DeterministicState, Model04SensitivityPoint } from '../model04/engineV4'
 import type { SimulationResult } from '../types'
 
-export const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
+export const RECONSTRUCTION_NOTICE = 'A likely story based on the result—not a replay of an individual trial.'
 export const STORYBOARD_VERSION = 3 as const
 export const MAX_VISIBLE_ACTORS = 80
 

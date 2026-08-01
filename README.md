@@ -39,7 +39,7 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **application 0.8.0, model 0.5.0, data 0.5.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
+The active reproducibility identity is **application 0.8.1, model 0.5.0, data 0.5.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
 
 Model 0.5.0 keeps the model-0.4 physical, ability and endurance ledger, fixes every report depth at 15,000 seeded trials, weights group access by each executable route's actual contribution, and adds explicit one-way-win versus mutual non-engagement resolution. Quantity-one symmetry is locked so equal mobility does not manufacture a side advantage. The active contract also supports reviewed arboreal locomotion and preparation-dependent abilities.
 
@@ -47,7 +47,7 @@ The roster now contains **139 profiles**: 76 living animals, 21 extinct animals,
 
 The v5 share codec embeds the current structured scenario and migrates released v4 identities without changing their inputs. V2 custom/history stores are copied forward to v3 with untouched recovery bytes; prior numerical outcomes remain snapshots pending model-0.5 recalculation. Result JSON exports preserve the exact scenario, contestants, resolutions, sensitivity and outcome. A draw export contains no winner storyboard or battle narrative.
 
-Application 0.8.0 makes the battle easier to read without changing numerical authority: a three-way probability bar and uncertainty band, declared-to-effective quantity pipeline, keyboard result tabs, five-stage causal Story rail, evidence-derived tactical HUD/state strips, responsive HTML legend, relative-scale disclosures, and primate/pterosaur visual archetypes. Story and tactical builders accept decisive results only; mutual non-engagement is presented directly and never converted into an invented battle sequence. See `docs/QUALITY_FEATURE_PASS_0.8.0.md` and `docs/BATTLE_RECONSTRUCTION.md`.
+Application 0.8.1 replaces the technical Story rail shown to ordinary readers with one shared layperson account: a short opening, turning point and finish followed by one to three plain reasons that genuinely favour the winner. Simple mode uses the same validated account; Analyst mode and the complete seven-phase record remain opt-in. The numerical result, model/data versions, share format and storyboard contract are unchanged. See `docs/NARRATIVE_CLARITY_0.8.1.md` and `docs/BATTLE_RECONSTRUCTION.md`.
 ## Documentation
 
 - `docs/What_Would_Win_Product_Plan.md` — canonical product, active model and roadmap specification.
@@ -55,6 +55,7 @@ Application 0.8.0 makes the battle easier to read without changing numerical aut
 - `docs/CODEX_HANDOFF.md` — practical continuation guide and paste-ready Codex prompt.
 - `docs/QA_REPORT.md` — current automated evidence and outstanding manual checks.
 - docs/QUALITY_FEATURE_PASS_0.8.0.md — implemented model, roster, presentation, migration and deliberately deferred scope.
+- `docs/NARRATIVE_CLARITY_0.8.1.md` — layperson story, net-positive winner reasons and full-roster narrative validation.
 - `docs/MODEL_AUDIT_0.3.md` — historical model-0.3 physical-foundation audit and calibration guardrails.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — historical data-0.3.1 semantic audit and migration decisions.
 - `docs/MODEL_0.4_CALIBRATION_COMPARISON.md` — reproducible 16-fixture model-0.3 versus model-0.4 probability table and movement review.

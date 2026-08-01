@@ -61,9 +61,9 @@ describe('reader battle narrative', () => {
     expect(story).toMatch(/one horse-sized mallard duck faces 100 duck-sized horses/i)
     expect(story).toMatch(/600 kilograms/i)
     expect(story).toMatch(/1\.5 kilograms/i)
-    expect(story).toMatch(/only about 6 can contribute effective pressure at once/i)
-    expect(story).toMatch(/decisive transition.*(?:active attackers|waiting for access)/i)
-    expect(story).toMatch(/maintain(?:ing)? uninterrupted contact/i)
+    expect(story).toMatch(/only about 6 can reach the fight at once/i)
+    expect(story).toMatch(/fight turns when.*(?:few attackers|close enough to strike)/i)
+    expect(story).toMatch(/stay in contact.*more attackers.*at the same time/i)
     expect(story).not.toMatch(/aquatic|legacy|0\.3 metres|1\.4 metres|resolved bounds|real pressure alive|unmodelled blow|resolved result/i)
     expect(account.plan.omittedTechnicalEventIds).toEqual(expect.arrayContaining([
       expect.stringMatching(/^ability-solo-/),
@@ -131,7 +131,7 @@ describe('reader battle narrative', () => {
     const { account } = text(reconstruction)
     expect(Math.max(...reconstruction.sensitivity.map((point) => Math.abs(point.marginDelta)))).toBeLessThan(0.05)
     expect(account.plan.minorityPath.text).not.toMatch(/starting distance (?:halved|doubled)/i)
-    expect(account.plan.minorityPath.text).toMatch(/uninterrupted contact/i)
+    expect(account.plan.minorityPath.text).toMatch(/stay in contact.*more attackers/i)
   })
 
   test.each(['strict', 'functional', 'magical'] as const)('%s scaling keeps contact reach physical and other delivery geometry resolved', (scalingMode) => {
@@ -191,7 +191,7 @@ describe('reader battle narrative', () => {
     const conceptual = text(input({ groupQuantity: '10^100' })).account
     expect(conceptual.wordCount).toBeGreaterThanOrEqual(150)
     expect(conceptual.wordCount).toBeLessThanOrEqual(300)
-    expect(conceptual.paragraphs.map((paragraph) => paragraph.text).join(' ')).not.toMatch(/10\^100 .* (?:surround|replace|losses)/i)
+    expect(conceptual.paragraphs.map((paragraph) => paragraph.text).join(' ')).not.toMatch(/10\^100 duck-sized horses (?:surround|replace|suffer losses)/i)
     expect(conceptual.qualityIssues).toEqual([])
 
     const singleton = text(input({

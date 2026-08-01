@@ -109,7 +109,7 @@ test('technical ledger and conceptual results have no serious axe violations', a
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByLabel('Quantity representation disclosure'))
-    .toContainText(/conceptual scale.*not literalised|not literalised.*conceptual scale/i, { timeout: 15_000 })
+    .toContainText(/crowd this large.*does not pretend.*attack at once/i, { timeout: 15_000 })
   await expectNoSeriousAxeViolations(page)
 })
 
@@ -120,7 +120,8 @@ test('likely battle and tactical reconstruction remain complete and axe-clean', 
   await selectResultView(page, 'Likely battle')
   const likelyBattle = page.getByTestId('likely-battle-panel')
   await expect(likelyBattle).toBeVisible({ timeout: 15_000 })
-  await expect(likelyBattle.getByRole('list', { name: 'Five-stage causal battle account' }).locator('.reader-stage')).toHaveCount(5)
+  await expect(likelyBattle.getByLabel('Three-part likely battle story').locator('.layman-story-stage')).toHaveCount(3)
+  await expect(likelyBattle.getByRole('list', { name: 'Clear reasons for the result' })).toBeVisible()
   const detailed = likelyBattle.locator('details.detailed-reconstruction')
   await expect(detailed).not.toHaveAttribute('open', '')
   await expectNoSeriousAxeViolations(page)

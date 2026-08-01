@@ -108,6 +108,6 @@ describe('beat-driven tactical choreography', () => {
     expect(text.callout).toEqual(['Who: Dragon', 'What: Closes', 'Target: Archers', 'Result: Range closes', 'Why: flight'])
     expect(text.counts).toContain('200 declared')
     expect(text.evidence).toContain('ability:flight')
-    expect(text.notice).toContain('not a replay of an individual Monte Carlo trial')
+    expect(text.notice).toContain('not a replay of an individual trial')
   })
 })

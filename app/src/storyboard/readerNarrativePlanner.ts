@@ -26,7 +26,6 @@ import {
   formatResolvedMass,
   grammaticalVerb,
   haveVerb,
-  needVerb,
   type ResolvedContestantIdentity,
 } from './readerIdentity'
 import type {
@@ -48,8 +47,35 @@ function agrees(identity: ResolvedContestantIdentity, singular: string, plural: 
   return grammaticalVerb(identity.grammaticalNumber, singular, plural)
 }
 
+function subjectPronoun(identity: ResolvedContestantIdentity): 'it' | 'they' {
+  return identity.grammaticalNumber === 'plural' ? 'they' : 'it'
+}
+
+function flowSubject(
+  identity: ResolvedContestantIdentity,
+  other: ResolvedContestantIdentity,
+): string {
+  return identity.grammaticalNumber === other.grammaticalNumber
+    ? capitaliseResolvedLabel(identity.subjectLabel)
+    : capitaliseResolvedLabel(subjectPronoun(identity))
+}
+
+function possessivePronoun(identity: ResolvedContestantIdentity): 'its' | 'their' {
+  return identity.grammaticalNumber === 'plural' ? 'their' : 'its'
+}
+
 function opponent(side: StoryboardSide): StoryboardSide {
   return side === 'solo' ? 'group' : 'solo'
+}
+
+function winningProbability(input: BattleReconstructionInput): number {
+  return input.result.winner === 'solo'
+    ? input.result.soloWinProbability
+    : input.result.groupWinProbability
+}
+
+function isOneWayRouteDecision(input: BattleReconstructionInput): boolean {
+  return input.result.outcomeReason.startsWith('Only the ')
 }
 
 function ordinal(left: string, right: string): number {
@@ -194,13 +220,13 @@ export function naturalAbilityPhrase(
 
 function rejectionText(resolution: AbilityResolution): string {
   switch (resolution.rejectionReason) {
-    case 'resource-depleted': return 'its usable resource is depleted'
-    case 'out-of-range': return 'the target remains outside its resolved range'
+    case 'resource-depleted': return 'it has run out of chances to use it'
+    case 'out-of-range': return 'the target stays out of range'
     case 'condition-unmet': return 'the required conditions are not met'
-    case 'target-immune': return 'the target is immune to that channel'
-    case 'delivery-inaccessible': return 'there is no supported delivery route'
-    case 'countered': return 'the opposing counter suppresses it'
-    default: return 'the resolved conditions do not activate it'
+    case 'target-immune': return 'the target is immune to it'
+    case 'delivery-inaccessible': return 'there is no way to land it'
+    case 'countered': return 'the opponent can counter it'
+    default: return 'the conditions do not let it work'
   }
 }
 
@@ -224,36 +250,36 @@ function behaviourOpening(
   identity: ResolvedContestantIdentity,
   target: ResolvedContestantIdentity,
 ): string {
-  const subject = capitaliseResolvedLabel(identity.subjectLabel)
+  const subject = flowSubject(identity, target)
   switch (semantics.archetype) {
     case 'stationary-hazard':
-      return `${subject} ${agrees(identity, 'remains', 'remain')} anchored and ${agrees(identity, 'does', 'do')} not pursue; its influence applies only inside the resolved hazard zone.`
+      return `${subject} ${agrees(identity, 'stays', 'stay')} in place and ${agrees(identity, 'waits', 'wait')} for ${target.objectLabel} to enter the danger zone.`
     case 'conceptual-aggregate':
-      return `${subject} ${agrees(identity, 'contributes', 'contribute')} bounded aggregate pressure without being placed as a literal population.`
+      return `${subject} ${agrees(identity, 'is', 'are')} too numerous to picture as individual fighters, so the model treats the crowd as a capped whole.`
     case 'encircling-pack':
-      return `${subject} ${agrees(identity, 'fans', 'fan')} out into an encircling ring around ${target.objectLabel}, then closes where access opens.`
+      return `${subject} ${agrees(identity, 'spreads', 'spread')} out around ${target.objectLabel} and ${agrees(identity, 'looks', 'look')} for a safe way in.`
     case 'charging-formation':
       return `${subject} ${agrees(identity, 'forms', 'form')} a line and ${agrees(identity, 'advances', 'advance')} as a charging formation.`
     case 'ranged-formation':
-      return `${subject} ${agrees(identity, 'establishes', 'establish')} a firing line and ${agrees(identity, 'tries', 'try')} to preserve usable distance.`
+      return `${subject} ${agrees(identity, 'forms', 'form')} a firing line and ${agrees(identity, 'tries', 'try')} to keep ${possessivePronoun(identity)} distance.`
     case 'mixed-ranged-melee-force':
-      return `${subject} ${agrees(identity, 'forms', 'form')} a firing line while close fighters guard its access routes.`
+      return `${subject} ${agrees(identity, 'forms', 'form')} a firing line while close fighters guard ${possessivePronoun(identity)} access routes.`
     case 'swarm':
       return `${subject} ${agrees(identity, 'fans', 'fan')} out and ${agrees(identity, 'closes', 'close')} as a moving swarm.`
     case 'aerial-attacker':
     case 'aerial-group':
-      return `${subject} ${agrees(identity, 'climbs', 'climb')} into the airspace to establish altitude and an approach angle.`
+      return `${subject} ${agrees(identity, 'takes', 'take')} to the air and ${agrees(identity, 'chooses', 'choose')} when to dive or pull away.`
     case 'aquatic-attacker':
     case 'aquatic-group':
       return `${subject} ${agrees(identity, 'approaches', 'approach')} through the water.`
     case 'ambush-restraint-attacker':
-      return `${subject} ${agrees(identity, 'holds', 'hold')} position until a supported opening into contact appears.`
+      return `${subject} ${agrees(identity, 'holds', 'hold')} position and ${agrees(identity, 'waits', 'wait')} for a chance to grab ${target.objectLabel}.`
     case 'area-control-attacker':
-      return `${subject} ${agrees(identity, 'holds', 'hold')} position to cover the approaches with its resolved area effect.`
+      return `${subject} ${agrees(identity, 'holds', 'hold')} position and ${agrees(identity, 'tries', 'try')} to cover every approach with a wide attack.`
     case 'coordinated-melee-group':
       return `${subject} ${agrees(identity, 'forms', 'form')} a line and ${agrees(identity, 'advances', 'advance')} towards contact.`
     case 'solitary-melee':
-      return `${subject} ${agrees(identity, 'advances', 'advance')} towards contact as an individual combatant.`
+      return `${subject} ${agrees(identity, 'moves', 'move')} straight towards a close fight.`
   }
 }
 
@@ -266,31 +292,32 @@ function activeAbilitySentence(
   const target = identities[opponent(resolution.side)]
   const phrase = naturalAbilityPhrase(input, resolution.side, resolution.abilityId)
   if (!resolution.active) {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} attempts ${phrase}, but ${rejectionText(resolution)}; no successful effect is claimed.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'tries', 'try')} ${phrase}, but ${rejectionText(resolution)}.`
   }
   const ability = abilityFor(input, resolution)
   if (ability?.kind === 'hazard' || ability?.delivery === 'environmental') {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'remains', 'remain')} fixed while its hazard applies only inside the resolved boundary; ${target.subjectLabel} must approach that zone.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'stays', 'stay')} in place while ${target.subjectLabel} ${agrees(target, 'moves', 'move')} towards the danger zone.`
   }
   if (ability?.delivery === 'ranged') {
-    const useNoun = actor.grammaticalNumber === 'plural' ? 'volleys' : 'attacks'
-    const uses = resolution.resolvedUses === null ? '' : ` About ${resolution.resolvedUses.toLocaleString('en-AU')} usable ${useNoun} are resolved for the encounter.`
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} ${phrase} before contact whenever the target is inside the resolved range.${uses}`
+    const roundedUses = resolution.resolvedUses === null ? null : Math.max(1, Math.round(resolution.resolvedUses))
+    const useCount = roundedUses === 1 ? 'about one attack' : `about ${roundedUses?.toLocaleString('en-AU')} attacks`
+    const uses = roundedUses === null ? '' : ` ${capitaliseResolvedLabel(subjectPronoun(actor))} ${haveVerb(actor.grammaticalNumber)} ${useCount} before that supply runs out.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} ${phrase} before the sides meet.${uses}`
   }
   if (ability?.delivery === 'area') {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'applies', 'apply')} ${phrase} across its resolved area, so spacing determines how much opposing pressure is covered.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'sweeps', 'sweep')} ${phrase} across the approach, catching more opponents when they bunch together.`
   }
   if (ability?.delivery === 'gaze') {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} can apply ${phrase} only while the resolved facing and line-of-sight conditions hold.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} can use ${phrase} only with a clear view while the target is facing ${subjectPronoun(actor)}.`
   }
   if (ability?.kind === 'restraint' || resolution.effects.some((effect) => effect.kind === 'restraint')) {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'attempts', 'attempt')} ${phrase} before converting the opening into contact pressure.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'tries', 'try')} ${phrase} before the fight settles into close contact.`
   }
   if (ability && ['healing', 'regeneration', 'resurrection'].includes(ability.kind)
     || resolution.effects.some((effect) => ['healing', 'regeneration', 'revival'].includes(effect.kind))) {
-    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} ${phrase} to restore pressure while the resolved recovery channel remains active.`
+    return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} ${phrase} to recover between exchanges.`
   }
-  return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'applies', 'apply')} ${phrase} only through the access and delivery conditions recorded by the model.`
+  return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} ${phrase} as soon as the target is close enough.`
 }
 
 function firstExchangeText(
@@ -306,22 +333,26 @@ function firstExchangeText(
   const side = candidate.beneficiary ?? input.result.winner
   const actor = identities[side]
   const target = identities[opponent(side)]
+  const actorSubject = flowSubject(actor, target)
   switch (candidate.mechanism) {
     case 'ranged':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} attacks from usable range first; ${target.subjectLabel} can answer only after crossing that distance.`
+      return `${actorSubject} attacks first from a distance, while ${target.subjectLabel} must cross the gap before fighting back.`
     case 'flight':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} altitude and approach angle to decide when ordinary contact becomes possible.`
+      return `${actorSubject} ${agrees(actor, 'uses', 'use')} height and speed to choose when the sides meet.`
     case 'frontage':
     case 'group-pressure':
-      return `The first contact is bounded by frontage: ${actor.subjectLabel} can use only the participants who physically fit into the active exchange.`
+      return `When the sides meet, only the fighters close enough to reach ${target.objectLabel} can attack at the same time.`
     case 'mass':
+      return actor.resolvedMassKg > target.resolvedMassKg
+        ? `${actorSubject} ${agrees(actor, 'hits', 'hit')} with more body mass behind the first collision.`
+        : `${actorSubject} ${agrees(actor, 'holds', 'hold')} up better once the first close exchange begins.`
     case 'stopping':
     case 'scaling':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'converts', 'convert')} resolved mass and reach into the first meaningful contact, while ${target.subjectLabel} must overcome that stopping power.`
+      return `${actorSubject} ${agrees(actor, 'holds', 'hold')} up better once the first close exchange begins.`
     case 'access':
-      return `The first meaningful exchange begins only when a supported route into contact opens for ${actor.subjectLabel}.`
+      return `${actorSubject} ${agrees(actor, 'finds', 'find')} a way into range and ${agrees(actor, 'starts', 'start')} the first real exchange.`
     default:
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} and ${target.subjectLabel} trade only the attacks that their resolved reach and access support.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} and ${target.subjectLabel} meet and trade the attacks they can actually land.`
   }
 }
 
@@ -338,39 +369,52 @@ function pressureText(
     case 'frontage':
     case 'group-pressure':
       return side === 'group'
-        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} the active front renewed, so bounded replacement pressure accumulates faster than ${target.subjectLabel} can reset.`
-        : `${capitaliseResolvedLabel(target.subjectLabel)} cannot bring its declared quantity into contact at once. Only the active participants can contribute at once.`
+        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} sending fresh attackers in before ${target.subjectLabel} can recover.`
+        : `${capitaliseResolvedLabel(target.subjectLabel)} cannot all reach the fight together, so ${actor.subjectLabel} only has to face a few at a time.`
     case 'ranged':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'preserves', 'preserve')} usable distance and firing lanes, turning each supported ranged attack into pressure before contact.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} enough distance to attack again before ${target.subjectLabel} can close in.`
     case 'flight':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} repeatedly ${agrees(actor, 'resets', 'reset')} altitude or approach angle, limiting when ${target.subjectLabel} can apply ordinary contact pressure.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} repeatedly ${agrees(actor, 'climbs', 'climb')} away and ${agrees(actor, 'returns', 'return')} from a safer angle, giving ${target.subjectLabel} few chances to strike.`
     case 'area-control': {
       const resolution = resolutionForCandidate(input, candidate)
       const ability = resolution ? abilityFor(input, resolution) : undefined
       return resolution?.active && (ability?.delivery === 'area' || ability?.kind === 'hazard')
-        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'covers', 'cover')} the available approach space with the resolved area effect, so grouping and spacing determine sustained pressure.`
-        : `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} physical reach and positioning to cover more of the available contact space.`
+        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'covers', 'cover')} the approach with a wide attack, punishing opponents who crowd together.`
+        : `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} reach and position to threaten more of the surrounding space.`
     }
     case 'hazard':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'controls', 'control')} pressure only inside the resolved hazard boundary; the result depends on whether ${target.subjectLabel} must enter or can remain outside it.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} can only hurt ${target.objectLabel} inside the danger zone, making entry and escape the heart of the fight.`
     case 'restraint':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'turns', 'turn')} the resolved restraint route into denied movement or denied access to ${possessive(target)} preferred attack.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} the restraint to stop ${target.subjectLabel} moving freely or bringing its best attack to bear.`
     case 'counter':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'removes', 'remove')} the opposing signature channel through the resolved counter or immunity.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'takes', 'take')} away the opponent's best weapon with a counter or immunity.`
     case 'resource':
-      return `${capitaliseResolvedLabel(target.subjectLabel)} cannot sustain its preferred ranged or special pressure after the resolved usable resource runs down.`
+      return `${capitaliseResolvedLabel(target.subjectLabel)} cannot keep using ${possessivePronoun(target)} ranged or special attack once the limited supply runs out.`
     case 'recovery':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'sustains', 'sustain')} pressure through recovery, while incoming pressure determines whether those restored gains remain usable.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'recovers', 'recover')} between exchanges and ${agrees(actor, 'keeps', 'keep')} coming back.`
     case 'formation':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'preserves', 'preserve')} formation discipline, keeping access and supported attacks coordinated.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'holds', 'hold')} formation, letting more attacks land in a coordinated way.`
     case 'mass':
+      return actor.resolvedMassKg > target.resolvedMassKg
+        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} the extra body mass to keep control in close contact.`
+        : `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'stays', 'stay')} more effective through the close exchanges.`
     case 'stopping':
     case 'scaling':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'converts', 'convert')} greater resolved mass and stopping power into repeatable control of contact.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'stays', 'stay')} more effective through the close exchanges.`
     case 'access':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'controls', 'control')} the usable route into contact, leaving ${target.subjectLabel} with fewer supported attacks.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'decides', 'decide')} when the sides can meet, leaving ${target.subjectLabel} with fewer chances to attack.`
+    case 'environment':
+      return `The ${input.scenario.terrain.replaceAll('-', ' ')} terrain gives ${actor.subjectLabel} clearer routes to move and attack than ${target.subjectLabel}.`
+    case 'special-ability': {
+      const resolution = resolutionForCandidate(input, candidate)
+      const phrase = resolution ? naturalAbilityPhrase(input, resolution.side, resolution.abilityId) : 'special ability'
+      const disablesResponse = resolution?.effects.some((effect) => ['restraint', 'mobility', 'morale'].includes(effect.kind))
+      return disablesResponse
+        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} using ${phrase}, making it harder for ${target.subjectLabel} to fight back freely.`
+        : `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} landing ${phrase} whenever ${target.subjectLabel} ${agrees(target, 'gets', 'get')} close enough.`
+    }
     default:
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'sustains', 'sustain')} the stronger supported pressure once both sides use only their resolved attack routes.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} landing the more useful attacks once the fight settles in.`
   }
 }
 
@@ -381,20 +425,24 @@ function reinforcingCauseText(
 ): string {
   const side = candidate.beneficiary ?? input.result.winner
   const actor = identities[side]
+  const target = identities[opponent(side)]
   switch (candidate.mechanism) {
     case 'mass':
+      return actor.resolvedMassKg > target.resolvedMassKg
+        ? `${capitaliseResolvedLabel(actor.subjectLabel)} also brings more body mass into each close exchange.`
+        : `${capitaliseResolvedLabel(actor.subjectLabel)} also holds up better once the fight reaches close contact.`
     case 'scaling':
     case 'stopping':
-      return `The resolved mass and stopping comparison also favours ${actor.subjectLabel} once contact is established.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} also holds up better once the fight reaches close contact.`
     case 'frontage':
     case 'group-pressure':
-      return `Bounded frontage separately reinforces ${actor.subjectLabel}, because declared quantity is not treated as simultaneous contact.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} also benefits because the whole crowd cannot attack at the same time.`
     case 'environment':
-      return `The resolved medium also preserves more usable pressure for ${actor.subjectLabel}.`
+      return `The battlefield also makes it easier for ${actor.subjectLabel} to move and attack.`
     case 'area-control':
-      return `Resolved area coverage separately reinforces ${actor.subjectLabel} when opponents occupy the same approach space.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} can also catch several opponents whenever they bunch together.`
     default:
-      return `A separate supported ${candidate.mechanism.replace(/-/g, ' ')} advantage reinforces ${actor.subjectLabel}.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} also has an advantage in ${candidate.mechanism.replace(/-/g, ' ')}.`
   }
 }
 function turningPointText(
@@ -410,54 +458,59 @@ function turningPointText(
     case 'frontage':
     case 'group-pressure':
       return winnerSide === 'group'
-        ? `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'renews', 'renew')} the active front before ${loser.subjectLabel} can break contact and reset.`
-        : `The decisive transition comes when ${loser.subjectLabel} cannot replace the active front quickly enough, leaving too few attackers in contact.`
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'sends', 'send')} in fresh attackers before ${loser.subjectLabel} can get a break.`
+        : `The fight turns when ${loser.subjectLabel} cannot bring replacements in quickly enough, leaving too few attackers close to the action.`
     case 'ranged':
       return !resolution || resolution.side === winnerSide
-        ? `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'preserves', 'preserve')} firing distance and ${agrees(winner, 'prevents', 'prevent')} effective contact.`
-        : `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'crosses', 'cross')} the effective firing distance before ranged pressure can stop the approach.`
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'keeps', 'keep')} firing from a safe distance and ${agrees(winner, 'stops', 'stop')} ${loser.subjectLabel} getting close.`
+        : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'crosses', 'cross')} the firing distance before the ranged attacks can stop the approach.`
     case 'resource':
-      return `The decisive transition comes when the usable ranged or special resource runs down, leaving ${loser.subjectLabel} without its preferred pressure.`
+      return `The fight turns when the limited ranged or special attack runs out, leaving ${loser.subjectLabel} without its best weapon.`
     case 'flight':
       return input.contestants[winnerSide].locomotion.flight
-        ? `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'secures', 'secure')} safe altitude and repeatedly ${agrees(winner, 'resets', 'reset')} the engagement angle.`
-        : `The decisive transition comes when safe altitude no longer denies ${winner.subjectLabel} a supported attack route.`
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'reaches', 'reach')} a safe height and repeatedly ${agrees(winner, 'attacks', 'attack')} from a new angle.`
+        : `The fight turns when height no longer keeps ${winner.subjectLabel} from landing an attack.`
     case 'area-control':
       return candidate.beneficiary === winnerSide
-        ? `The decisive transition comes when ${loser.subjectLabel} ${agrees(loser, 'remains', 'remain')} inside the effective area long enough for the formation to break.`
-        : `The decisive transition comes when spacing and multiple approaches reduce how much pressure the area effect can cover.`
+        ? `The fight turns when ${loser.subjectLabel} ${agrees(loser, 'stays', 'stay')} inside the wide attack long enough for ${possessive(loser)} formation to break.`
+        : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'spreads', 'spread')} out and ${agrees(winner, 'approaches', 'approach')} from more directions than the wide attack can cover.`
     case 'hazard': {
       const winnerStationary = input.contestants[winnerSide].physiology === 'environmental-hazard'
       return winnerStationary
-        ? `The decisive transition comes when ${loser.subjectLabel} ${agrees(loser, 'crosses', 'cross')} the resolved hazard boundary and cannot leave its effective zone.`
-        : `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'remains', 'remain')} outside or ${agrees(winner, 'escapes', 'escape')} the fixed hazard's effective zone.`
+        ? `The fight turns when ${loser.subjectLabel} ${agrees(loser, 'enters', 'enter')} the danger zone and ${agrees(loser, 'struggles', 'struggle')} to get back out.`
+        : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'stays', 'stay')} outside the danger zone or ${agrees(winner, 'escapes', 'escape')} it.`
     }
     case 'restraint':
       return resolution?.active && resolution.side === winnerSide
-        ? `The decisive transition comes when the resolved restraint succeeds and denies ${loser.subjectLabel} access to its preferred attack.`
-        : `The decisive transition comes when restraint fails against the resolved mass or access of ${winner.subjectLabel}.`
+        ? `The fight turns when the restraint holds and stops ${loser.subjectLabel} using its best attack.`
+        : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'breaks', 'break')} the restraint and forces a close fight.`
     case 'counter':
-      return `The decisive transition comes when ${resolution ? naturalAbilityPhrase(input, resolution.side, resolution.abilityId) : 'the losing side’s signature ability'} fails against the resolved counter or immunity.`
+      return `The fight turns when ${resolution ? naturalAbilityPhrase(input, resolution.side, resolution.abilityId) : 'the losing side’s best ability'} fails against a counter or immunity.`
     case 'recovery':
       return resolution?.active && resolution.side === winnerSide
-        ? `The decisive transition comes when recovery sustains ${possessive(winner)} active pressure between exchanges.`
-        : `The decisive transition comes when recovery no longer restores losses quickly enough to preserve ${loser.subjectLabel}'s pressure.`
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'recovers', 'recover')} between exchanges faster than ${loser.subjectLabel} can wear it down.`
+        : `The fight turns when ${loser.subjectLabel} can no longer recover quickly enough to stay in the fight.`
     case 'mass':
     case 'stopping':
     case 'scaling':
-      return `The decisive transition comes when ${loser.subjectLabel} cannot produce enough stopping force to break ${possessive(winner)} control of contact.`
+      return `The fight turns when ${loser.subjectLabel} cannot hit hard enough to stop ${winner.subjectLabel} controlling every close exchange.`
     case 'formation':
-      return `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'preserves', 'preserve')} coordination while ${loser.subjectLabel} ${agrees(loser, 'loses', 'lose')} the formation needed for supported attacks.`
+      return `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'stays', 'stay')} organised while ${loser.subjectLabel} ${agrees(loser, 'loses', 'lose')} formation.`
     case 'access':
       return winnerSide === 'group'
-        ? `The decisive transition comes when ${winner.grammaticalNumber === 'plural' ? `enough of ${winner.subjectLabel}` : winner.subjectLabel} ${agrees(winner, 'establishes', 'establish')} usable access and ${agrees(winner, 'prevents', 'prevent')} a clean reset.`
-        : `The decisive transition comes when ${winner.subjectLabel} repeatedly ${agrees(winner, 'separates', 'separate')} the active attackers from those still waiting for access.`
+        ? `The fight turns when ${winner.grammaticalNumber === 'plural' ? `enough of ${winner.subjectLabel}` : winner.subjectLabel} ${agrees(winner, 'gets', 'get')} into range and ${agrees(winner, 'stays', 'stay')} there.`
+        : `The fight turns when ${winner.subjectLabel} repeatedly ${agrees(winner, 'drives', 'drive')} back the few attackers close enough to strike.`
     case 'environment':
-      return `The decisive transition comes when the resolved medium continues to favour ${winner.subjectLabel}'s usable movement and attack routes.`
-    case 'special-ability':
-      return `The decisive transition comes when ${possessive(winner)} active signature ability removes ${loser.subjectLabel}'s preferred way to continue.`
+      return `The fight turns because the battlefield keeps giving ${winner.subjectLabel} more room to move and attack.`
+    case 'special-ability': {
+      const phrase = resolution ? naturalAbilityPhrase(input, resolution.side, resolution.abilityId) : 'best attack'
+      const disablesResponse = resolution?.effects.some((effect) => ['restraint', 'mobility', 'morale'].includes(effect.kind))
+      return disablesResponse
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'uses', 'use')} ${phrase} and ${agrees(winner, 'limits', 'limit')} how ${loser.subjectLabel} can respond.`
+        : `The fight turns when ${winner.subjectLabel} repeatedly ${agrees(winner, 'lands', 'land')} ${phrase} in the exchanges that matter.`
+    }
     default:
-      return `The decisive transition comes when ${winner.subjectLabel} ${agrees(winner, 'sustains', 'sustain')} the strongest supported cause and ${loser.subjectLabel} cannot restore its preferred engagement.`
+      return `The fight turns when ${winner.subjectLabel} keeps landing the better attacks and ${loser.subjectLabel} cannot recover.`
   }
 }
 
@@ -471,53 +524,63 @@ function resolutionText(
   const loserSubject = capitaliseResolvedLabel(loser.subjectLabel)
   const condition = input.scenario.winCondition === 'retreat'
     ? loser.grammaticalNumber === 'plural'
-      ? `${loserSubject} ${agrees(loser, 'loses', 'lose')} cohesion and ${agrees(loser, 'withdraws', 'withdraw')}, satisfying the selected retreat condition.`
-      : `${loserSubject} withdraws after losing usable contact, satisfying the selected retreat condition.`
+      ? `${loserSubject} ${agrees(loser, 'loses', 'lose')} cohesion and ${agrees(loser, 'withdraws', 'withdraw')}.`
+      : `${loserSubject} backs away and cannot rejoin the fight.`
     : input.scenario.winCondition === 'incapacitation'
-      ? `${loserSubject} can no longer apply an effective attack, satisfying the selected incapacitation condition.`
-      : `${loserSubject} can no longer continue effective resistance under the selected defeat rule; no unsupported injury sequence is implied.`
+      ? `${loserSubject} can no longer mount an effective attack.`
+      : `${loserSubject} can no longer keep fighting.`
 
   const cause = (() => {
     switch (family) {
       case 'isolated-melee-exchanges':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} the active exchanges isolated, preventing the losing side from combining its available pressure.`
+        return parseQuantity(input.scenario.groupQuantity).approxNumber === 1
+          ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} control through the one-on-one exchanges.`
+          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} facing only a few opponents at a time, never letting the crowd pile on.`
       case 'renewed-group-frontage':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} replacing the active front until the losing side can no longer reset between exchanges.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} sending fresh attackers forward until the losing side gets no chance to recover.`
       case 'mass-and-stopping-power-dominance':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'uses', 'use')} resolved mass and stopping power to deny the losing side enough effective force to continue.`
+        return winner.resolvedMassKg > loser.resolvedMassKg
+          ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'uses', 'use')} the extra body mass to control each close exchange.`
+          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'holds', 'hold')} up better through the close exchanges.`
       case 'ranged-attrition':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'preserves', 'preserve')} usable ranged pressure until the losing side can no longer maintain its approach or formation.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} attacking from a distance until the losing side can no longer advance.`
       case 'successful-closing-to-contact':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'completes', 'complete')} the supported approach and ${agrees(winner, 'denies', 'deny')} the losing side its preferred distance.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'survives', 'survive')} the approach, reaches close range and takes away the losing side's distance advantage.`
       case 'formation-disruption':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'disrupts', 'disrupt')} the opposing formation, removing the coordination needed for continued pressure.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'breaks', 'break')} the opposing formation, leaving the losing side's attacks scattered and uncoordinated.`
       case 'area-effect-defeat':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} the effective area covering enough opposing pressure to break its continuation.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} catching enough opponents in the wide attack to break their advance.`
       case 'restraint-and-incapacitation':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'converts', 'convert')} the supported restraint into denied movement and attack access.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'holds', 'hold')} the restraint, stopping the losing side from moving or attacking freely.`
       case 'hazard-zone-defeat':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'controls', 'control')} the resolved hazard boundary, leaving the losing side without a viable way to continue.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'holds', 'hold')} the danger zone, making a safe route through unlikely.`
       case 'hazard-zone-escape':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'remains', 'remain')} outside or ${agrees(winner, 'escapes', 'escape')} the effective hazard zone, preventing the fixed hazard from stopping the approach.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'stays', 'stay')} outside the danger zone or ${agrees(winner, 'escapes', 'escape')} it before being trapped.`
       case 'failed-recovery':
-        return `Recovery no longer restores the losing side’s usable pressure quickly enough, so ${winner.subjectLabel} ${agrees(winner, 'retains', 'retain')} control.`
+        return `The losing side can no longer recover quickly enough, so ${winner.subjectLabel} ${agrees(winner, 'takes', 'take')} control.`
       case 'sustained-recovery':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'restores', 'restore')} usable pressure quickly enough to retain control between exchanges.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'recovers', 'recover')} quickly enough to keep coming back between exchanges.`
       case 'depleted-resource':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'sustains', 'sustain')} the approach after the losing side's usable ranged or special resource runs down.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} advancing after the losing side's limited ranged or special attack runs out.`
       case 'countered-signature-ability':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'suppresses', 'suppress')} the losing side’s signature channel through the resolved counter or immunity.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'neutralises', 'neutralise')} the losing side's best ability with a counter or immunity.`
       case 'flight-or-mobility-denial':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'controls', 'control')} altitude or attack access, denying the losing side a repeatable engagement route.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'controls', 'control')} the height and distance of the fight, denying the losing side repeated chances to strike.`
       case 'retreat-through-loss-of-cohesion':
         return loser.grammaticalNumber === 'plural'
-          ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'sustains', 'sustain')} pressure until the losing side’s cohesion no longer supports continued contact.`
-          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'sustains', 'sustain')} pressure until the losing contestant can no longer maintain usable contact.`
+          ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} attacking until the losing side breaks formation.`
+          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} attacking until the losing contestant backs away.`
       case 'conceptual-aggregate-outcome':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'retains', 'retain')} the stronger aggregate path under the selected victory rule; no individual ending or duration is claimed.`
+        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'wins', 'win')} the overall comparison, although a crowd this large cannot be told as a literal blow-by-blow fight.`
     }
   })()
-  return `${cause} ${condition}`
+  const probability = winningProbability(input)
+  const conclusion = probability < 0.55 && !isOneWayRouteDecision(input)
+      ? `The comparison is effectively even, but it narrowly favours ${winner.subjectLabel}.`
+      : probability < 0.65
+        ? `That gives ${winner.subjectLabel} a narrow edge rather than a certain win.`
+        : `That is how ${winner.subjectLabel} reaches the selected outcome.`
+  return `${cause} ${condition} ${conclusion}`
 }
 
 function minorityPathText(
@@ -535,7 +598,7 @@ function minorityPathText(
     .sort((left, right) => Math.abs(right.marginDelta) - Math.abs(left.marginDelta) || ordinal(left.id, right.id))[0]
   if (meaningful) {
     return {
-      text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${needVerb(loser.grammaticalNumber)} ${meaningful.label.toLocaleLowerCase('en-AU')}${meaningful.reversesDeterministicLeader ? '; that tested variation reverses the leading side' : ' to change the balance materially'}.`,
+      text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${haveVerb(loser.grammaticalNumber)} a better chance if the setting changes so that ${meaningful.label.toLocaleLowerCase('en-AU')}${meaningful.reversesDeterministicLeader ? '; in that test, the winner changes' : ''}.`,
       evidenceId: `sensitivity:${meaningful.id}`,
       concept: selection.minorityPathCandidateId
         ? candidateById(selection, selection.minorityPathCandidateId).narrativeConcept
@@ -548,23 +611,23 @@ function minorityPathText(
   const requirement = (() => {
     switch (candidate.mechanism) {
       case 'frontage':
-      case 'group-pressure': return 'maintain uninterrupted contact and increase simultaneous pressure before the active front is separated'
-      case 'ranged': return 'preserve firing distance and enough usable attacks to stop the approach'
-      case 'resource': return 'retain enough usable resource for the preferred attack to remain decisive'
-      case 'flight': return 'secure the required altitude or deny the opponent a supported route to the aerial target'
-      case 'area-control': return 'improve spacing or coverage so the effective area controls more of the exchange'
-      case 'hazard': return 'change whether the fixed hazard boundary can be entered or escaped'
-      case 'restraint': return 'make the restraint succeed before contact pressure takes over'
-      case 'counter': return 'restore a supported route for the countered signature ability'
-      case 'recovery': return 'restore pressure faster than the opposing side can remove it'
+      case 'group-pressure': return 'stay in contact and bring more attackers close enough to strike at the same time'
+      case 'ranged': return `keep ${possessivePronoun(loser)} distance and land enough attacks to stop the approach`
+      case 'resource': return `save enough of ${possessivePronoun(loser)} limited attack to finish the fight`
+      case 'flight': return 'control the height of the fight or force the flying opponent down'
+      case 'area-control': return `spread out or cover more of the approach with ${possessivePronoun(loser)} wide attack`
+      case 'hazard': return 'keep the fight inside the danger zone, or escape it sooner'
+      case 'restraint': return 'make the restraint hold before the fight turns into a close struggle'
+      case 'counter': return `find a way to make ${possessivePronoun(loser)} blocked special ability work`
+      case 'recovery': return `recover faster than the opponent can wear ${subjectPronoun(loser)} down`
       case 'mass':
       case 'stopping':
-      case 'scaling': return 'gain enough usable stopping force to break contact'
-      default: return 'gain steadier access and sustain its preferred pressure'
+      case 'scaling': return 'hit hard enough to stop the winner controlling the close exchanges'
+      default: return 'get into range more often and keep landing its best attack'
     }
   })()
   return {
-    text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${needVerb(loser.grammaticalNumber)} to ${requirement}.`,
+    text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${haveVerb(loser.grammaticalNumber)} a better chance if ${subjectPronoun(loser)} can ${requirement}.`,
     evidenceId: candidateEvidence(candidate),
     concept: candidate.narrativeConcept,
   }
@@ -588,18 +651,18 @@ export function buildSemanticBattleNarrativePlan(
     makeSentence(input, 'reader-premise-1', 'reader.premise.identity-medium', [{
       kind: 'evidence',
       evidenceId: 'scenario:matchup',
-      text: `${capitaliseResolvedLabel(identities.solo.fullLabel)} faces ${identities.group.fullLabel} ${mediumSetting(battlefield.medium)}.`,
+      text: `${capitaliseResolvedLabel(identities.solo.fullLabel)} faces ${identities.group.fullLabel} ${mediumSetting(battlefield.medium)}, starting ${input.scenario.startingDistanceM.toLocaleString('en-AU', { maximumFractionDigits: 1 })} metres apart.`,
     }]),
     makeSentence(input, 'reader-premise-2', 'reader.premise.mass', [{
       kind: 'evidence',
       evidenceId: massEvidence,
-      text: `${capitaliseResolvedLabel(identities.solo.subjectLabel)} weighs approximately ${formatResolvedMass(identities.solo.resolvedMassKg)}; ${identities.group.eachLabel} weighs approximately ${formatResolvedMass(identities.group.resolvedMassKg)}.`,
+      text: `${capitaliseResolvedLabel(identities.solo.subjectLabel)} weighs about ${formatResolvedMass(identities.solo.resolvedMassKg)}, while ${identities.group.eachLabel} weighs about ${formatResolvedMass(identities.group.resolvedMassKg)}.`,
     }]),
   ]
   if (groupTotal !== null && parsed.approxNumber !== null && parsed.approxNumber > 1) {
     const comparison = identities.solo.resolvedMassKg >= groupTotal
       ? `${capitaliseResolvedLabel(identities.solo.subjectLabel)} outweighs the whole group by about ${(identities.solo.resolvedMassKg / Math.max(groupTotal, 1e-12)).toLocaleString('en-AU', { maximumFractionDigits: 1 })} to one.`
-      : `${capitaliseResolvedLabel(identities.group.subjectLabel)} ${haveVerb(identities.group.grammaticalNumber)} about ${(groupTotal / Math.max(identities.solo.resolvedMassKg, 1e-12)).toLocaleString('en-AU', { maximumFractionDigits: 1 })} times the combined mass of ${identities.solo.subjectLabel}.`
+      : `Together, ${identities.group.subjectLabel} ${haveVerb(identities.group.grammaticalNumber)} about ${(groupTotal / Math.max(identities.solo.resolvedMassKg, 1e-12)).toLocaleString('en-AU', { maximumFractionDigits: 1 })} times the mass of ${identities.solo.subjectLabel}.`
     premiseSentences.push(makeSentence(input, 'reader-premise-3', 'reader.premise.mass-comparison', [{
       kind: 'evidence',
       evidenceId: massEvidence,
@@ -610,7 +673,7 @@ export function buildSemanticBattleNarrativePlan(
     premiseSentences.push(makeSentence(input, 'reader-premise-4', 'reader.premise.reach', [{
       kind: 'evidence',
       evidenceId: scalingEvidence,
-      text: `${capitaliseResolvedLabel(identities.solo.subjectLabel)} has approximately ${identities.solo.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres of physical reach, compared with approximately ${identities.group.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres for ${identities.group.eachLabel}.`,
+      text: `${capitaliseResolvedLabel(identities.solo.subjectLabel)} can reach about ${identities.solo.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres, compared with about ${identities.group.resolvedContactReachM.toLocaleString('en-AU', { maximumFractionDigits: 2 })} metres for ${identities.group.eachLabel}.`,
     }]))
   }
   const premise = beat(
@@ -647,9 +710,9 @@ export function buildSemanticBattleNarrativePlan(
     if (!rangedResolution) continue
     const identity = identities[side]
     const resourceText = !rangedResolution.active && rangedResolution.rejectionReason === 'resource-depleted'
-      ? `${capitaliseResolvedLabel(identity.subjectLabel)} ${agrees(identity, 'has', 'have')} no usable ranged resource for this encounter.`
+      ? `${capitaliseResolvedLabel(identity.subjectLabel)} ${agrees(identity, 'has', 'have')} no ranged attacks left for this encounter.`
       : rangedResolution.resolvedUses !== null
-        ? `${capitaliseResolvedLabel(identity.subjectLabel)} ${agrees(identity, 'has', 'have')} about ${rangedResolution.resolvedUses.toLocaleString('en-AU', { maximumFractionDigits: 1 })} usable ${identity.grammaticalNumber === 'plural' ? 'volleys' : 'ranged attacks'} before that resource runs down.`
+        ? `${capitaliseResolvedLabel(identity.subjectLabel)} ${agrees(identity, 'has', 'have')} about ${rangedResolution.resolvedUses.toLocaleString('en-AU', { maximumFractionDigits: 1 })} ${identity.grammaticalNumber === 'plural' ? 'volleys' : 'ranged attacks'} before the supply runs out.`
         : ''
     if (resourceText) {
       openingSentences.push(makeSentence(input, `reader-opening-ranged-${side}`, 'reader.opening.ranged-resource', [{
@@ -739,9 +802,7 @@ export function buildSemanticBattleNarrativePlan(
   )
 
   const resolutionCandidate = candidateById(selection, selection.resolutionCandidateId)
-  const probability = input.result.winner === 'solo'
-    ? input.result.soloWinProbability
-    : input.result.groupWinProbability
+  const probability = winningProbability(input)
   const winner = identities[input.result.winner]
   const resolution = beat(
     'resolution',
@@ -755,7 +816,9 @@ export function buildSemanticBattleNarrativePlan(
       makeSentence(input, 'reader-resolution-2', 'reader.resolution.probability', [{
         kind: 'evidence',
         evidenceId: 'verdict:outcome',
-        text: `The model therefore favours ${winner.subjectLabel} at ${(probability * 100).toLocaleString('en-AU', { maximumFractionDigits: 1 })}%; that probability reflects the combined supported causes, not a scripted casualty sequence.`,
+        text: isOneWayRouteDecision(input)
+          ? `The model records this one-way route decision as 100% for ${winner.subjectLabel}; that number is not a trial win rate.`
+          : `The fixed numerical comparison favours ${winner.subjectLabel} at ${(probability * 100).toLocaleString('en-AU', { maximumFractionDigits: 1 })}%.`,
       }]),
     ],
     [...new Set([...resolutionCandidate.sourceEventIds, ...(input.deterministicState.conceptual ? [] : ['authoritative-resolution'])])],

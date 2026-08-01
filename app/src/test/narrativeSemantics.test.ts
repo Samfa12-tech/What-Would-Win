@@ -140,10 +140,10 @@ describe('0.7.1 pilot narrative semantics', () => {
     expect(identities.solo.resolvedContactReachM).toBeCloseTo(2.2104, 3)
     expect(identities.group.resolvedContactReachM).toBeCloseTo(0.19, 3)
     expect(story).toMatch(/open ground/i)
-    expect(story).toMatch(/only about 6 can contribute effective pressure at once/i)
+    expect(story).toMatch(/only about 6 can reach the fight at once/i)
     expect(account.diagnostics.turningPointConcept).toMatch(/access|frontage/)
     expect(account.diagnostics.resolutionFamily).toMatch(/closing-to-contact|isolated-melee/)
-    expect(account.plan.minorityPath.text).toMatch(/uninterrupted contact.*simultaneous pressure/i)
+    expect(account.plan.minorityPath.text).toMatch(/stay in contact.*more attackers.*at the same time/i)
     expect(story).not.toMatch(/aquatic|through the water|ocean ground/i)
   })
 
@@ -152,11 +152,11 @@ describe('0.7.1 pilot narrative semantics', () => {
     const { account, story } = accountFor(input)
 
     expect(buildBattlefieldSemantics(input).group.archetype).toBe('encircling-pack')
-    expect(story).toMatch(/encircling ring/i)
-    expect(story).toMatch(/active front|frontage|contact at once/i)
-    expect(story).toMatch(/mass|stopping power/i)
+    expect(story).toMatch(/spread out around.*safe way in/i)
+    expect(story).toMatch(/only about 78 can reach the fight at once/i)
+    expect(story).toMatch(/6\.5 tonnes|stomping attacks/i)
     expect(account.diagnostics.resolutionFamily).toBe('retreat-through-loss-of-cohesion')
-    expect(story).toMatch(/cohesion|withdraw/i)
+    expect(story).toMatch(/backs away|withdraw/i)
     expect(story).not.toMatch(/firing line|through the water/i)
   })
 
@@ -169,9 +169,9 @@ describe('0.7.1 pilot narrative semantics', () => {
       solo: { archetype: 'aerial-attacker' },
       group: { archetype: 'swarm' },
     })
-    expect(story).toMatch(/airspace|altitude|approach angle/i)
+    expect(story).toMatch(/airspace|takes to the air|dive or pull away/i)
     expect(storyboard.representedQuantity.visibleActorCount).toBeLessThanOrEqual(80)
-    expect(story).toMatch(/only about \d+ can contribute effective pressure at once/i)
+    expect(story).toMatch(/only about \d+ can reach the fight at once/i)
     expect(account.diagnostics.turningPointConcept).toMatch(/access|flight/)
     expect(story).not.toMatch(/encircling ring/i)
   })
@@ -187,11 +187,11 @@ describe('0.7.1 pilot narrative semantics', () => {
       group: { archetype: 'ranged-formation' },
     })
     expect(story).toMatch(/firing line/i)
-    expect(story).toMatch(/climbs into the airspace.*altitude.*approach angle/i)
+    expect(story).toMatch(/takes to the air.*dive or pull away/i)
     expect(fire).toMatchObject({ active: true })
-    expect(story).toMatch(/fire breath|area effect/i)
+    expect(story).toMatch(/fire breath|wide attack/i)
     expect(bow?.resolvedUses).not.toBeNull()
-    expect(story).toMatch(/usable (?:ranged attacks|volleys).*resource runs down/i)
+    expect(story).toMatch(/volleys.*supply runs out/i)
     expect(account.diagnostics.turningPointConcept).toMatch(/area-control|ranged|flight/)
     expect(story).not.toMatch(/reserve ring/i)
   })
@@ -202,7 +202,7 @@ describe('0.7.1 pilot narrative semantics', () => {
     const activeGaze = activeInput.abilityResolutions.find((resolution) => resolution.abilityId === 'petrifying-gaze')
 
     expect(activeGaze).toMatchObject({ active: true })
-    expect(active.story).toMatch(/petrifying gaze.*facing and line-of-sight conditions/i)
+    expect(active.story).toMatch(/petrifying gaze.*clear view.*target is facing/i)
     expect(active.story).toMatch(/forms? a line|formation|active front/i)
 
     const failedInput = reconstruction({ ...pilot.medusa, facing: 'solo-exposed' })
@@ -220,7 +220,7 @@ describe('0.7.1 pilot narrative semantics', () => {
     expect(account.quantity.kind).toBe('singleton')
     expect(account.plan.firstExchange.text).toMatch(/web restraint|restraint/i)
     expect(account.diagnostics.turningPointConcept).toMatch(/mass|stopping|scaling/)
-    expect(account.plan.turningPoint.text).toMatch(/mass|stopping force|control of contact/i)
+    expect(account.plan.turningPoint.text).toMatch(/cannot hit hard enough.*close exchange/i)
     const turningCandidate = account.candidates.find((candidate) =>
       candidate.id === account.diagnostics.selectedCauses.find((cause) => cause.roles.includes('turning-point'))?.candidateId)
     expect(turningCandidate?.beneficiary).toBe(input.result.winner)
@@ -240,9 +240,9 @@ describe('0.7.1 pilot narrative semantics', () => {
       solo: { archetype: 'stationary-hazard', stationary: true },
       group: { archetype: 'aquatic-attacker' },
     })
-    expect(story).toMatch(/remains anchored|remains fixed/i)
+    expect(story).toMatch(/stays in place/i)
     expect(story).toMatch(/orca approaches through the water/i)
-    expect(story).toMatch(/cross(?:es)? the resolved hazard boundary|hazard.*effective zone/i)
+    expect(story).toMatch(/enter(?:s)? the danger zone|danger zone.*no safe way/i)
     expect(account.diagnostics.turningPointConcept).toBe('hazard')
     expect(account.diagnostics.resolutionFamily).toBe('hazard-zone-defeat')
     expect(story).not.toMatch(/ocean ground|Charybdis (?:pursues|surrounds|closes)/i)
@@ -339,7 +339,7 @@ describe('additional narrative semantics matrix', () => {
     expect(buildBattlefieldSemantics(input).group.archetype).toBe('swarm')
     expect(story).toMatch(/moving swarm/i)
     expect(account.diagnostics.selectedCauses.map((cause) => cause.concept)).toContain('area-control')
-    expect(story).toMatch(/area|coverage|contact space/i)
+    expect(story).toMatch(/wide attack|catching more opponents/i)
   })
 
   test('aquatic group versus aquatic solo approaches through open water', () => {
@@ -442,7 +442,7 @@ describe('additional narrative semantics matrix', () => {
     })
     const depletedBow = depleted.abilityResolutions.find((resolution) => resolution.abilityId === 'bow-shot')
     expect(depletedBow).toMatchObject({ active: false, rejectionReason: 'resource-depleted' })
-    expect(accountFor(depleted).story).toMatch(/no usable ranged resource|usable resource is depleted/i)
+    expect(accountFor(depleted).story).toMatch(/no ranged attacks left/i)
   })
 })
 describe('custom-profile safety and grammar', () => {
@@ -539,7 +539,7 @@ describe('custom-profile safety and grammar', () => {
       winCondition: 'retreat',
     })
     const account = accountFor(input).account
-    expect(account.plan.resolution.text).toMatch(/withdraws after losing usable contact/i)
+    expect(account.plan.resolution.text).toMatch(/backs away and cannot rejoin the fight/i)
     expect(account.plan.resolution.text).not.toMatch(/cohesion/i)
   })
 

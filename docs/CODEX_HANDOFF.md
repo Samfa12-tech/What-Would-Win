@@ -19,7 +19,7 @@ Use `npm run dev` for local iteration. Deploy only the exact tested contents of 
 
 ## Current state
 
-- React/TypeScript/Vite static application **0.8.0**.
+- React/TypeScript/Vite static application **0.8.1**.
 - Active identity: **model 0.5.0, data 0.5.0, share v5, storyboard v3, custom/history storage v3**.
 - **139 canonical profiles**: 76 living, 21 extinct, 38 fantasy/mythology and 4 generic humans.
 - Model 0.5 uses 15,000 seeded trials at every report depth. Report depth changes explanation only.
@@ -31,33 +31,34 @@ Use `npm run dev` for local iteration. Deploy only the exact tested contents of 
 - Seeded Monte Carlo remains subordinate to deterministic/versioned inputs. Text and tactical presentation never select a winner.
 - Storyboard inputs are decisive-only. Draw views and exports do not manufacture story beats, attacks, injuries or a winner.
 - V5 shares migrate released v4 identities without changing scenario inputs. V2 stores copy forward to v3 with untouched recovery bytes and prior outcomes pending recalculation.
-- The result UI exposes probability/draw uncertainty, the quantity pipeline, causal Story rail, evidence-derived tactical HUD/state strips, relative scale, HTML legend and keyboard/touch/accessibility fallbacks.
+- The result UI exposes probability/draw uncertainty, a shared three-part layperson story, one to three net-positive winner reasons, the quantity pipeline, Analyst evidence, tactical HUD/state strips, relative scale, HTML legend and keyboard/touch/accessibility fallbacks.
 - Static hosting requires no account, database, remote AI or server-side simulation.
 
 `app/src/version.ts` and `app/src/model04/contracts.ts` lock the active identity. Separately named `LEGACY_*` model-0.3 constants remain migration/history inputs, not the current release identity.
 
 ## Read these files in order
 
-1. `docs/QUALITY_FEATURE_PASS_0.8.0.md`
-2. `docs/What_Would_Win_Product_Plan.md`
-3. `docs/MODEL_NOTES.md`
-4. `docs/MODEL_0.4.2_ENDURANCE.md`
-5. `app/src/model04/contracts.ts`
-6. `app/src/model04/canonicalDraft.ts`
-7. `app/src/model04/abilityKernel.ts`
-8. `app/src/model04/engineV4.ts`
-9. `app/src/model04/runtime.ts`
-10. `app/src/model04/persistence.ts`
-11. `app/src/test/model05Authoritative.test.ts`
-12. `app/src/App.tsx` and `app/src/components/ResultPanel.tsx`
-13. `docs/BATTLE_RECONSTRUCTION.md`
-14. `app/src/storyboard/contracts.ts`, `builder.ts`, `validator.ts`, `readerNarrative.ts`
-15. `app/src/components/LikelyBattlePanel.tsx` and `app/src/components/tactical/`
-16. `app/e2e/presentation-clarity.spec.ts`, `app/e2e/app.spec.ts` and accessibility tests
-17. `data/DATA_DICTIONARY.md`, `data/test_scenarios.json` and `data/model-0.4/complex-profile-overrides.json`
-18. `docs/QA_REPORT.md`
+1. `docs/NARRATIVE_CLARITY_0.8.1.md`
+2. `docs/QUALITY_FEATURE_PASS_0.8.0.md`
+3. `docs/What_Would_Win_Product_Plan.md`
+4. `docs/MODEL_NOTES.md`
+5. `docs/MODEL_0.4.2_ENDURANCE.md`
+6. `app/src/model04/contracts.ts`
+7. `app/src/model04/canonicalDraft.ts`
+8. `app/src/model04/abilityKernel.ts`
+9. `app/src/model04/engineV4.ts`
+10. `app/src/model04/runtime.ts`
+11. `app/src/model04/persistence.ts`
+12. `app/src/test/model05Authoritative.test.ts`
+13. `app/src/App.tsx` and `app/src/components/ResultPanel.tsx`
+14. `docs/BATTLE_RECONSTRUCTION.md`
+15. `app/src/storyboard/contracts.ts`, `builder.ts`, `validator.ts`, `readerNarrative.ts`, `laymanNarrative.ts`
+16. `app/src/components/LikelyBattlePanel.tsx` and `app/src/components/tactical/`
+17. `app/e2e/presentation-clarity.spec.ts`, `app/e2e/app.spec.ts` and accessibility tests
+18. `data/DATA_DICTIONARY.md`, `data/test_scenarios.json` and `data/model-0.4/complex-profile-overrides.json`
+19. `docs/QA_REPORT.md`
 
-Historical 0.3/0.4/0.7 audit documents remain decision records. Do not rewrite their old release counts as if they described 0.8.0.
+Historical 0.3/0.4/0.7 audit documents remain decision records. Do not rewrite their old release counts as if they described the current release.
 
 ## Product invariants
 
@@ -120,4 +121,4 @@ Run commands from `app/`. Record exact current counts and sizes in `docs/QA_REPO
 
 ## Handoff prompt for Codex
 
-> Continue What Would Win from application 0.8.0, model/data 0.5.0, share v5, storyboard v3 and custom/history v3. Read the 0.8.0 quality pass, product plan, model notes, model04 runtime/persistence contracts, model05 authoritative tests and battle reconstruction contracts before editing. Preserve deterministic numerical authority, 15,000 trials at every report depth, seeded reproducibility, logarithmic quantity handling, contribution-weighted executable access, explicit draw/non-engagement, static subpath hosting and factor-ledger truth. Story and tactical views may present only validated evidence and must never imply a Monte Carlo replay or force a draw into a winner. Run release/ability audits, full unit and persistence suites, typecheck, build budgets, static-subpath check and the complete browser matrix for every material change.
+> Continue What Would Win from application 0.8.1, model/data 0.5.0, share v5, storyboard v3 and custom/history v3. Read the 0.8.1 narrative-clarity record, 0.8.0 quality pass, product plan, model notes, model04 runtime/persistence contracts, model05 authoritative tests and battle reconstruction contracts before editing. Preserve deterministic numerical authority, 15,000 trials at every report depth, seeded reproducibility, logarithmic quantity handling, contribution-weighted executable access, explicit draw/non-engagement, static subpath hosting and factor-ledger truth. Story and tactical views may present only validated evidence and must never imply a Monte Carlo replay or force a draw into a winner. Run release/ability audits, full unit and persistence suites, typecheck, build budgets, static-subpath check and the complete browser matrix for every material change.

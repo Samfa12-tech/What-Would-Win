@@ -1,15 +1,15 @@
 # Battle reconstruction contract
 
-Application 0.8.0 develops the explanatory presentation layer over the
+Application 0.8.1 develops the explanatory presentation layer over the
 model-0.5.0/data-0.5.0 numerical result into a concise causal reader account,
 a complete Analyst record and a beat-driven tactical explanation. Presentation
 remains downstream of the authoritative result.
 
-> One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.
+> A likely story based on the result—not a replay of an individual trial.
 
 The sentence above is mandatory in every likely-battle and tactical view.
 
-Application 0.8.0 retains typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. See `NARRATIVE_SEMANTICS_0.7.1.md`.
+Application 0.8.1 retains typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. It adds a shared three-part layperson account and net-positive winner reasons. See `NARRATIVE_CLARITY_0.8.1.md` and `NARRATIVE_SEMANTICS_0.7.1.md`.
 
 ## Authority and data flow
 
@@ -25,7 +25,8 @@ ScenarioV4Draft
   → deterministic reader narrative plan
       ├─ resolved identities and quantity pressure
       ├─ ranked causal concepts and relevance filters
-      └─ concise evidence-backed Story HTML and result export
+      ├─ shared three-part layperson story and winner reasons
+      └─ complete evidence-backed Story/Analyst HTML and result export
 ```
 
 ### Outcome boundary
@@ -33,6 +34,10 @@ ScenarioV4Draft
 `BattleReconstructionInput` accepts only `solo-win` or `group-win` results with a non-null winner. A model-0.5 `draw` means neither side has a materially effective accessible opposing route; it is rendered as direct non-engagement and never passed to the Story or tactical builders. Result JSON keeps the authoritative draw record but emits `null` storyboard, battle-narrative and reader-narrative fields.
 
 The verdict display communicates solo/draw/group probability, the 50% midpoint and model-sensitivity band. The quantity pipeline exposes declared, arena-usable, active-frontage and effective-pressure quantities. These values are copied from the result record and cannot feed back into the engine.
+
+### Layperson story contract
+
+Simple mode and the default Likely battle view use the same downstream `LaymanBattleStory`. It contains exactly three stages—opening, turning point and finish—plus one to three reasons that favour the authoritative winner after opposing contributions in the same mechanism family are netted out. Each visible stage, reason and alternate path must reference evidence in the current storyboard. The story is 45–150 words, limits visible sentences to 32 words, rejects authored model jargon and never creates a winner account for a draw. Close results use explicitly uncertain language; one-way route decisions are not described as trial win rates. A safe plain-language account replaces the technical reader fallback. The complete seven-phase reconstruction and exact identifiers remain available only through explicit details or Analyst mode.
 `Model04RuntimeResult` exposes a cloned deterministic state, the final result,
 applied factor ledger, all active/rejected ability resolutions, sensitivity,
 canonical scenario, contestants and simulation seed. The storyboard builder
@@ -242,7 +247,7 @@ artifact unless dragon/archers retains the resolved 80 m bow range, 35 m fire
 range, 10 m fire radius and effective basis 132, and eagle/mice retains its
 locked quantity disclosure and flight/frontage/replacement narrative spine.
 The exact candidate evidence is tracked under `assets/evidence-0.6.0/` and
-indexed in the [QA report](QA_REPORT.md#browser-and-accessibility-evidence),
+indexed in the [QA report](QA_REPORT.md#browser-and-visual-evidence),
 rather than being available only in ignored Playwright output.
 
 ## Performance budgets

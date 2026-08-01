@@ -16,8 +16,8 @@ const budgets = {
   optionalUiJavascript: 60_000,
   // Storyboard builder + validator + both complete HTML presentation views.
   // This is additive and must not consume either original core budget below.
-  // Application 0.8.0 adds outcome uncertainty, a causal rail and evidence-backed
-  // tactical state communication while keeping the presentation graph lazy.
+  // Application 0.8.1 adds the shared layperson story while keeping the complete
+  // story, Analyst and tactical presentation graph lazy.
   presentationJavascript: 150_000,
   tacticalRuntimeJavascript: 980_000,
   // Procedural 0.5 scenes ship no external media. These gates reserve explicit
@@ -28,8 +28,8 @@ const budgets = {
   selectedTacticalAssets: 1_200_000,
   model04RuntimeJavascript: 115_000,
   // Model 0.5 adds explicit outcome fields, v2-to-v3 recovery and the verdict
-  // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling keeps
-  // 3.7 kB headroom over the exact 0.8.0 candidate rather than hiding it in total.
+  // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling retains
+  // explicit headroom over the exact 0.8.1 candidate rather than hiding it in total.
   coreJavascript: 625_000,
   javascript: 1_750_000,
   creatureRoster: 132_000,
@@ -84,8 +84,8 @@ const model04RuntimeJavascript = model04RuntimeFiles.reduce((sum, file) => sum +
 const tacticalRuntimeFiles = sizes.filter((file) => /^dist\/assets\/(?:TacticalScene|TacticalReconstructionPanel|contracts)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
 if (tacticalRuntimeFiles.length !== 3) throw new Error(`Expected three lazy tactical runtime chunks, found ${tacticalRuntimeFiles.length}.`)
 const tacticalRuntimeJavascript = tacticalRuntimeFiles.reduce((sum, file) => sum + file.bytes, 0)
-const presentationFiles = sizes.filter((file) => /^dist\/assets\/(?:LikelyBattlePanel|storyboard|reconstruction)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
-if (presentationFiles.length !== 3) throw new Error(`Expected three lazy presentation chunks, found ${presentationFiles.length}.`)
+const presentationFiles = sizes.filter((file) => /^dist\/assets\/(?:LikelyBattlePanel|laymanNarrative|storyboard|reconstruction)-[^/]+\.js$/.test(relative(appRoot, file.path).replaceAll('\\', '/')))
+if (presentationFiles.length !== 4) throw new Error(`Expected four lazy presentation chunks, found ${presentationFiles.length}.`)
 const presentationJavascript = presentationFiles.reduce((sum, file) => sum + file.bytes, 0)
 const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript - tacticalRuntimeJavascript - presentationJavascript
 const rosterFiles = sizes.filter((file) => /dist[\\/]assets[\\/]creatures-[^\\/]+\.json$/.test(relative(appRoot, file.path)))

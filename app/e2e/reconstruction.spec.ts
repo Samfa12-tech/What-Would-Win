@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
 const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
-const RECONSTRUCTION_NOTICE = 'One plausible reconstruction of the modelled outcome—not a replay of an individual Monte Carlo trial.'
+const RECONSTRUCTION_NOTICE = 'A likely story based on the result—not a replay of an individual trial.'
 
 async function openDeepDive(page: Page) {
   await page.getByRole('button', { name: 'Deep dive' }).click()
@@ -51,20 +51,25 @@ test('likely battle is a fully annotated, explicitly non-trial presentation', as
 
   await expect(page.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
   const reader = page.getByLabel('Readable likely battle account')
-  await expect(reader.getByRole('list', { name: 'Five-stage causal battle account' }).locator('.reader-stage')).toHaveCount(5)
+  await expect(reader.locator('.layman-story-stage')).toHaveCount(3)
+  const reasonCount = await reader.getByRole('list', { name: 'Clear reasons for the result' }).getByRole('listitem').count()
+  expect(reasonCount).toBeGreaterThanOrEqual(1)
+  expect(reasonCount).toBeLessThanOrEqual(3)
+  await expect(reader).toHaveAttribute('data-story-issues', '0')
   await expect(reader).toContainText(/horse-sized mallard duck/i)
   await expect(reader).toContainText(/100 duck-sized horses/i)
   await expect(reader).toContainText(/600 kilograms/i)
   await expect(reader).toContainText(/1\.5 kilograms/i)
-  await expect(reader).toContainText(/only about 6 can contribute effective pressure at once/i)
-  await expect(reader).toContainText(/decisive transition.*active attackers.*waiting for access/i)
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/only about 6 can reach the fight at once/i)
+  await expect(reader).toContainText(/main edge|advantage that matters/i)
   await expect(reader).not.toContainText(/Legacy|aquatic movement|death condition|contest closes/i)
+  expect(await reader.locator('.evidence-tooltip-trigger').count()).toBe(await reader.locator('.evidence-anchor .evidence-tooltip-trigger').count())
   const details = page.locator('details.detailed-reconstruction')
   await expect(details).not.toHaveAttribute('open', '')
   await expect(page.getByLabel('Seven-phase detailed reconstruction')).not.toBeVisible()
   await details.locator('summary').click()
   await expect(page.getByLabel('Seven-phase detailed reconstruction').locator('> section')).toHaveCount(7)
-  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/pressure|reserve|quantity/i)
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/join the fight|declared|wait behind/i)
   await expect(page.getByRole('heading', { name: 'Alternate path' })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Analyst', exact: true }).click()
@@ -80,9 +85,11 @@ test('another reconstruction changes the story seed without changing the verdict
   const probability = await page.locator('.probability-seal strong').innerText()
   await openLikelyBattle(page)
   const originalSeed = await storySeed(page).innerText()
+  const originalStory = await page.locator('.layman-story').innerText()
 
   await page.getByRole('button', { name: 'Another reconstruction' }).click()
   await expect(storySeed(page)).not.toHaveText(originalSeed)
+  await expect(page.locator('.layman-story')).not.toHaveText(originalStory)
   expect(await page.locator('.verdict-copy').innerText()).toBe(verdict)
   expect(await page.locator('.probability-seal strong').innerText()).toBe(probability)
 

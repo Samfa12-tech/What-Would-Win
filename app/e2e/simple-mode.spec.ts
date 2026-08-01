@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+const RECONSTRUCTION_NOTICE = 'A likely story based on the result—not a replay of an individual trial.'
+
 function visibleWordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
@@ -71,12 +73,17 @@ test('walks a casual user from contestants to a concise, authoritative result', 
   const result = page.getByTestId('simple-result')
   await expect(result).toBeVisible()
   await expect(result.getByText('Why', { exact: false }).first()).toBeVisible()
-  await expect(result.getByTestId('simple-likely-copy')).toBeVisible()
+  const likelyStory = result.getByTestId('simple-likely-copy')
+  await expect(likelyStory).toBeVisible()
+  await expect(likelyStory.locator('section')).toHaveCount(3)
+  await expect(likelyStory).toHaveAttribute('data-story-issues', '0')
+  await expect(result.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'See the result' })).toHaveAttribute('aria-current', 'step')
 
   const resultText = await result.innerText()
   expect(visibleWordCount(resultText)).toBeLessThanOrEqual(260)
-  await expect(result).toContainText(/full evidence and technical records remain available in Deep dive/i)
+  expect(resultText).not.toMatch(/\b(?:log power|coordination exponent|frontage|causal|factor ids?|ability ids?)\b/i)
+  await expect(result).toContainText(/full evidence is in Deep dive/i)
 })
 
 test('keeps every expert feature one explicit switch away', async ({ page }) => {

@@ -137,11 +137,11 @@ export function buildReaderQuantitySummary(
   if (input.deterministicState.conceptual) {
     return {
       kind: 'conceptual',
-      disclosureTitle: 'How aggregate pressure is represented',
+      disclosureTitle: 'How a crowd this large is handled',
       declaredCountText,
-      visibleRepresentationText: 'The tactical view uses bounded aggregate pressure rather than placing the declared population as literal figures.',
-      simultaneousPressureText: 'Simultaneous participation is not literalised at this conceptual scale.',
-      reserveText: 'Capacity beyond the available front remains an aggregate contribution.',
+      visibleRepresentationText: 'The tactical view uses a capped crowd rather than trying to place every individual.',
+      simultaneousPressureText: 'The model does not pretend that the whole population can attack at once.',
+      reserveText: 'Those beyond the available space count as reserves, not as a wall of simultaneous attackers.',
     }
   }
   if (declared === 1) {
@@ -150,24 +150,24 @@ export function buildReaderQuantitySummary(
       disclosureTitle: 'How the contestants engage',
       declaredCountText,
       visibleRepresentationText: 'The tactical view represents both contestants directly.',
-      simultaneousPressureText: 'Each contestant applies only its own resolved pressure.',
-      reserveText: 'Neither contestant has reserves or replacement frontage.',
+      simultaneousPressureText: 'Each contestant can only use its own attacks.',
+      reserveText: 'There are no reserves waiting behind either side.',
     }
   }
   return {
     kind: 'literal-group',
-    disclosureTitle: 'How the group applies pressure',
+    disclosureTitle: 'How many can join the fight',
     declaredCountText,
     visibleRepresentationText: storyboard.representedQuantity.visibleActorCount === 0
-      ? 'The tactical view uses aggregate pressure rather than literal figures.'
+      ? 'The tactical view uses a capped crowd rather than literal figures.'
       : `${storyboard.representedQuantity.visibleActorCount.toLocaleString('en-AU')} tactical figures represent the declared group.`,
     simultaneousPressureText: effective === null
-      ? 'The scale is conceptual, so simultaneous attackers are not literalised.'
-      : `Only about ${effective} can contribute effective pressure at once.`,
+      ? 'The crowd is too large to count as simultaneous attackers.'
+      : `Only about ${effective} can reach the fight at once.`,
     reserveText: reserves === null
-      ? 'The remainder contributes as bounded reserve pressure.'
+      ? 'The rest wait behind the attackers who can reach.'
       : reserves > 0
-        ? `The other ${reserves.toLocaleString('en-AU')} replace the active front or wait for access.`
+        ? `The other ${reserves.toLocaleString('en-AU')} wait behind them and move in as space opens.`
         : 'There is no deeper reserve behind the active participants.',
   }
 }

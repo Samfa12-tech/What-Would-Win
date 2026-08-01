@@ -1,4 +1,5 @@
 import type { Ability, AbilityResolution } from '../model04/contracts'
+import { parseQuantity } from '../simulation/quantity'
 import type { AppliedModelFactor } from '../types'
 import { ReaderNarrativeGenerationError } from './readerNarrativeErrors'
 import type {
@@ -465,7 +466,11 @@ function resolutionFamily(
   }
   if (mechanism === 'counter') return 'countered-signature-ability'
   if (mechanism === 'flight') return 'flight-or-mobility-denial'
-  if (mechanism === 'access') return 'successful-closing-to-contact'
+  if (mechanism === 'access') {
+    const count = parseQuantity(input.scenario.groupQuantity).approxNumber
+    if (count === null || count > 1) return winner === 'group' ? 'renewed-group-frontage' : 'isolated-melee-exchanges'
+    return 'successful-closing-to-contact'
+  }
   return 'isolated-melee-exchanges'
 }
 
@@ -518,7 +523,22 @@ export function selectNarrativeCauses(
     candidate.mechanism !== 'premise' && candidate.mechanism !== 'resolution')
   const winner = input.result.winner
   const loser = opponent(winner)
-  const dominant = preferred(causal, 'turning-point', winner)
+  const netByMechanism = new Map<NarrativeCandidate['mechanism'], number>()
+  for (const candidate of causal) {
+    if (!candidate.beneficiary) continue
+    const direction = candidate.beneficiary === winner ? 1 : -1
+    netByMechanism.set(candidate.mechanism, (netByMechanism.get(candidate.mechanism) ?? 0) + direction * candidate.factorMagnitude)
+  }
+  const explanatoryNet = (candidate: NarrativeCandidate) => netByMechanism.get(candidate.mechanism) ?? 0
+  const genuinelyHelpsWinner = (candidate: NarrativeCandidate) => candidate.beneficiary === winner
+    && (explanatoryNet(candidate) > 1e-9
+      || (candidate.factorMagnitude === 0 && candidate.sourceEventIds.length > 0))
+  const explanatoryRank = (left: NarrativeCandidate, right: NarrativeCandidate) =>
+    explanatoryNet(right) - explanatoryNet(left) || candidateRank(left, right)
+  const dominant = eligibleCausal(causal, 'turning-point')
+    .filter(genuinelyHelpsWinner)
+    .sort(explanatoryRank)[0]
+    ?? preferred(causal, 'turning-point', winner)
     ?? causal.filter((candidate) => !candidate.technicalOnly).sort(candidateRank)[0]
   if (!dominant) throw new ReaderNarrativeGenerationError('Reader narrative selection requires at least one evidence-backed causal candidate.')
 
@@ -534,10 +554,9 @@ export function selectNarrativeCauses(
     ?? dominant
 
   const winnerTransitions = eligibleCausal(causal, 'turning-point')
-    .filter((candidate) => candidate.beneficiary === winner)
+    .filter(genuinelyHelpsWinner)
     .filter((candidate) => TRANSITION_MECHANICS.has(candidate.mechanism))
-    .filter((candidate) => candidate.factorMagnitude >= 0.03)
-    .sort(transitionRank)
+    .sort((left, right) => explanatoryRank(left, right) || transitionRank(left, right))
   const rankedTransition = winnerTransitions[0]
   const dominantOutranksGenericContact = rankedTransition?.mechanism === 'special-ability'
     && dominant.beneficiary === winner
@@ -548,6 +567,7 @@ export function selectNarrativeCauses(
 
   const used = new Set([dominant.id, firstExchange.id, turningPoint.id, resolutionCandidate.id])
   const pressure = winnerTransitions.find((candidate) => !used.has(candidate.id))
+    ?? eligibleCausal(causal, 'pressure').filter(genuinelyHelpsWinner).filter((candidate) => !used.has(candidate.id)).sort(explanatoryRank)[0]
     ?? preferred(causal, 'pressure', winner, used)
     ?? preferred(causal, 'pressure', winner)
     ?? dominant

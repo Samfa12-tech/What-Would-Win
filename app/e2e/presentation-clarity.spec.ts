@@ -152,16 +152,19 @@ test('Story is the readable default and Analyst remains a complete evidence view
   await expect(panel.getByTestId('analyst-account')).toBeHidden()
   const story = panel.getByTestId('story-account')
   expect((await story.innerText()).trim().length).toBeGreaterThan(300)
-  const causalRail = story.getByRole('list', { name: 'Five-stage causal battle account' })
-  await expect(causalRail.locator('.reader-stage')).toHaveCount(5)
-  await expect(causalRail.locator('.reader-stage-turning')).toHaveCount(1)
-  await expect(causalRail.locator('.what-could-flip')).toContainText('What could flip it')
-  const visibleStoryText = await story.evaluate((element) => {
+  await expect(story.locator('.layman-story-stage')).toHaveCount(3)
+  await expect(story.locator('.layman-story-turning-point')).toHaveCount(1)
+  const reasonCount = await story.getByRole('list', { name: 'Clear reasons for the result' }).getByRole('listitem').count()
+  expect(reasonCount).toBeGreaterThanOrEqual(1)
+  expect(reasonCount).toBeLessThanOrEqual(3)
+  await expect(story.locator('.what-could-flip')).toContainText("The other side's best chance")
+  await expect(story.getByLabel('Readable likely battle account')).toHaveAttribute('data-story-issues', '0')
+  const visibleStoryText = await panel.getByLabel('Readable likely battle account').evaluate((element) => {
     const copy = element.cloneNode(true) as HTMLElement
     copy.querySelectorAll('.evidence-tooltip').forEach((tooltip) => tooltip.remove())
     return copy.textContent ?? ''
   })
-  expect(visibleStoryText).not.toMatch(/\b(?:log10|deterministic margin|group encirclement|authoritative resolution)\b|\b\d+\.0(?:-metre|\s+metres?|\s+m\b)/i)
+  expect(visibleStoryText).not.toMatch(/\b(?:log10|log power|coordination exponent|deterministic margin|group encirclement|authoritative resolution|frontage|causal|factor ids?|ability ids?)\b/i)
 
   await analystButton.click()
   await expect(analystButton).toHaveAttribute('aria-pressed', 'true')
@@ -201,7 +204,7 @@ test('Charybdis remains a fixed ocean hazard while the orca approaches through w
   await page.getByRole('button', { name: 'Run simulation' }).click()
   await openLikelyBattle(page)
   const text = await page.getByTestId('story-account').innerText()
-  expect(text).toMatch(/Charybdis.*(?:remains (?:anchored|fixed)|does not pursue)/i)
+  expect(text).toMatch(/Charybdis.*stays in place/i)
   expect(text).toMatch(/orca.*approaches through the water/i)
   expect(text).not.toMatch(/ocean ground|Charybdis (?:pursues|surrounds|closes (?:distance|in))/i)
 })

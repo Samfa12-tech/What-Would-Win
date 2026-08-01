@@ -919,6 +919,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                 result={result}
                 solo={simulatedSolo}
                 group={simulatedGroup}
+                reconstructionInput={storyboardInput}
                 shareStatus={shareStatus}
                 onEditMatchup={() => setSimpleStep('matchup')}
                 onDeepDive={() => {

@@ -7,6 +7,7 @@ import {
   buildBattleStoryboard,
   buildLaymanBattleStory,
   buildSafeReaderBattleNarrative,
+  quantityReserveStatus,
   type BattleReconstructionInput,
 } from '../storyboard'
 
@@ -65,9 +66,9 @@ describe('layman battle story', () => {
     expect([...story.stages, ...story.reasons].every((item) => item.evidenceIds.every((id) => knownEvidence.has(id)))).toBe(true)
     expect(story.stages[0].text.toLocaleLowerCase('en-AU')).toContain(account.identities.solo.nounLabel.toLocaleLowerCase('en-AU'))
     expect(story.stages[0].text.toLocaleLowerCase('en-AU')).toContain(account.identities.group.fullLabel.toLocaleLowerCase('en-AU'))
-    expect(story.stages[1].text).toMatch(/main edge|advantage|close result|turning point/i)
+    expect(story.stages[1].text).toMatch(/fight turns|turning point|balance|close result/i)
     expect(story.stages[2].text.toLocaleLowerCase('en-AU')).toContain(account.identities[input.result.winner].subjectLabel.toLocaleLowerCase('en-AU'))
-    expect(storyText).toMatch(/model (?:favours|gives|awards)|fixed comparison|is favoured/i)
+    expect(storyText).toMatch(/model (?:favours|gives|awards)|fixed comparison|(?:is|are) favoured/i)
     expect(reasonText).not.toMatch(/\b(?:log power|coordination exponent|frontage|ledger|causal|deterministic powers?|resolved|factor ids?|ability ids?)\b/i)
   })
 
@@ -92,6 +93,103 @@ describe('layman battle story', () => {
     expect(input.result.winner).toBe('group')
     expect(reasonText).toMatch(/attackers|reach the fight|fresh|room/i)
     expect(reasonText).not.toMatch(/wolves? (?:is|are) (?:larger|heavier)|each .*wolf.*larger/i)
+  })
+
+  test('two porcupines are explained through simultaneous pressure and defensive contact, not imaginary reserves', () => {
+    const matchup = storyFor({
+      soloId: 'velociraptor',
+      groupId: 'north-american-porcupine',
+      groupQuantity: '2',
+      soloSize: { method: 'normal', value: 'normal' },
+      groupSize: { method: 'normal', value: 'normal' },
+      scalingMode: 'functional',
+      terrain: 'open',
+      weather: 'clear',
+      startingDistanceM: 25,
+      preparationMinutes: 0,
+      winCondition: 'incapacitation',
+    }, 1)
+    expect(matchup.input.result.winner).toBe('group')
+    expect(matchup.account.quantity).toMatchObject({
+      reserveStatus: 'none',
+      declaredCount: 2,
+      simultaneousCount: 2,
+      reserveCount: 0,
+    })
+    expect(matchup.reasonText).toMatch(/two attackers at once|both .*porcupines.*together/i)
+    expect(matchup.reasonText).toMatch(/both north american porcupines can reach the fight together/i)
+    expect(matchup.allText).toMatch(/quills|quill contact/i)
+    expect(matchup.allText).toMatch(/withstands|defen|protected|hard to hurt/i)
+    expect(matchup.allText).not.toMatch(/only about 2|fresh attackers|replacement wave|deeper reserve/i)
+    expect(matchup.allText).not.toMatch(/impal|punctur|spik(?:e|ed)/i)
+    expect(matchup.storyText).toMatch(/porcupines are favoured/i)
+    expect(matchup.story.stages[0].text).toMatch(/quills/i)
+  })
+
+  test('reserve language appears only when declared quantity exceeds simultaneous quantity', () => {
+    const smallGroup = storyFor({
+      soloId: 'velociraptor',
+      groupId: 'north-american-porcupine',
+      groupQuantity: '2',
+      soloSize: { method: 'normal', value: 'normal' },
+      groupSize: { method: 'normal', value: 'normal' },
+      terrain: 'open',
+    })
+    const largeGroup = storyFor(pilots[1][1])
+    expect(smallGroup.account.quantity).toMatchObject({ reserveStatus: 'none', reserveCount: 0 })
+    expect(smallGroup.allText).not.toMatch(/fresh attackers|replacement wave|reserves?/i)
+    expect(largeGroup.account.quantity).toMatchObject({ reserveStatus: 'present', reserveCount: null })
+    expect(largeGroup.allText).toMatch(/fresh attackers|wait behind|move in as space opens/i)
+  })
+
+  test('conceptual quantities use capped crowd pressure instead of literal small-group language', () => {
+    const matchup = storyFor({ ...pilots[1][1], groupQuantity: '1e100' })
+    expect(matchup.account.quantity).toMatchObject({
+      kind: 'conceptual',
+      reserveStatus: 'conceptual',
+      simultaneousCount: null,
+      reserveCount: null,
+    })
+    expect(matchup.allText).toMatch(/capped|population|crowd pressure|bounded/i)
+    expect(matchup.allText).not.toMatch(/small group|attack together|same close exchange|all .* at once/i)
+    expect(matchup.story.issues).toEqual([])
+  })
+
+  test('reserve semantics use the continuous pressure gap rather than rounded display counts', () => {
+    expect(quantityReserveStatus({
+      conceptual: false,
+      declaredLog10: Math.log10(3),
+      effectiveBasisLog10: Math.log10(2.6),
+    })).toBe('present')
+    expect(quantityReserveStatus({
+      conceptual: false,
+      declaredLog10: Math.log10(3),
+      effectiveBasisLog10: Math.log10(3),
+    })).toBe('none')
+    expect(quantityReserveStatus({
+      conceptual: true,
+      declaredLog10: 100,
+      effectiveBasisLog10: 2,
+    })).toBe('conceptual')
+  })
+
+  test('plural opponents keep plural pronouns in restraint explanations', () => {
+    const matchup = storyFor({
+      soloId: 'giant-pacific-octopus',
+      groupId: 'saltwater-crocodile',
+      groupQuantity: '2',
+      soloSize: { method: 'normal', value: 'normal' },
+      groupSize: { method: 'named', value: 'dog' },
+      scalingMode: 'functional',
+      terrain: 'ocean',
+      weather: 'clear',
+      startingDistanceM: 25,
+      preparationMinutes: 0,
+      winCondition: 'incapacitation',
+    }, 3601126592)
+    expect(matchup.input.result.winner).toBe('solo')
+    expect(matchup.allText).toMatch(/crocodiles (?:using|bringing) their best attack/i)
+    expect(matchup.allText).not.toMatch(/crocodiles (?:using|bringing) its best attack/i)
   })
 
   test('signature abilities remain recognisable in the short account', () => {

@@ -1,27 +1,27 @@
-# What Would Win — application 0.8.1 release QA report
+# What Would Win — application 0.8.2 release QA report
 
 **QA date:** 1 August 2026
 
-**Release identity:** application **0.8.1**, model **0.5.0**, data **0.5.0**, storyboard **v3**, share format **v5**, custom/history storage **v3**
+**Release identity:** application **0.8.2**, model **0.5.0**, data **0.5.0**, storyboard **v3**, share format **v5**, custom/history storage **v3**
 
 ## Release outcome
 
-The casual result now leads with the winner, one to three plain reasons and a three-stage likely-battle story. The story names both contestants, shows the opening, identifies the main advantage and states the finish. Simple remains the default; Analyst and the seven-phase record remain opt-in.
+The casual result now gives a concrete, evidence-backed explanation of how the winner's advantages decide the matchup. Small simultaneous groups are separated from reserve-supported crowds, conceptual populations use capped aggregate language, defensive morphology can add safe contact detail, and plural contestant grammar remains intact. The single-creature size selector also stays within its card at the narrow desktop breakpoint.
 
 The release does not change the numerical engine, roster, coefficients, trial count, authoritative winner, probability or draw boundary.
 
 ## Current automated evidence
 
-- `npm test`: **409/409 tests passed across 31 Vitest files** after the complete release audit.
-- `npm run audit:narrative`: **106/106 passed**.
-- `npm run audit:narrative-semantics`: **91/91 passed**.
+- `npm test`: **414/414 tests passed across 31 Vitest files** after the complete release audit.
+- `npm run audit:narrative`: **111/111 passed**.
+- `npm run audit:narrative-semantics`: **96/96 passed**.
 - Full-roster layman audit: every one of the **139 profiles** entered the story pipeline in both matchup roles.
 - Semantic audit: **139 profiles**, 33 habitats, 61 attack modes and 71 traits; **0 errors and 0 warnings**.
 - Ability audit: **130 defining mechanical source tokens** routed across all 139 profiles.
 - Provenance: **139/139 generated records** verified.
 - `npm run typecheck`: passed.
-- `npm run test:simulation-budget`: **1/1 passed in 108 ms**, below the two-second gate.
-- `npm run build`: passed with Vite 8.1.5 and **197 transformed modules**.
+- `npm run test:simulation-budget`: **1/1 passed in 81 ms**, below the two-second gate.
+- `npm run build`: passed with Vite 8.1.5 and **198 transformed modules**.
 - `node scripts/check-static-subpath.mjs`: **8/8 local references** resolved inside `/apps/what-would-win/`.
 - `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
 
@@ -29,7 +29,10 @@ The release does not change the numerical engine, roster, coefficients, trial co
 
 - A smaller winner cannot be described as winning through greater size.
 - One-on-one fights cannot use crowd or replacement-wave logic.
+- Conceptual quantities cannot fall through to literal small-group, same-exchange or all-at-once wording.
+- The reserve branch uses the same continuous pressure-gap threshold in construction, validation, evidence and reader copy, including a case where rounded display counts would hide the gap.
 - The finish names the winner instead of using an ambiguous pronoun after naming the loser.
+- Plural groups keep plural pronouns and verb agreement through restraint, recovery and finish explanations.
 - Ordinary bites, claws and contact attacks cannot be invented as disabling powers.
 - Effectively even and narrow results use uncertain language instead of inevitable turning points.
 - One-way route decisions are not labelled as 100% trial win rates.
@@ -41,29 +44,29 @@ The release does not change the numerical engine, roster, coefficients, trial co
 
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 452,921 bytes | 460,000 bytes |
-| Optional UI JavaScript | 58,001 bytes | 60,000 bytes |
-| Presentation JavaScript | 140,876 bytes | 150,000 bytes |
+| Entry JavaScript | 452,962 bytes | 460,000 bytes |
+| Optional UI JavaScript | 58,208 bytes | 60,000 bytes |
+| Presentation JavaScript | 149,072 bytes | 150,000 bytes |
 | Lazy tactical runtime JavaScript | 949,380 bytes | 980,000 bytes |
 | Model runtime JavaScript | 112,318 bytes | 115,000 bytes |
-| Core JavaScript | 623,240 bytes | 625,000 bytes |
-| Total JavaScript | 1,713,496 bytes | 1,750,000 bytes |
+| Core JavaScript | 623,488 bytes | 625,000 bytes |
+| Total JavaScript | 1,721,940 bytes | 1,750,000 bytes |
 | Creature roster | 125,270 bytes | 132,000 bytes |
-| Core CSS | 41,563 bytes | 42,000 bytes |
+| Core CSS | 41,704 bytes | 42,000 bytes |
 | Reconstruction CSS | 11,986 bytes | 12,000 bytes |
-| Total CSS | 53,549 bytes | 54,000 bytes |
-| Core deployable payload | 938,118 bytes | 940,000 bytes |
-| Total deployable payload | 2,040,360 bytes | 2,050,000 bytes |
+| Total CSS | 53,690 bytes | 54,000 bytes |
+| Core deployable payload | 938,507 bytes | 940,000 bytes |
+| Total deployable payload | 2,048,945 bytes | 2,050,000 bytes |
 
 ## Browser and visual evidence
 
-Nine final-build checks passed serially across desktop Chromium, 360-pixel mobile Chromium and desktop WebKit in **42.6 seconds**. They cover the casual result, the explicit non-replay notice, the three-stage account, evidence validity and presentation-only reconstruction changes. The local runner used the exact pre-started production preview through the explicit `PLAYWRIGHT_REUSE_SERVER=1` path and exited cleanly.
+The exact final production build was reloaded in the in-app browser. At the normal 1,265-pixel viewport and at the reported 910-pixel narrow desktop width (895-pixel document viewport), both optional creature images and size selectors remained inside their cards with no page overflow. The 910-pixel measurement placed the first selector's right edge at 340 pixels inside its 352.8-pixel control edge.
 
-Fresh local captures under ignored `output/narrative-audit/` show the default desktop and 360-pixel mobile result plus Deep-dive Story mode. The capture script reported three stages, two reasons, zero story issues, zero page overflow and zero console errors.
+Responsive DOM checks also covered the layout transitions around 901/900 and 621/620 pixels plus a 480-pixel mobile width. The supplied overlap screenshot and the corrected 910-pixel capture were compared at the same setup state.
 
 ## Evidence boundaries
 
-- The complete four-project Playwright matrix was not rerun for this patch; the final focused matrix excludes Firefox and unrelated expert-workspace scenarios.
+- The standalone Playwright CLI and complete multi-browser matrix were not run for this patch; final browser evidence comes from the selected in-app browser plus the automated unit, semantic, type and build gates above.
 - Exact-final physical iOS/Safari and Android validation was not performed.
 - Real NVDA, VoiceOver and TalkBack validation was not performed; automated checks are not substitutes for physical assistive-technology testing.
 - The likely-battle story remains an evidence-backed explanation of the aggregate result, not a simulated event history, injury model or replay of an individual trial.

@@ -1,4 +1,4 @@
-import { formatLogQuantity, parseQuantity } from '../simulation/quantity'
+import { parseQuantity } from '../simulation/quantity'
 import {
   type BattleEvent,
   type BattleEvidenceRecord,
@@ -28,6 +28,7 @@ import {
   type ReaderNarrativeBeatId,
   type SelectedNarrativeCause,
 } from './narrativeSelection'
+import { quantityReserveStatus, type QuantityReserveStatus } from './quantitySemantics'
 import { buildSemanticBattleNarrativePlan, naturalAbilityPhrase } from './readerNarrativePlanner'
 import { narrativeSentenceIntegrity } from './builder'
 import { seededUnit } from './hash'
@@ -47,6 +48,10 @@ export { ReaderNarrativeGenerationError, ReaderNarrativeValidationError } from '
 
 export interface ReaderQuantitySummary {
   kind: 'singleton' | 'literal-group' | 'conceptual'
+  reserveStatus: QuantityReserveStatus
+  declaredCount: number | null
+  simultaneousCount: number | null
+  reserveCount: number | null
   disclosureTitle: string
   declaredCountText: string
   visibleRepresentationText: string
@@ -116,11 +121,6 @@ const BANNED_STORY_TERMS = [
   'contest closes', 'the opposing side must answer', 'what follows inherits',
 ]
 
-function readerCount(log10: number): string {
-  if (log10 <= 6) return Math.max(1, Math.round(10 ** log10)).toLocaleString('en-AU')
-  return formatLogQuantity(log10)
-}
-
 export function buildReaderQuantitySummary(
   input: BattleReconstructionInput,
   storyboard: BattleStoryboard,
@@ -128,25 +128,40 @@ export function buildReaderQuantitySummary(
 ): ReaderQuantitySummary {
   const parsed = parseQuantity(input.scenario.groupQuantity)
   const effectiveLog = storyboard.representedQuantity.effectiveActiveCountLog10
-  const effective = effectiveLog === null ? null : readerCount(effectiveLog)
   const declared = parsed.approxNumber
-  const activeNumber = effectiveLog !== null && effectiveLog <= 6 ? Math.max(1, Math.round(10 ** effectiveLog)) : null
-  const reserves = declared !== null && activeNumber !== null ? Math.max(0, Math.round(declared - activeNumber)) : null
+  const reserveStatus = quantityReserveStatus({
+    conceptual: input.deterministicState.conceptual,
+    declaredLog10: parsed.log10,
+    effectiveBasisLog10: effectiveLog,
+  })
+  const activeNumber = reserveStatus === 'none' ? declared : null
+  const reserves = reserveStatus === 'none' ? 0 : null
+  const pressureEquivalent = effectiveLog !== null && Number.isFinite(effectiveLog) && effectiveLog <= 6
+    ? Math.max(1, Math.round(10 ** effectiveLog))
+    : null
   const declaredCountText = `${capitaliseResolvedLabel(identities.group.fullLabel)} ${beVerb(identities.group.grammaticalNumber)} declared for the encounter.`
 
   if (input.deterministicState.conceptual) {
     return {
       kind: 'conceptual',
+      reserveStatus,
+      declaredCount: declared,
+      simultaneousCount: activeNumber,
+      reserveCount: reserves,
       disclosureTitle: 'How a crowd this large is handled',
       declaredCountText,
       visibleRepresentationText: 'The tactical view uses a capped crowd rather than trying to place every individual.',
-      simultaneousPressureText: 'The model does not pretend that the whole population can attack at once.',
-      reserveText: 'Those beyond the available space count as reserves, not as a wall of simultaneous attackers.',
+      simultaneousPressureText: 'The model caps this enormous population as crowd pressure rather than treating every member as a simultaneous attacker.',
+      reserveText: 'Additional depth remains abstract and can sustain that pressure as space opens.',
     }
   }
   if (declared === 1) {
     return {
       kind: 'singleton',
+      reserveStatus: 'none',
+      declaredCount: declared,
+      simultaneousCount: activeNumber,
+      reserveCount: 0,
       disclosureTitle: 'How the contestants engage',
       declaredCountText,
       visibleRepresentationText: 'The tactical view represents both contestants directly.',
@@ -156,19 +171,29 @@ export function buildReaderQuantitySummary(
   }
   return {
     kind: 'literal-group',
+    reserveStatus,
+    declaredCount: declared,
+    simultaneousCount: activeNumber,
+    reserveCount: reserves,
     disclosureTitle: 'How many can join the fight',
     declaredCountText,
     visibleRepresentationText: storyboard.representedQuantity.visibleActorCount === 0
       ? 'The tactical view uses a capped crowd rather than literal figures.'
       : `${storyboard.representedQuantity.visibleActorCount.toLocaleString('en-AU')} tactical figures represent the declared group.`,
-    simultaneousPressureText: effective === null
-      ? 'The crowd is too large to count as simultaneous attackers.'
-      : `Only about ${effective} can reach the fight at once.`,
-    reserveText: reserves === null
-      ? 'The rest wait behind the attackers who can reach.'
-      : reserves > 0
-        ? `The other ${reserves.toLocaleString('en-AU')} wait behind them and move in as space opens.`
-        : 'There is no deeper reserve behind the active participants.',
+    simultaneousPressureText: reserveStatus === 'none' && declared !== null
+        ? declared === 2
+          ? `Both ${identities.group.subjectLabel.replace(/^the\s+/i, '')} can reach the fight together.`
+          : `All ${declared.toLocaleString('en-AU')} ${identities.group.subjectLabel.replace(/^the\s+/i, '')} can reach the fight together.`
+      : reserveStatus === 'present'
+        ? pressureEquivalent === null
+          ? `The model caps the ${declared?.toLocaleString('en-AU') ?? 'declared'} group members as bounded attack pressure rather than a literal simultaneous body count.`
+          : `The model caps the group's combined attack pressure at roughly the force of ${pressureEquivalent.toLocaleString('en-AU')} ${pressureEquivalent === 1 ? 'attacker' : 'attackers'}; this is not a literal count of bodies attacking at once.`
+        : 'The model uses bounded crowd pressure instead of claiming an exact number of simultaneous attackers.',
+    reserveText: reserveStatus === 'none'
+      ? 'They act as one small group, not as a stream of replacements.'
+      : reserveStatus === 'present'
+        ? 'Additional members contribute through bounded reserve pressure and replacement waves as space opens.'
+        : 'Any additional depth remains abstract rather than becoming a literal line of attackers.',
   }
 }
 export function buildBattleNarrativePlan(

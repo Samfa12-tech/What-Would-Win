@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.2 — 2026-08-01
+
+- Split small simultaneous groups from reserve-supported crowds, so a fully active pair is described as two-on-one pressure rather than a queue of fresh attackers.
+- Ranked layperson reasons at the precise model-concept level, preventing a defensive-quality edge from being rewritten as a misleading combined-mass claim.
+- Added evidence-backed profile facts for safe combat texture: ordinary contact modes such as quill contact may explain what close range exposes an attacker to, while unrecorded wounds remain forbidden.
+- Built the short battle account from the selected first exchange and concrete turning point instead of repeating the top reason card as generic filler.
+- Corrected plural winner grammar and quantity evidence when all declared group members can participate at once.
+- Kept plural group pronouns intact in restraint and recovery explanations, including resized aquatic matchups.
+- Unified reserve decisions around the continuous pressure gap shared by the storyboard, validator and reader copy; conceptual-scale populations now use capped aggregate language instead of literal small-group claims.
+- Kept the single-creature size selector inside its card at narrow desktop widths, including the optional size-reference asset variant.
+- Added the exact velociraptor-versus-two-porcupines regression, conceptual-quantity and reserve-boundary invariants, responsive selector checks and full-roster semantic validation without changing model/data 0.5.0, share v5 or storyboard v3.
+
 ## 0.7.1 — 2026-07-28
 
 - Added typed battlefield-medium and combat-behaviour contracts covering terrestrial, dense, confined, aquatic, aerial, fixed-hazard and conceptual encounters without changing simulation inputs or values.

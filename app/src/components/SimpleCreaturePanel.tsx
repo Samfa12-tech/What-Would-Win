@@ -131,7 +131,7 @@ export function SimpleCreaturePanel({
 
       <label className="simple-size-field">
         <span>Size</span>
-        <span className="simple-size-control">
+        <span className={`simple-size-control${asset ? ' simple-size-control-with-asset' : ''}`}>
           {asset && <img src={asset} alt="" width="50" height="50" />}
           <span>
             <strong>{sizeName(creature, size)}</strong>

@@ -2,7 +2,7 @@
 ## Product planning, simulation specification and Codex handoff
 
 **Document version:** 0.8<br>
-**Status:** application 0.8.1 narrative-clarity candidate<br>
+**Status:** application 0.8.2 narrative-robustness candidate<br>
 **Updated:** 1 August 2026<br>
 **Owner / intended host:** Samfa12-tech, `samfa12.com`<br>
 **Primary implementation:** React + TypeScript + Vite
@@ -260,7 +260,7 @@ The scenario contains a seed. Re-running the same scenario and seed reproduces t
 
 The engine is a calibrated game model with biologically inspired structure. It is not a biomechanics solver and does not model individual anatomy, wounds or exact spatial trajectories. Its purpose is to make assumptions internally consistent, inspectable and computationally cheap.
 
-The current reproducibility identity is **model 0.5.0, data 0.5.0 and share format v5**; the application version is **0.8.1** and decisive presentation storyboards are **v3**. Custom-creature and history storage use **v3** recovery-copy formats. Released v4 scenarios preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. Previous v2 results remain snapshots pending recalculation; recovery bytes are not overwritten. Model 0.5 fixes all report depths at 15,000 seeded trials, contribution-weights executable group access, preserves quantity-one mobility symmetry and distinguishes mutual non-engagement from one-way and two-sided contests. Storyboard v3 accepts decisive results only; application presentation remains downstream and cannot feed values back into the model.
+The current reproducibility identity is **model 0.5.0, data 0.5.0 and share format v5**; the application version is **0.8.2** and decisive presentation storyboards are **v3**. Custom-creature and history storage use **v3** recovery-copy formats. Released v4 scenarios preserve their structured inputs and are visibly recalculated under the current identity when referenced profiles are available. Previous v2 results remain snapshots pending recalculation; recovery bytes are not overwritten. Model 0.5 fixes all report depths at 15,000 seeded trials, contribution-weights executable group access, preserves quantity-one mobility symmetry and distinguishes mutual non-engagement from one-way and two-sided contests. Storyboard v3 accepts decisive results only; application presentation remains downstream and cannot feed values back into the model.
 
 All constants in this section are **versioned design parameters**. They should be changed only with a calibration note and regression-test update.
 
@@ -777,6 +777,15 @@ Static React demo, 134-profile data, deterministic-plus-Monte-Carlo model, expor
 - one to three plain winner reasons ranked only after opposing factors in the same mechanism family are netted out;
 - casual-copy gates for word count, sentence length, evidence coverage and model jargon;
 - representative semantic fixtures plus every built-in profile in both matchup roles;
+- unchanged model/data 0.5.0, 15,000-trial authority, share v5, storyboard v3 and draw boundary.
+
+### Phase 1C.4 — application 0.8.2 narrative robustness (delivered)
+
+- precise causal-concept ranking before reader-family deduplication;
+- separate simultaneous, reserve-supported and conceptual quantity wording;
+- profile-backed contact texture with explicit injury-claim limits;
+- first-exchange and concrete turning-point stages instead of repeated generic reasons;
+- exact small-group regression plus reserve-boundary and full-roster semantic invariants;
 - unchanged model/data 0.5.0, 15,000-trial authority, share v5, storyboard v3 and draw boundary.
 
 ### Phase 1D — trustworthy beta (next)

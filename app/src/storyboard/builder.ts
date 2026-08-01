@@ -20,6 +20,7 @@ import {
   type StoryboardSide,
 } from './contracts'
 import { seededUnit, stableHash } from './hash'
+import { quantityReserveStatus } from './quantitySemantics'
 
 const PHASES: StoryboardPhaseId[] = [
   'briefing', 'deployment', 'approach', 'contact', 'pressure', 'turning-point', 'resolution',
@@ -433,7 +434,11 @@ function pressureEvents(input: BattleReconstructionInput, quantity: BattleStoryb
     caption: `Active frontage: ${formatLogQuantity(quantity.effectiveActiveCountLog10)} of ${formatLogQuantity(quantity.declaredQuantityLog10)}.`,
     cameraCue: { type: 'frontage-view' },
   })]
-  if (quantity.declaredQuantityLog10 - quantity.effectiveActiveCountLog10 > 0.05) {
+  if (quantityReserveStatus({
+    conceptual: input.deterministicState.conceptual,
+    declaredLog10: quantity.declaredQuantityLog10,
+    effectiveBasisLog10: quantity.effectiveActiveCountLog10,
+  }) === 'present') {
     events.push(withBattleEventOrdering(input, 'pressure', {
       id: 'resolved-replacement-wave', type: 'replacement-wave', actingSide: 'group', targetSide: 'solo',
       factorIds: [factor.id], activeActorCount: active, representedActorCountLog10: quantity.declaredQuantityLog10,
@@ -595,6 +600,18 @@ export function buildBattleEvidenceCatalogue(
       soloName: solo, groupName: group, soloId: input.contestants.solo.id, groupId: input.contestants.group.id,
       declaredQuantityLog10: quantity.declaredQuantityLog10, winCondition: input.scenario.winCondition,
     })
+  for (const side of ['solo', 'group'] as const) {
+    const profile = input.contestants[side]
+    add(`profile:${side}`, 'scenario-condition', `${profile.name} combat profile`,
+      `${profile.name} declares ${profile.attack_modes.join(', ') || 'unspecified contact attacks'} and the traits ${profile.traits.join(', ') || 'none'}.`,
+      [profile.id, 'attack_modes', 'traits', 'defense', 'armor'], {
+        profileId: profile.id,
+        attackModes: [...profile.attack_modes],
+        traits: [...profile.traits],
+        defense: profile.defense,
+        armor: profile.armor,
+      }, side)
+  }
   add('scenario:arena', 'scenario-condition', 'Arena and starting geometry',
     `The sides begin ${storyStart(input.scenario.startingDistanceM)} in ${input.scenario.terrain} terrain, using ${input.scenario.coordinationDoctrine} group coordination.`,
     ['scenario'], { ...input.scenario })

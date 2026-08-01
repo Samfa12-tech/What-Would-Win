@@ -2089,7 +2089,8 @@ footer strong {
 .simple-quantity-field small { grid-column: 1 / -1; color: #9aa8bb; font-size: 10px; text-transform: none; letter-spacing: 0; }
 
 .simple-size-field { display: grid; gap: 8px; margin-top: 20px; color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.simple-size-control { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #0c1523; }
+.simple-size-control { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #0c1523; }
+.simple-size-control-with-asset { grid-template-columns: auto minmax(0, 1fr) auto; }
 .simple-size-control > img { width: 48px; height: 48px; object-fit: contain; opacity: .82; }
 .simple-size-control > span { display: grid; gap: 3px; min-width: 0; text-align: left; text-transform: none; letter-spacing: 0; }
 .simple-size-control strong { overflow: hidden; color: #f4e7ca; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
@@ -2180,7 +2181,8 @@ footer strong {
   .simple-step-heading h1 { font-size: 36px; }
   .simple-contender { padding: 22px 18px; }
   .simple-select-display select { font-size: 28px; }
-  .simple-size-control { grid-template-columns: auto minmax(0, 1fr); }
+  .simple-size-control { grid-template-columns: minmax(0, 1fr); }
+  .simple-size-control-with-asset { grid-template-columns: auto minmax(0, 1fr); }
   .simple-size-control select { grid-column: 1 / -1; width: 100%; }
   .simple-profile-facts { grid-template-columns: 1fr 1fr; }
   .simple-profile-facts div:last-child { grid-column: 1 / -1; }

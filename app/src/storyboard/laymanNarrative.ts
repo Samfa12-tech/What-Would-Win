@@ -121,10 +121,20 @@ function factorBeneficiary(side: string, logDelta: number): StoryboardSide | nul
   return logDelta >= 0 ? side : opponent(side)
 }
 
-function reasonTitle(family: ReasonFamily, winner: StoryboardSide): string {
+function reasonTitle(
+  family: ReasonFamily,
+  winner: StoryboardSide,
+  account: ReaderBattleNarrative,
+  concept: NarrativeConcept,
+): string {
   switch (family) {
-    case 'physical': return 'Wins the close exchanges'
-    case 'numbers': return winner === 'group' ? 'Fresh attackers keep arriving' : 'The crowd cannot pile on'
+    case 'physical': return concept === 'stopping' ? 'Hard to hurt at close range' : 'Wins the close exchanges'
+    case 'numbers':
+      if (winner !== 'group') return 'The crowd cannot pile on'
+      if (account.quantity.reserveStatus === 'present') return 'Fresh attackers keep arriving'
+      if (account.quantity.reserveStatus === 'conceptual') return 'Crowd pressure keeps building'
+      if (account.quantity.reserveStatus === 'unknown') return 'Numbers create sustained pressure'
+      return account.quantity.declaredCount === 2 ? 'Two attackers at once' : 'They attack together'
     case 'distance': return 'Controls the distance'
     case 'flight': return 'Controls the air'
     case 'terrain': return 'The battlefield suits it better'
@@ -192,6 +202,9 @@ function reasonText(
   const winnerSubject = capitaliseResolvedLabel(winner.subjectLabel)
   switch (family) {
     case 'physical': {
+      if (candidate?.narrativeConcept === 'stopping') {
+        return `${winnerSubject} ${agrees(winner, 'withstands', 'withstand')} more of the attacks that land and ${agrees(winner, 'keeps', 'keep')} fighting.`
+      }
       const count = parseQuantity(input.scenario.groupQuantity).approxNumber
       if (winnerSide === 'solo' && winner.resolvedMassKg > loser.resolvedMassKg) {
         return `${winnerSubject} weighs ${formatResolvedMass(winner.resolvedMassKg)}, compared with ${formatResolvedMass(loser.resolvedMassKg)} for each ${loser.singularLabel}.`
@@ -204,9 +217,14 @@ function reasonText(
       return `${winnerSubject} ${agrees(winner, 'is', 'are')} better able to stay upright and keep attacking once the sides meet.`
     }
     case 'numbers':
-      return winnerSide === 'group'
-        ? `${account.quantity.simultaneousPressureText} ${account.quantity.reserveText}`
-        : `${account.quantity.simultaneousPressureText} ${winnerSubject} can deal with those attackers before more find room.`
+      if (winnerSide === 'group') {
+        return account.quantity.reserveStatus !== 'none'
+          ? `${account.quantity.simultaneousPressureText} ${account.quantity.reserveText}`
+          : `${account.quantity.simultaneousPressureText} ${capitaliseResolvedLabel(loser.subjectLabel)} has to handle several threats in the same close exchange.`
+      }
+      return account.quantity.reserveStatus !== 'none'
+        ? `${account.quantity.simultaneousPressureText} ${winnerSubject} can deal with those attackers before more find room.`
+        : `${winnerSubject} can withstand the small group's combined attack without being overwhelmed.`
     case 'distance':
       return ability?.active && ability.side === winnerSide
         ? `${winnerSubject} can use ${abilityPhrase} before ${loser.subjectLabel} ${agrees(loser, 'gets', 'get')} close.`
@@ -258,6 +276,42 @@ function reasonSentence(id: string, evidenceId: string, text: string): Narrative
   return { ...base, integrityHash: narrativeSentenceIntegrity(base) }
 }
 
+function activeContactRoute(input: BattleReconstructionInput, side: StoryboardSide): boolean {
+  return input.abilityResolutions.some((resolution) => {
+    if (resolution.side !== side || !resolution.active) return false
+    const ability = input.contestants[side].abilities.find((item) => item.id === resolution.abilityId)
+    return ability?.delivery === 'contact'
+  })
+}
+
+function defensiveMorphology(input: BattleReconstructionInput, side: StoryboardSide): string | null {
+  const traits = new Set(input.contestants[side].traits)
+  if (traits.has('quills')) return 'quills'
+  if (traits.has('plates')) return 'armoured plates'
+  if (traits.has('armored') || traits.has('heavy-armor')) return 'armoured body'
+  if (traits.has('armored-skull')) return 'armoured head'
+  if (traits.has('thick-hide') || traits.has('impenetrable-hide')) return 'protected hide'
+  return null
+}
+
+function defensiveInteractionSentence(
+  input: BattleReconstructionInput,
+  account: ReaderBattleNarrative,
+  concept: NarrativeConcept,
+): NarrativeSentence | undefined {
+  if (concept !== 'stopping') return undefined
+  const winnerSide = input.result.winner
+  const loserSide = opponent(winnerSide)
+  const morphology = defensiveMorphology(input, winnerSide)
+  if (!morphology || !activeContactRoute(input, loserSide)) return undefined
+  const winner = account.identities[winnerSide]
+  const loser = account.identities[loserSide]
+  const text = morphology === 'quills'
+    ? `Every close attack brings ${loser.subjectLabel} within reach of ${possessiveLabel(winner)} quills.`
+    : `${capitaliseResolvedLabel(loser.subjectLabel)} has to attack through ${possessiveLabel(winner)} ${morphology} at close range.`
+  return reasonSentence(`profile-${winnerSide}`, `profile:${winnerSide}`, text)
+}
+
 function laymanSentence(id: string, evidenceId: string, text: string): NarrativeSentence {
   const base = {
     id: `layman-story-${id}`,
@@ -292,45 +346,55 @@ function buildReasons(
   knownEvidenceIds: ReadonlySet<string>,
 ): LaymanStoryReason[] {
   const winner = input.result.winner
-  const familyScores = new Map<ReasonFamily, { net: number; concept: NarrativeConcept; evidenceIds: string[]; winnerPeak: number }>()
+  const conceptScores = new Map<NarrativeConcept, { net: number; evidenceIds: string[]; winnerPeak: number }>()
   for (const factor of input.result.appliedFactors) {
     if (!knownEvidenceIds.has(`factor:${factor.id}`)) continue
     const concept = narrativeConceptForFactor(factor, input)
     const family = familyFor(concept, input)
     const beneficiary = factorBeneficiary(factor.side, factor.logDelta)
     if (!family || !beneficiary) continue
-    const current = familyScores.get(family) ?? { net: 0, concept, evidenceIds: [], winnerPeak: 0 }
+    const current = conceptScores.get(concept) ?? { net: 0, evidenceIds: [], winnerPeak: 0 }
     current.net += (beneficiary === winner ? 1 : -1) * Math.abs(factor.logDelta)
     if (beneficiary === winner) {
       current.evidenceIds.push(`factor:${factor.id}`)
       if (Math.abs(factor.logDelta) > current.winnerPeak) {
-        current.concept = concept
         current.winnerPeak = Math.abs(factor.logDelta)
       }
     }
-    familyScores.set(family, current)
+    conceptScores.set(concept, current)
   }
 
-  return [...familyScores.entries()]
-    .filter(([family, value]) => value.net > 1e-9
-      && value.evidenceIds.length > 0
-      && (family !== 'ability' || hasDistinctiveWinnerAbility(input, account)))
-    .sort((left, right) => right[1].net - left[1].net || left[0].localeCompare(right[0]))
+  const selected = [...conceptScores.entries()]
+    .map(([concept, value]) => ({ concept, value, family: familyFor(concept, input) }))
+    .filter((entry): entry is typeof entry & { family: ReasonFamily } => Boolean(entry.family)
+      && entry.value.net > 1e-9
+      && entry.value.evidenceIds.length > 0
+      && (entry.family !== 'ability' || hasDistinctiveWinnerAbility(input, account)))
+    .sort((left, right) => right.value.net - left.value.net || left.concept.localeCompare(right.concept))
+  const seenFamilies = new Set<ReasonFamily>()
+  return selected
+    .filter((entry) => {
+      if (seenFamilies.has(entry.family)) return false
+      seenFamilies.add(entry.family)
+      return true
+    })
     .slice(0, 3)
-    .map(([family, value]) => {
+    .map(({ family, concept, value }) => {
       const candidate = account.candidates
-        .filter((item) => item.beneficiary === winner && familyFor(item.narrativeConcept, input) === family)
+        .filter((item) => item.beneficiary === winner && item.narrativeConcept === concept)
         .sort((left, right) => right.factorMagnitude - left.factorMagnitude || left.id.localeCompare(right.id))[0]
       const evidenceId = candidate?.evidenceIds.find((id) => value.evidenceIds.includes(id))
         ?? value.evidenceIds[0]
       const sentence = reasonSentence(family, evidenceId, reasonText(family, input, account, candidate))
+      const profileSentence = defensiveInteractionSentence(input, account, concept)
+      const sentences = [...(profileSentence ? [profileSentence] : []), sentence]
       return {
         id: `reason:${family}`,
-        concept: value.concept,
-        title: reasonTitle(family, winner),
-        sentences: [sentence],
-        text: textFor([sentence]),
-        evidenceIds: evidenceFor([sentence]),
+        concept,
+        title: reasonTitle(family, winner, account, concept),
+        sentences,
+        text: textFor(sentences),
+        evidenceIds: evidenceFor(sentences),
       }
     })
 }
@@ -413,7 +477,7 @@ function resultConclusion(input: BattleReconstructionInput, account: ReaderBattl
   if (probability < 0.65) {
     return `The model gives ${winner.subjectLabel} a narrow ${percentage(probability)} edge, so this outcome is plausible rather than certain.`
   }
-  return `That is why ${winner.subjectLabel} is favoured at ${percentage(probability)}.`
+  return `That is why ${winner.subjectLabel} ${agrees(winner, 'is', 'are')} favoured at ${percentage(probability)}.`
 }
 
 function identityLabels(account: ReaderBattleNarrative): string[] {
@@ -436,6 +500,7 @@ export function validateLaymanBattleStory(
   story: Omit<LaymanBattleStory, 'issues'>,
   knownEvidenceIds?: ReadonlySet<string>,
   contestantLabels: string[] = [],
+  quantity?: ReaderBattleNarrative['quantity'],
 ): string[] {
   const issues: string[] = []
   if (story.stages.length !== 3) issues.push('The short story must have exactly three stages.')
@@ -473,6 +538,17 @@ export function validateLaymanBattleStory(
   for (const term of TECHNICAL_STORY_TERMS) {
     if (visibleText.includes(term)) issues.push(`Reader copy contains technical phrase: ${term.trim()}.`)
   }
+  if (quantity?.reserveStatus === 'none' && /\bfresh attackers?|replacement waves?|reserves?\b/i.test(visibleText)) {
+    issues.push('Reserve-wave language cannot appear when every declared group member is already active.')
+  }
+  if (quantity?.reserveStatus === 'none' && quantity.declaredCount !== null && quantity.simultaneousCount === quantity.declaredCount
+    && /\bonly about\b/i.test(visibleText)) {
+    issues.push('A fully active group cannot be described as a constrained subset.')
+  }
+  if (quantity?.reserveStatus === 'conceptual'
+    && /\b(?:small group|attack together|same close exchange|all [^.!?]{0,50} at once)\b/i.test(visibleText)) {
+    issues.push('Conceptual quantities cannot be described as a literal small simultaneous group.')
+  }
   return issues
 }
 
@@ -486,7 +562,12 @@ export function buildLaymanBattleStory(
   const primaryReason = reasons[0]
   const probability = winningProbability(input)
   const wordingVariant = input.storySeed % 2
-  const signatureOpening = distinctiveOpeningSentence(input, account)
+  const exchangeOpening = account.fallback
+    ? undefined
+    : reasons.flatMap((reason) => reason.sentences)
+        .find((sentence) => sentence.templateId.startsWith('layman.reason.profile-'))
+      ?? account.plan.firstExchange.sentences[0]
+      ?? distinctiveOpeningSentence(input, account)
   const openingSentences = account.fallback
     ? [
         laymanSentence('opening-matchup', 'scenario:matchup', `${capitaliseResolvedLabel(account.identities.solo.fullLabel)} faces ${account.identities.group.fullLabel}, starting ${input.scenario.startingDistanceM.toLocaleString('en-AU', { maximumFractionDigits: 1 })} metres apart.`),
@@ -495,26 +576,37 @@ export function buildLaymanBattleStory(
     : [
         ...account.plan.premise.sentences.slice(0, 1),
         ...account.plan.opening.sentences.slice(0, 2),
-        ...(signatureOpening ? [signatureOpening] : []),
+        ...(exchangeOpening ? [exchangeOpening] : []),
       ]
-  const turningSentences = [
-    laymanSentence(
-      'turning-context',
-      primaryReason?.evidenceIds[0] ?? 'verdict:outcome',
-      probability < 0.55
-        ? wordingVariant === 0
-          ? 'There is no single decisive turn in such a close result; the slight edge comes from what happens next.'
-          : 'This result is too close for a dramatic turning point; the small advantage comes from the next exchange.'
-        : probability < 0.65
-          ? wordingVariant === 0
-            ? 'The fight stays close, but this becomes the main edge.'
-            : 'Neither side runs away with it, but this is where the winner gains ground.'
-          : wordingVariant === 0
-            ? 'This becomes the main edge as the fight develops.'
-            : 'As the exchanges continue, this is the advantage that matters most.',
-    ),
-    ...(primaryReason?.sentences ?? [laymanSentence('turning-result', 'verdict:outcome', 'The winner keeps the clearer route to the selected win condition.')]),
-  ]
+  const turningSentences = probability < 0.55
+    ? [
+        laymanSentence(
+          'turning-context',
+          primaryReason?.evidenceIds[0] ?? 'verdict:outcome',
+          wordingVariant === 0
+            ? 'There is no single decisive turn in such a close result; the slight edge builds through the exchanges.'
+            : 'This result is too close for a dramatic turning point; the small advantage accumulates instead.',
+        ),
+        ...account.plan.pressureDevelopment.sentences.slice(0, 1),
+      ]
+    : probability < 0.65
+      ? [
+          laymanSentence(
+            'turning-context',
+            primaryReason?.evidenceIds[0] ?? 'verdict:outcome',
+            wordingVariant === 0
+              ? 'The fight stays close before the balance begins to shift.'
+              : 'Neither side runs away with it, but the next exchange shifts the balance.',
+          ),
+          ...account.plan.turningPoint.sentences.slice(0, 1),
+        ]
+      : wordingVariant === 0
+        ? account.plan.turningPoint.sentences.slice(0, 1)
+        : account.plan.turningPoint.sentences.slice(0, 1).map((sentence) => laymanSentence(
+            'turning-specific',
+            sentence.fragments.find((fragment) => fragment.evidenceId)?.evidenceId ?? primaryReason?.evidenceIds[0] ?? 'verdict:outcome',
+            narrativeSentenceText(sentence).replace(/^The fight turns when /, 'The turning point comes when '),
+          ))
   const stages = [
     stage('opening', 'The opening', [
       ...openingSentences,
@@ -531,7 +623,7 @@ export function buildLaymanBattleStory(
     ? safeAlternate()
     : account.plan.minorityPath
   const base = { stages, reasons, alternate, storyWordCount, fallback: account.fallback }
-  const issues = validateLaymanBattleStory(base, knownEvidenceIds, identityLabels(account))
+  const issues = validateLaymanBattleStory(base, knownEvidenceIds, identityLabels(account), account.quantity)
   if (issues.length) {
     throw new Error(`Layman battle story failed validation: ${issues.join(' ')}`)
   }

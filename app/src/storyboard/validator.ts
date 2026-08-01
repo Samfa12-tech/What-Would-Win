@@ -22,6 +22,7 @@ import {
 } from './builder'
 import { stableStringify } from './hash'
 import { narrativePassageIssues } from './narrative'
+import { quantityReserveStatus } from './quantitySemantics'
 
 const SUCCESSFUL_OUTCOMES = new Set<BattleEvent['outcome']>(['effective', 'partially-effective'])
 const WATER_TERRAINS = new Set(['river', 'swamp', 'ocean', 'deep-ocean'])
@@ -102,7 +103,7 @@ export function validateBattleStoryboard(
     evidenceInvalid ||= integrityHash !== battleEvidenceIntegrity(evidenceContent)
   }
   const expectedEvidenceIds = new Set([
-    'scenario:matchup', 'scenario:arena', 'scenario:win-condition', 'quantity:group', 'verdict:outcome',
+    'scenario:matchup', 'profile:solo', 'profile:group', 'scenario:arena', 'scenario:win-condition', 'quantity:group', 'verdict:outcome',
     ...modelFactors.map((factor) => `factor:${factor.id}`),
     ...input.abilityResolutions.map((resolution) => `ability-resolution:${resolution.side}:${resolution.abilityId}`),
     ...input.sensitivity.map((point) => `sensitivity:${point.id}`),
@@ -259,7 +260,11 @@ export function validateBattleStoryboard(
   const expectedSpecialEvents: Array<[string, number]> = [
     ['authoritative-resolution', conceptual ? 0 : 1],
     ['resolved-group-frontage', hasFrontage ? 1 : 0],
-    ['resolved-replacement-wave', hasFrontage && expectedQuantity.declaredQuantityLog10 - expectedQuantity.effectiveActiveCountLog10! > 0.05 ? 1 : 0],
+    ['resolved-replacement-wave', hasFrontage && quantityReserveStatus({
+      conceptual,
+      declaredLog10: expectedQuantity.declaredQuantityLog10,
+      effectiveBasisLog10: expectedQuantity.effectiveActiveCountLog10,
+    }) === 'present' ? 1 : 0],
     ...[...SCENARIO_EVENTS].map((id): [string, number] => [id, !conceptual && scenarioEventAllowed(id, input) ? 1 : 0]),
   ]
   for (const [eventId, expectedCount] of expectedSpecialEvents) {

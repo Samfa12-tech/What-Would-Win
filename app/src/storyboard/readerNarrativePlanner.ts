@@ -64,6 +64,10 @@ function possessivePronoun(identity: ResolvedContestantIdentity): 'its' | 'their
   return identity.grammaticalNumber === 'plural' ? 'their' : 'its'
 }
 
+function objectPronoun(identity: ResolvedContestantIdentity): 'it' | 'them' {
+  return identity.grammaticalNumber === 'plural' ? 'them' : 'it'
+}
+
 function opponent(side: StoryboardSide): StoryboardSide {
   return side === 'solo' ? 'group' : 'solo'
 }
@@ -145,8 +149,8 @@ function candidateById(selection: NarrativeCauseSelection, id: string): Narrativ
 }
 
 function candidateEvidence(candidate: NarrativeCandidate): string {
-  return candidate.evidenceIds.find((id) => id.startsWith('factor:'))
-    ?? candidate.evidenceIds.find((id) => id.startsWith('ability-resolution:'))
+  return candidate.evidenceIds.find((id) => id.startsWith('ability-resolution:'))
+    ?? candidate.evidenceIds.find((id) => id.startsWith('factor:'))
     ?? candidate.evidenceIds[0]
     ?? 'verdict:outcome'
 }
@@ -180,6 +184,7 @@ function knownContactPhrase(profile: CreatureV4Draft): string {
     if (/\btrample\b|\bstomp\b/.test(text)) return ['stomping attacks']
     if (/\bconstrict\b/.test(text)) return ['constriction']
     if (/\btentacle\b/.test(text)) return ['tentacle strikes']
+    if (/\bquill\b/.test(text)) return ['quill contact']
     if (/\bweapon\b|\bspear\b|\bsword\b/.test(text)) return ['close-quarters weapons']
     return []
   })
@@ -368,9 +373,28 @@ function pressureText(
   switch (candidate.mechanism) {
     case 'frontage':
     case 'group-pressure':
-      return side === 'group'
-        ? `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} sending fresh attackers in before ${target.subjectLabel} can recover.`
-        : `${capitaliseResolvedLabel(target.subjectLabel)} cannot all reach the fight together, so ${actor.subjectLabel} only has to face a few at a time.`
+      if (side === 'group') {
+        if (quantity.reserveStatus === 'present') {
+          return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} sending fresh attackers in before ${target.subjectLabel} can recover.`
+        }
+        if (quantity.reserveStatus === 'conceptual') {
+          return `The capped population keeps applying crowd pressure as space opens, denying ${target.subjectLabel} a chance to recover.`
+        }
+        if (quantity.reserveStatus === 'unknown') {
+          return `Bounded crowd pressure keeps ${target.subjectLabel} answering new threats as space opens.`
+        }
+        return `${quantity.simultaneousPressureText} ${capitaliseResolvedLabel(target.subjectLabel)} has to answer every attacker in the same exchange.`
+      }
+      if (quantity.reserveStatus === 'present') {
+        return `${capitaliseResolvedLabel(target.subjectLabel)} cannot all reach the fight together, so ${actor.subjectLabel} only has to face a bounded share at a time.`
+      }
+      if (quantity.reserveStatus === 'conceptual') {
+        return `${capitaliseResolvedLabel(actor.subjectLabel)} withstands the model's capped crowd pressure instead of facing the whole population at once.`
+      }
+      if (quantity.reserveStatus === 'unknown') {
+        return `${capitaliseResolvedLabel(actor.subjectLabel)} withstands the bounded crowd pressure without letting the group surround ${objectPronoun(actor)}.`
+      }
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} withstands the small group's combined attack and keeps control of the close exchange.`
     case 'ranged':
       return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'keeps', 'keep')} enough distance to attack again before ${target.subjectLabel} can close in.`
     case 'flight':
@@ -385,7 +409,7 @@ function pressureText(
     case 'hazard':
       return `${capitaliseResolvedLabel(actor.subjectLabel)} can only hurt ${target.objectLabel} inside the danger zone, making entry and escape the heart of the fight.`
     case 'restraint':
-      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} the restraint to stop ${target.subjectLabel} moving freely or bringing its best attack to bear.`
+      return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'uses', 'use')} the restraint to stop ${target.subjectLabel} moving freely or bringing ${possessivePronoun(target)} best attack to bear.`
     case 'counter':
       return `${capitaliseResolvedLabel(actor.subjectLabel)} ${agrees(actor, 'takes', 'take')} away the opponent's best weapon with a counter or immunity.`
     case 'resource':
@@ -449,6 +473,7 @@ function turningPointText(
   input: BattleReconstructionInput,
   identities: Identities,
   candidate: NarrativeCandidate,
+  quantity: ReaderQuantitySummary,
 ): string {
   const winnerSide = input.result.winner
   const winner = identities[winnerSide]
@@ -457,15 +482,34 @@ function turningPointText(
   switch (candidate.mechanism) {
     case 'frontage':
     case 'group-pressure':
-      return winnerSide === 'group'
-        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'sends', 'send')} in fresh attackers before ${loser.subjectLabel} can get a break.`
-        : `The fight turns when ${loser.subjectLabel} cannot bring replacements in quickly enough, leaving too few attackers close to the action.`
+      if (winnerSide === 'group') {
+        if (quantity.reserveStatus === 'present') {
+          return `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'sends', 'send')} in fresh attackers before ${loser.subjectLabel} can get a break.`
+        }
+        if (quantity.reserveStatus === 'conceptual') {
+          return `The fight turns when the capped population keeps its crowd pressure on ${loser.subjectLabel} without a break.`
+        }
+        if (quantity.reserveStatus === 'unknown') {
+          return `The fight turns when the bounded crowd pressure leaves ${loser.subjectLabel} no room to recover.`
+        }
+        return `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'keeps', 'keep')} their full combined pressure on ${loser.subjectLabel} through the same close exchange.`
+      }
+      if (quantity.reserveStatus === 'present') {
+        return `The fight turns when ${loser.subjectLabel} cannot bring replacements in quickly enough, leaving too few attackers close to the action.`
+      }
+      if (quantity.reserveStatus === 'conceptual') {
+        return `The fight turns when ${winner.subjectLabel} withstands the capped crowd pressure and begins driving ${objectPronoun(loser)} back.`
+      }
+      if (quantity.reserveStatus === 'unknown') {
+        return `The fight turns when ${winner.subjectLabel} withstands the bounded crowd pressure and begins driving ${objectPronoun(loser)} back.`
+      }
+      return `The fight turns when ${winner.subjectLabel} withstands the group's combined attack and begins driving ${objectPronoun(loser)} back.`
     case 'ranged':
       return !resolution || resolution.side === winnerSide
         ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'keeps', 'keep')} firing from a safe distance and ${agrees(winner, 'stops', 'stop')} ${loser.subjectLabel} getting close.`
         : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'crosses', 'cross')} the firing distance before the ranged attacks can stop the approach.`
     case 'resource':
-      return `The fight turns when the limited ranged or special attack runs out, leaving ${loser.subjectLabel} without its best weapon.`
+      return `The fight turns when the limited ranged or special attack runs out, leaving ${loser.subjectLabel} without ${possessivePronoun(loser)} best weapon.`
     case 'flight':
       return input.contestants[winnerSide].locomotion.flight
         ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'reaches', 'reach')} a safe height and repeatedly ${agrees(winner, 'attacks', 'attack')} from a new angle.`
@@ -482,13 +526,13 @@ function turningPointText(
     }
     case 'restraint':
       return resolution?.active && resolution.side === winnerSide
-        ? `The fight turns when the restraint holds and stops ${loser.subjectLabel} using its best attack.`
+        ? `The fight turns when the restraint holds and stops ${loser.subjectLabel} using ${possessivePronoun(loser)} best attack.`
         : `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'breaks', 'break')} the restraint and forces a close fight.`
     case 'counter':
       return `The fight turns when ${resolution ? naturalAbilityPhrase(input, resolution.side, resolution.abilityId) : 'the losing side’s best ability'} fails against a counter or immunity.`
     case 'recovery':
       return resolution?.active && resolution.side === winnerSide
-        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'recovers', 'recover')} between exchanges faster than ${loser.subjectLabel} can wear it down.`
+        ? `The fight turns when ${winner.subjectLabel} ${agrees(winner, 'recovers', 'recover')} between exchanges faster than ${loser.subjectLabel} can wear ${objectPronoun(winner)} down.`
         : `The fight turns when ${loser.subjectLabel} can no longer recover quickly enough to stay in the fight.`
     case 'mass':
     case 'stopping':
@@ -518,6 +562,7 @@ function resolutionText(
   input: BattleReconstructionInput,
   identities: Identities,
   family: NarrativeResolutionFamily,
+  quantity: ReaderQuantitySummary,
 ): string {
   const winner = identities[input.result.winner]
   const loser = identities[opponent(input.result.winner)]
@@ -535,9 +580,21 @@ function resolutionText(
       case 'isolated-melee-exchanges':
         return parseQuantity(input.scenario.groupQuantity).approxNumber === 1
           ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} control through the one-on-one exchanges.`
-          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} facing only a few opponents at a time, never letting the crowd pile on.`
+          : quantity.reserveStatus === 'present'
+            ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} facing only a few opponents at a time, never letting the crowd pile on.`
+            : quantity.reserveStatus === 'conceptual'
+              ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'withstands', 'withstand')} the capped crowd pressure without facing the whole population at once.`
+              : quantity.reserveStatus === 'unknown'
+                ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'withstands', 'withstand')} the bounded crowd pressure and keeps control of the exchanges.`
+            : `${capitaliseResolvedLabel(winner.subjectLabel)} withstands the small group's combined attack and keeps control of the close exchanges.`
       case 'renewed-group-frontage':
-        return `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} sending fresh attackers forward until the losing side gets no chance to recover.`
+        return quantity.reserveStatus === 'present'
+          ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} sending fresh attackers forward until the losing side gets no chance to recover.`
+          : quantity.reserveStatus === 'conceptual'
+            ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} the capped population's crowd pressure on the losing side until it cannot recover.`
+            : quantity.reserveStatus === 'unknown'
+              ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'keeps', 'keep')} bounded crowd pressure on the losing side until it cannot recover.`
+          : `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'attacks', 'attack')} together, forcing the losing side to answer several threats in each close exchange.`
       case 'mass-and-stopping-power-dominance':
         return winner.resolvedMassKg > loser.resolvedMassKg
           ? `${capitaliseResolvedLabel(winner.subjectLabel)} ${agrees(winner, 'uses', 'use')} the extra body mass to control each close exchange.`
@@ -579,7 +636,7 @@ function resolutionText(
       ? `The comparison is effectively even, but it narrowly favours ${winner.subjectLabel}.`
       : probability < 0.65
         ? `That gives ${winner.subjectLabel} a narrow edge rather than a certain win.`
-        : `That is how ${winner.subjectLabel} reaches the selected outcome.`
+        : `That is how ${winner.subjectLabel} ${agrees(winner, 'reaches', 'reach')} the selected outcome.`
   return `${cause} ${condition} ${conclusion}`
 }
 
@@ -623,7 +680,7 @@ function minorityPathText(
       case 'mass':
       case 'stopping':
       case 'scaling': return 'hit hard enough to stop the winner controlling the close exchanges'
-      default: return 'get into range more often and keep landing its best attack'
+      default: return `get into range more often and keep landing ${possessivePronoun(loser)} best attack`
     }
   })()
   return {
@@ -794,7 +851,7 @@ export function buildSemanticBattleNarrativePlan(
     [makeSentence(input, 'reader-turning-1', `reader.turning-point.${turningCandidate.mechanism}`, [{
       kind: 'evidence',
       evidenceId: candidateEvidence(turningCandidate),
-      text: turningPointText(input, identities, turningCandidate),
+      text: turningPointText(input, identities, turningCandidate, quantity),
     }])],
     turningCandidate.sourceEventIds,
     turningCandidate.factorIds,
@@ -811,7 +868,7 @@ export function buildSemanticBattleNarrativePlan(
       makeSentence(input, 'reader-resolution-1', `reader.resolution.${selection.resolutionFamily}`, [{
         kind: 'evidence',
         evidenceId: candidateEvidence(resolutionCandidate),
-        text: resolutionText(input, identities, selection.resolutionFamily),
+        text: resolutionText(input, identities, selection.resolutionFamily, quantity),
       }]),
       makeSentence(input, 'reader-resolution-2', 'reader.resolution.probability', [{
         kind: 'evidence',

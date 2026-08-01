@@ -1,6 +1,6 @@
 # Battle reconstruction contract
 
-Application 0.8.1 develops the explanatory presentation layer over the
+Application 0.8.2 develops the explanatory presentation layer over the
 model-0.5.0/data-0.5.0 numerical result into a concise causal reader account,
 a complete Analyst record and a beat-driven tactical explanation. Presentation
 remains downstream of the authoritative result.
@@ -9,7 +9,7 @@ remains downstream of the authoritative result.
 
 The sentence above is mandatory in every likely-battle and tactical view.
 
-Application 0.8.1 retains typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. It adds a shared three-part layperson account and net-positive winner reasons. See `NARRATIVE_CLARITY_0.8.1.md` and `NARRATIVE_SEMANTICS_0.7.1.md`.
+Application 0.8.2 retains typed battlefield-medium and behaviour archetypes, ranked causal selection, mechanic-specific turning/resolution families, structured identity grammar and a narrow quality fallback. It separates simultaneous participants from reserves, selects reasons at precise causal concepts and permits profile-backed contact texture without inventing wounds. See `NARRATIVE_ROBUSTNESS_0.8.2.md`, `NARRATIVE_CLARITY_0.8.1.md` and `NARRATIVE_SEMANTICS_0.7.1.md`.
 
 ## Authority and data flow
 

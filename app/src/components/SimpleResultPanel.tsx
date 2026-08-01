@@ -5,9 +5,11 @@ import { ShareNetwork } from '@phosphor-icons/react/ShareNetwork'
 import { SlidersHorizontal } from '@phosphor-icons/react/SlidersHorizontal'
 import {
   assertValidBattleStoryboard,
+  buildResolvedContestantIdentities,
   buildBattleStoryboard,
   buildLaymanBattleStory,
   buildSafeReaderBattleNarrative,
+  pluraliseResolvedNoun,
   RECONSTRUCTION_NOTICE,
   type BattleReconstructionInput,
 } from '../storyboard'
@@ -36,15 +38,17 @@ function winningProbability(result: SimulationResult): number {
   return result.outcome === 'solo-win' ? result.soloWinProbability : result.groupWinProbability
 }
 
-function verdictSummary(result: SimulationResult, winner: string): string {
+function verdictSummary(result: SimulationResult, winner: string, winnerIsPlural = false): string {
+  const has = winnerIsPlural ? 'have' : 'has'
+  const is = winnerIsPlural ? 'are' : 'is'
   if (result.outcome === 'draw') return 'The model does not find a reliable winner under these conditions.'
   if (result.outcomeReason.startsWith('Only the ')) {
-    return `Only ${winner} has a workable way to achieve the selected win condition.`
+    return `Only ${winner} ${has} a workable way to achieve the selected win condition.`
   }
   const probability = winningProbability(result)
   if (probability < 0.55) return `The result is effectively even, but the model narrowly favours ${winner} at ${pct(probability)}.`
   if (probability < 0.65) return `The model gives ${winner} a narrow ${pct(probability)} edge.`
-  return `${winner} is the clear favourite at ${pct(probability)}.`
+  return `${winner} ${is} the clear ${winnerIsPlural ? 'favourites' : 'favourite'} at ${pct(probability)}.`
 }
 
 export function SimpleResultPanel({
@@ -57,7 +61,14 @@ export function SimpleResultPanel({
   onDeepDive,
   onCopyShare,
 }: SimpleResultPanelProps) {
-  const winner = result.outcome === 'draw' ? 'Draw' : result.winnerName
+  const winnerIsPlural = reconstructionInput?.result.winner
+    ? buildResolvedContestantIdentities(reconstructionInput)[reconstructionInput.result.winner].grammaticalNumber === 'plural'
+    : false
+  const winner = result.outcome === 'draw'
+    ? 'Draw'
+    : winnerIsPlural
+      ? result.winnerName.replace(group.name, pluraliseResolvedNoun(group.name))
+      : result.winnerName
   const story = useMemo(() => {
     if (!reconstructionInput) return null
     const storyboard = assertValidBattleStoryboard(buildBattleStoryboard(reconstructionInput), reconstructionInput)
@@ -70,7 +81,7 @@ export function SimpleResultPanel({
         <div>
           <p className="eyebrow">SIMULATION VERDICT</p>
           <h2 id="simple-result-title" tabIndex={-1}>{winner}</h2>
-          <p className="simple-verdict-copy">{verdictSummary(result, winner)}</p>
+          <p className="simple-verdict-copy">{verdictSummary(result, winner, winnerIsPlural)}</p>
           {result.outcome === 'draw' && <p className="simple-outcome-reason outcome-draw">Neither side can reach or affect the other enough to produce a win.</p>}
         </div>
         <div className={`simple-probability-seal outcome-${result.outcome}`} aria-label={result.outcomeReason.startsWith('Only the ') ? 'One-way model route decision' : `${pct(winningProbability(result))} ${result.outcome === 'draw' ? 'model draw rate' : 'model comparison result'}`}>
@@ -89,7 +100,7 @@ export function SimpleResultPanel({
       <div className="simple-result-grid">
         <section className="simple-why" aria-labelledby="simple-why-heading">
           <p className="eyebrow">THE SHORT ANSWER</p>
-          <h3 id="simple-why-heading">Why {winner === 'Draw' ? 'neither side wins' : `${winner} wins`}</h3>
+          <h3 id="simple-why-heading">Why {winner === 'Draw' ? 'neither side wins' : `${winner} ${winnerIsPlural ? 'win' : 'wins'}`}</h3>
           {story ? (
             <ol>{story.reasons.map((reason, index) => <li key={reason.id}><span>{index + 1}</span><div><strong>{reason.title}</strong><p>{reason.text}</p></div></li>)}</ol>
           ) : (

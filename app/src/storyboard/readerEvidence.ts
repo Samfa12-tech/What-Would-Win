@@ -1,5 +1,6 @@
 import { formatLogQuantity } from '../simulation/quantity'
 import type { BattleEvidenceRecord, BattleReconstructionInput } from './contracts'
+import { quantityReserveStatus } from './quantitySemantics'
 import { buildResolvedContestantIdentities, capitaliseResolvedLabel } from './readerIdentity'
 
 export interface StoryEvidenceCopy {
@@ -14,6 +15,33 @@ function numberValue(values: Record<string, unknown>, key: string): number | nul
 
 function booleanValue(values: Record<string, unknown>, key: string): boolean {
   return values[key] === true
+}
+
+function quantityDetail(
+  evidence: BattleEvidenceRecord,
+  input: BattleReconstructionInput,
+): string | null {
+  const declaredLog = numberValue(evidence.values, 'declaredQuantityLog10')
+    ?? input.deterministicState.quantityLog10
+  const activeLog = numberValue(evidence.values, 'effectiveActiveCountLog10')
+    ?? input.deterministicState.groupEffectiveQuantityLog10
+  const reserveStatus = quantityReserveStatus({
+    conceptual: input.deterministicState.conceptual,
+    declaredLog10: declaredLog,
+    effectiveBasisLog10: activeLog,
+  })
+  if (reserveStatus === 'conceptual') {
+    return 'The conceptual population is represented as capped aggregate pressure; it is not treated as a literal number of simultaneous bodies.'
+  }
+  if (declaredLog === null || activeLog === null) return null
+  if (reserveStatus === 'present') {
+    return `The declared group exceeds an effective-pressure basis of ${formatLogQuantity(activeLog)}, so additional depth contributes through bounded reserves and replacement waves rather than attacking all at once.`
+  }
+  if (reserveStatus !== 'none' || declaredLog > 6) return null
+  const declared = Math.max(1, Math.round(10 ** declaredLog))
+  return declared === 2
+    ? 'Both declared group members can contribute to the same close exchange; there is no reserve wave.'
+    : `All ${declared.toLocaleString('en-AU')} declared group members can contribute in the same bounded pressure state; there is no reserve wave.`
 }
 
 function evidenceFactorId(evidence: BattleEvidenceRecord): string {
@@ -90,9 +118,9 @@ function factorCopy(
       : null
     return {
       label: 'Simultaneous pressure',
-      detail: analystSuffix(activeLog === null
+      detail: analystSuffix(quantityDetail(evidence, input) ?? (activeLog === null
         ? 'Only participants with usable contact access can contribute pressure at once.'
-        : `About ${formatLogQuantity(activeLog)} group members can contribute effective pressure at once; the remainder cannot occupy the same contact space.`),
+        : `The group resolves to an effective-pressure basis of ${formatLogQuantity(activeLog)} after access, frontage and bounded reserves; this is not a literal simultaneous body count.`)),
     }
   }
   if (id.includes('scaling') || id.includes('integrity')) {
@@ -141,9 +169,9 @@ export function buildStoryEvidenceCopy(
     const effectiveLog = numberValue(evidence.values, 'effectiveActiveCountLog10')
     return {
       label: 'Simultaneous pressure',
-      detail: analystSuffix(effectiveLog === null
+      detail: analystSuffix(quantityDetail(evidence, input) ?? (effectiveLog === null
         ? 'The declared scale is represented as bounded aggregate pressure rather than literal participants.'
-        : `About ${formatLogQuantity(effectiveLog)} group members can contribute effective pressure at once; the remainder cannot occupy the same contact space.`),
+        : `The group resolves to an effective-pressure basis of ${formatLogQuantity(effectiveLog)} after access, frontage and bounded reserves; this is not a literal simultaneous body count.`)),
     }
   }
   if (evidence.sourceType === 'verdict') {

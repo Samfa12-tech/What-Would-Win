@@ -825,10 +825,9 @@
       "id": "armoured-sword-and-shield-fighter", "contact_reach_m": 1.1, "physiology": "living",
       "channelModifiers": { "physical-slashing": 0.55, "physical-piercing": 0.65, "physical-blunt": 0.85 },
       "abilities": [
-        { "id": "sword-slash", "name": "Sword slash", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 68 }, { "kind": "harm", "channel": "physical-piercing", "potency": 52 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Sword is contact slashing with a lesser thrust component, not ranged damage." },
-        { "id": "shield-guard", "name": "Shield guard", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 42 }], "targetLimit": "single", "activationRate": 0.72, "resource": { "pool": "none" }, "notes": "Shield handling improves defensive positioning without becoming an attack or a restraint route." }
+        { "id": "sword-slash", "name": "Sword slash", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 68 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Sword is one bounded contact-slashing route; mutually exclusive thrust techniques are not stacked." }
       ],
-      "review": { "status": "reviewed", "interpretation": "Generic armoured sword-and-shield fighter", "note": "Armor, sword slashing and shield handling are explicit independent channels." }
+      "review": { "status": "reviewed", "interpretation": "Generic armoured sword-and-shield fighter", "note": "Armour and actively handled shield are represented through defensive channel modifiers; sword slashing remains a separate contact route." }
     },
     {
       "id": "prepared-crossbow-carrier", "contact_reach_m": 1.0, "physiology": "living", "channelModifiers": {},

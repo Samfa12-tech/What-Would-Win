@@ -159,6 +159,36 @@ describe('active model 0.4 full-engine adapter', () => {
     expect(protectedState.groupLogPower).toBeLessThan(unprotectedState.groupLogPower)
   })
 
+  test('applies armour-and-shield handling through defensive channels to the authoritative result', () => {
+    const matchup = scenario({
+      soloId: 'armoured-sword-and-shield-fighter',
+      groupId: 'prepared-crossbow-carrier',
+      groupQuantity: '1',
+      startingDistanceM: 30,
+    })
+    const protectedRun = simulateModel04(canonical, matchup)
+    const unprotectedProfiles = canonical.map((creature) => creature.id === 'armoured-sword-and-shield-fighter'
+      ? { ...creature, channelModifiers: { ...creature.channelModifiers, 'physical-piercing': 1 } }
+      : creature)
+    const unprotectedRun = simulateModel04(unprotectedProfiles, matchup)
+    const protectedBolt = protectedRun.abilityResolutions.find((resolution) => (
+      resolution.side === 'group' && resolution.abilityId === 'crossbow-bolt'
+    ))
+    const unprotectedBolt = unprotectedRun.abilityResolutions.find((resolution) => (
+      resolution.side === 'group' && resolution.abilityId === 'crossbow-bolt'
+    ))
+
+    expect(canonical.find((creature) => creature.id === 'armoured-sword-and-shield-fighter')).toMatchObject({
+      abilities: [expect.objectContaining({ id: 'sword-slash' })],
+      review: { note: expect.stringMatching(/armour.*shield.*channel modifiers/i) },
+    })
+    expect(protectedBolt?.effects[0]).toMatchObject({ channel: 'physical-piercing', channelFactor: 0.65 })
+    expect(unprotectedBolt?.effects[0]).toMatchObject({ channel: 'physical-piercing', channelFactor: 1 })
+    expect(protectedRun.result.technical.deterministicGroupLogPower)
+      .toBeLessThan(unprotectedRun.result.technical.deterministicGroupLogPower)
+    expect(protectedRun.result.soloWinProbability).toBeGreaterThan(unprotectedRun.result.soloWinProbability)
+  })
+
   test('keeps rejected abilities technical and out of applied narrative factors', () => {
     const run = simulateModel04(canonical, scenario({ soloId: 'medusa', groupId: 'stone-golem', startingDistanceM: 15 }))
     const gaze = run.abilityResolutions.find((resolution) => resolution.abilityId === 'petrifying-gaze')

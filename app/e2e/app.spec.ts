@@ -371,7 +371,7 @@ test('clones, names, edits, saves, reloads and uses a private custom profile', a
   expect(edited.items[0].creature.attack).toBe(81)
 })
 
-test('versioned share URL embeds a custom profile without saving it in a clean browser', async ({ page, browser }) => {
+test('released v5 share preserves a custom scenario and identifies the data-version transition', async ({ page, browser }) => {
   const customId = await createSavedCustom(page, 'Shared Field Beast')
   await page.getByLabel('Quantity').fill('37')
   await page.getByRole('button', { name: 'Run simulation' }).click()
@@ -388,9 +388,13 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   }))
   expect(payload.customCreatures?.[0]?.id).toBe(customId)
   expect(payload.customCreatures?.[0]?.name).toBe('Shared Field Beast')
+  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.6.0' })
+  payload.dataVersion = '0.5.0'
 
-  const clean = await openSharedScenarioInCleanBrowser(browser, shareUrl)
+  const clean = await openSharedScenarioInCleanBrowser(browser, `/?s=${encodeSharePayload(payload)}`)
   try {
+    await expect(clean.page.getByRole('alert')).toContainText('model 0.5.0/data 0.5.0')
+    await expect(clean.page.getByRole('alert')).toContainText('model 0.5.0/data 0.6.0')
     await expect(clean.page.getByTestId('solo-creature-select')).toHaveValue(customId)
     await expect(clean.page.getByTestId('group-creature-select')).toHaveValue(groupId)
     await expect(clean.page.getByLabel('Quantity')).toHaveValue('37')
@@ -401,8 +405,6 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   } finally {
     await clean.context.close()
   }
-
-  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.6.0' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -463,6 +465,26 @@ test('version 3 history persists while corrupt history remains untouched', async
   await openDeepDive(page)
   await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   expect(await page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).toBe('{bad history json')
+})
+
+test('released data history identifies its source and current data versions before recalculation', async ({ page }) => {
+  await page.getByLabel('Quantity').fill('37')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  const released = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  released.items[0].source = { shareFormat: 'storage-v3', modelVersion: '0.5.0', dataVersion: '0.5.0' }
+  released.items[0].result.modelVersion = '0.5.0'
+  released.items[0].result.dataVersion = '0.5.0'
+  const sourceScenario = structuredClone(released.items[0].scenario)
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: HISTORY_STORAGE_KEY, value: released })
+
+  await page.reload()
+  await openDeepDive(page)
+
+  const card = page.locator('.history-card').filter({ hasText: '37' })
+  await expect(page.getByTestId('history-warning')).toContainText('model 0.5.0/data 0.6.0')
+  await expect(card).toContainText('from model 0.5.0/data 0.5.0 to current model 0.5.0/data 0.6.0')
+  await card.click()
+  await expect(page.getByLabel('Quantity')).toHaveValue(sourceScenario.groupQuantity)
 })
 
 test('history entries referencing a deleted custom profile remain visible but cannot be restored', async ({ page }) => {

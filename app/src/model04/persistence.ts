@@ -13,6 +13,7 @@ import {
   MODEL_04_HISTORY_STORAGE_VERSION,
   MODEL_04_SHARE_FORMAT_VERSION,
   MODEL_04_VERSION,
+  RELEASED_MODEL_04_DATA_VERSION,
   type CreatureV4Draft,
   type Model04MigrationNotice,
   type Model04SourceIdentity,
@@ -28,7 +29,6 @@ export const MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const PREVIOUS_MODEL_04_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
 const PREVIOUS_MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
 export const MODEL_04_CUSTOM_EXPORT_KIND = 'what-would-win-custom-creature' as const
-const RELEASED_MODEL_04_DATA_VERSION = '0.5.0' as const
 const CURRENT_MODEL_04_IDENTITY_LABEL = `model ${MODEL_04_VERSION}/data ${MODEL_04_DATA_VERSION}`
 const PENDING_DATA_060_NOTICE_CODE = 'history-result-pending-data-060' as const
 const LEGACY_PENDING_MODEL_050_NOTICE_CODE = 'history-result-pending-model-050' as const

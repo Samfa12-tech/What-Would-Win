@@ -6,7 +6,7 @@ const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const CUSTOM_NAME = 'Codex Field Beast'
 
 async function openDeepDive(page: Page) {
-  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await page.getByRole('button', { name: 'Deep dive', exact: true }).click()
   await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
 }
 

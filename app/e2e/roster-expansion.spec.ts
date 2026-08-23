@@ -30,23 +30,20 @@ const EXPECTED_CATEGORY_TOTALS = [
   ['Generic humans', 10],
 ] as const
 
+const SIMPLE_MODE_SMOKE = [
+  { id: 'musk-ox', name: 'Musk ox' },
+  { id: 'prepared-crossbow-carrier', name: 'Prepared crossbow carrier' },
+] as const
+
 async function openDeepDive(page: Page) {
   await page.getByRole('button', { name: 'Deep dive' }).click()
   await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
 }
 
-test('makes every 0.9 roster addition searchable and selectable without browser errors', async ({ page }) => {
-  const consoleErrors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text())
-  })
-
-  await page.goto('/')
-  await openDeepDive(page)
-
-  const search = page.getByTestId('solo-creature-search')
-  const select = page.getByTestId('solo-creature-select')
-  const searchStatus = page.locator('#solo-search-help')
+async function assertDeepDiveRosterSearches(page: Page, side: 'solo' | 'group') {
+  const search = page.getByTestId(`${side}-creature-search`)
+  const select = page.getByTestId(`${side}-creature-select`)
+  const searchStatus = page.locator(`#${side}-search-help`)
 
   await expect(select.locator('option')).toHaveCount(159)
   for (const [label, total] of EXPECTED_CATEGORY_TOTALS) {
@@ -60,6 +57,37 @@ test('makes every 0.9 roster addition searchable and selectable without browser 
     await select.selectOption(entry.id)
     await expect(select).toHaveValue(entry.id)
   }
+}
+
+async function assertSimpleRosterSearches(page: Page, side: 'solo' | 'group') {
+  const search = page.getByTestId(`${side}-simple-creature-search`)
+  const select = page.getByTestId(`${side}-creature-select`)
+  const searchStatus = page.locator(`#simple-${side}-search-status`)
+
+  await expect(select.locator('option')).toHaveCount(159)
+  for (const entry of SIMPLE_MODE_SMOKE) {
+    await search.fill(entry.name)
+    await expect(searchStatus).toHaveText('1 matching creature. Open the contestant list to choose one.')
+    await expect(select.locator(`option[value="${entry.id}"]`)).toHaveText(entry.name)
+    await select.selectOption(entry.id)
+    await expect(select).toHaveValue(entry.id)
+  }
+}
+
+test('makes every 0.9 roster addition searchable and selectable in both modes without browser errors', async ({ page }) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+
+  await page.goto('/')
+  await openDeepDive(page)
+
+  for (const side of ['solo', 'group'] as const) await assertDeepDiveRosterSearches(page, side)
+
+  await page.getByRole('button', { name: 'Simple' }).click()
+  await expect(page.getByTestId('simple-mode')).toBeVisible()
+  for (const side of ['solo', 'group'] as const) await assertSimpleRosterSearches(page, side)
 
   const reflow = await page.evaluate(() => ({
     viewportWidth: document.documentElement.clientWidth,

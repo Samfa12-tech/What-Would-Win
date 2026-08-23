@@ -21,7 +21,7 @@ The release does not change the numerical engine coefficients, trial count, auth
 - Provenance: **159/159 generated records** verified.
 - `npm run typecheck`: passed after a clean `npm ci`.
 - `npm run test:simulation-budget`: **1/1 passed in 78 ms**, below the two-second gate.
-- `npm run build`: passed with Vite 8.1.5 and **198 transformed modules**.
+- `npm run build`: passed with Vite 8.1.5 and **4,723 transformed modules**.
 - `node scripts/check-static-subpath.mjs`: **8/8 local references** resolved inside `/apps/what-would-win/`.
 - `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
 
@@ -60,9 +60,9 @@ The release does not change the numerical engine coefficients, trial count, auth
 
 ## Browser and visual evidence
 
-`npm run test:e2e` rebuilt the production app and passed **228 tests with 20 declared project-specific skips** in **11.2 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
+`npm run test:e2e` rebuilt the production app and passed **228 tests with 20 declared project-specific skips** in **9.0 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
 
-`e2e/roster-expansion.spec.ts` independently exercised all twenty 0.9 additions through the production UI rather than deriving them at runtime from source data: each hard-coded name was searched, its option was found, and its option was selected. It also asserted the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checked page reflow at each project's viewport and recorded zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
+`e2e/roster-expansion.spec.ts` independently exercises all twenty 0.9 additions through both Deep Dive contestant selectors rather than deriving them at runtime from source data: each hard-coded name is searched, found and selected as both The one and The many. It also smoke-tests fixed additions through both contestant sides of the separate Simple-mode implementation, asserts the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checks page reflow at each project's viewport and records zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
 
 ## Evidence boundaries
 

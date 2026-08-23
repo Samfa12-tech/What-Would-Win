@@ -115,6 +115,28 @@ describe('active model 0.5 persistence and codecs', () => {
     }
   })
 
+  test('migrates released v5 model 0.5.0/data 0.5.0 shares and preserves scenario and custom inputs', () => {
+    const custom = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[0], 'custom:released-v5').creature, 'custom-v1')
+    const released = payloadV4()
+    released.scenario.soloId = custom.id
+    released.customCreatures = [custom]
+    const encoded = rewriteV4Wire(encodeModel04Scenario(released), (wire) => {
+      wire[0] = '0.5.0'
+      wire[1] = '0.5.0'
+    })
+
+    expect(decodeModel04Scenario(encoded)).toMatchObject({
+      ok: true,
+      status: 'migrated-v5',
+      payload: {
+        modelVersion: '0.5.0',
+        dataVersion: '0.6.0',
+        scenario: released.scenario,
+        customCreatures: [expect.objectContaining({ id: custom.id, abilities: custom.abilities })],
+      },
+    })
+  })
+
   test('uses the same exact referenced-custom validation for v4 encoding and decoding', () => {
     const first = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[0], 'custom:first').creature, 'custom-v1')
     const second = migrateCreatureV3ToV4Draft(cloneAsCustom(creatures[1], 'custom:second').creature, 'custom-v1')
@@ -277,7 +299,7 @@ describe('active model 0.5 persistence and codecs', () => {
     expect(storage.getItem(CUSTOM_CREATURE_STORAGE_KEY)).toBe(rawV1)
   })
 
-  test('copies model 0.4.1 v2 results forward as snapshots pending model 0.5.0 recalculation', () => {
+  test('copies model 0.4.1 v2 results forward as snapshots pending current identity recalculation', () => {
     const storage = new MemoryStorage()
     const staleStore = {
       storageVersion: 2,
@@ -304,13 +326,13 @@ describe('active model 0.5 persistence and codecs', () => {
 
     const loaded = loadModel04History(storage, new Set(creatures.map((creature) => creature.id)))
 
-    expect(loaded.warning).toContain('pending model 0.5.0 recalculation')
+    expect(loaded.warning).toContain('pending model 0.5.0/data 0.6.0 recalculation')
     expect(loaded.items[0]).toMatchObject({
       result: {
         status: 'pending-recalculation',
         legacySnapshot: { winnerName: 'Previous winner', soloWinProbability: 0.75 },
       },
-      migrationNotices: [expect.objectContaining({ code: 'history-result-pending-model-050' })],
+      migrationNotices: [expect.objectContaining({ code: 'history-result-pending-data-060' })],
     })
     expect(storage.getItem(PREVIOUS_HISTORY_STORAGE_KEY)).toBe(raw)
     expect(finalizeModel04HistoryItem(loaded.items[0], {
@@ -320,6 +342,63 @@ describe('active model 0.5 persistence and codecs', () => {
       status: 'current',
       modelVersion: MODEL_04_VERSION,
       dataVersion: MODEL_04_DATA_VERSION,
+    })
+  })
+
+  test('preserves released model 0.5.0/data 0.5.0 history as an untouched source snapshot until it is finalized under data 0.6.0', () => {
+    const storage = new MemoryStorage()
+    const releasedStore = {
+      storageVersion: 3,
+      items: [{
+        formatVersion: 3,
+        source: { shareFormat: 'storage-v3', modelVersion: '0.5.0', dataVersion: '0.5.0' },
+        id: 'history-model-050',
+        createdAt: '2026-08-23T00:00:00.000Z',
+        scenario: payloadV4().scenario,
+        soloName: 'Released solo',
+        groupName: 'Released group',
+        result: {
+          status: 'current',
+          modelVersion: '0.5.0',
+          dataVersion: '0.5.0',
+          winnerName: 'Released winner',
+          soloWinProbability: 0.75,
+        },
+        migrationNotices: [],
+      }],
+    }
+    const raw = JSON.stringify(releasedStore)
+    storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, raw)
+
+    const loaded = loadModel04History(storage, new Set(creatures.map((creature) => creature.id)))
+
+    expect(loaded).toMatchObject({
+      source: 'v3',
+      warning: expect.stringContaining('model 0.5.0/data 0.6.0'),
+      items: [{
+        source: releasedStore.items[0].source,
+        scenario: releasedStore.items[0].scenario,
+        result: {
+          status: 'pending-recalculation',
+          legacySnapshot: { winnerName: 'Released winner', soloWinProbability: 0.75 },
+        },
+        migrationNotices: [expect.objectContaining({ code: 'history-result-pending-data-060' })],
+      }],
+    })
+    expect(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY)).toBe(raw)
+    expect(finalizeModel04HistoryItem(loaded.items[0], {
+      winnerName: 'Recalculated winner',
+      soloWinProbability: 0.625,
+    })).toMatchObject({
+      source: releasedStore.items[0].source,
+      scenario: releasedStore.items[0].scenario,
+      result: {
+        status: 'current',
+        modelVersion: '0.5.0',
+        dataVersion: '0.6.0',
+        winnerName: 'Recalculated winner',
+        soloWinProbability: 0.625,
+      },
     })
   })
 

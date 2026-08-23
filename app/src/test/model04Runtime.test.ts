@@ -55,7 +55,7 @@ describe('model 0.4 activation runtime boundary', () => {
       solo: { defaultPercent: 100, abilityPercent: {} },
       group: { defaultPercent: 50, abilityPercent: {} },
     })
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.5.0' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.6.0' })
     expect(run.scenario).toMatchObject({ schemaVersion: 4, soloResources: { defaultPercent: 100 }, groupResources: { defaultPercent: 50 } })
     expect(run.contestants).toMatchObject({ solo: { id: run.scenario.soloId, schemaVersion: 4 }, group: { id: run.scenario.groupId, schemaVersion: 4 } })
     expect(run.abilityResolutions.length).toBeGreaterThan(0)
@@ -184,7 +184,7 @@ describe('model 0.4 activation runtime boundary', () => {
       },
     })
     expect(saved.items[0].migrationNotices).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'history-result-pending-model-050' }),
+      expect.objectContaining({ code: 'history-result-pending-data-060' }),
     ]))
     expect(runtime.loadHistory(storage, creatures).items[0]).toMatchObject({
       modelVersion: MODEL_04_VERSION,

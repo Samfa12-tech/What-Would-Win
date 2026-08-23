@@ -402,7 +402,7 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
     await clean.context.close()
   }
 
-  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.5.0' })
+  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.6.0' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -456,7 +456,7 @@ test('version 3 history persists while corrupt history remains untouched', async
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
   expect(current.storageVersion).toBe(3)
-  expect(current.items[0]).toMatchObject({ formatVersion: 3, result: { status: 'current', modelVersion: '0.5.0', dataVersion: '0.5.0' } })
+  expect(current.items[0]).toMatchObject({ formatVersion: 3, result: { status: 'current', modelVersion: '0.5.0', dataVersion: '0.6.0' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()

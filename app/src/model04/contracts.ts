@@ -2,7 +2,7 @@ import type { Creature, Scenario } from '../types'
 
 export const MODEL_04_DRAFT_VERSION = '0.5.0' as const
 export const MODEL_04_VERSION = '0.5.0' as const
-export const MODEL_04_DATA_VERSION = '0.5.0' as const
+export const MODEL_04_DATA_VERSION = '0.6.0' as const
 export const MODEL_04_SHARE_FORMAT_VERSION = 5 as const
 export const MODEL_04_CUSTOM_STORAGE_VERSION = 3 as const
 export const MODEL_04_HISTORY_STORAGE_VERSION = 3 as const
@@ -211,7 +211,7 @@ export interface Model04MigrationNotice {
 export type ScenarioDecodeResultV4 =
   | {
       ok: true
-      status: 'current' | 'migrated-v4' | 'migrated-v3' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
+      status: 'current' | 'migrated-v5' | 'migrated-v4' | 'migrated-v3' | 'migrated-v2' | 'migrated-v1' | 'migrated-legacy'
       payload: ScenarioSharePayloadV4
     }
   | {

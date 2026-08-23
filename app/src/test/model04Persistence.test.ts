@@ -402,6 +402,60 @@ describe('active model 0.5 persistence and codecs', () => {
     })
   })
 
+  test('normalizes persisted v3 legacy pending notices without changing its stored source snapshot', () => {
+    const storage = new MemoryStorage()
+    const persistedStore = {
+      storageVersion: 3,
+      items: [{
+        formatVersion: 3,
+        source: { shareFormat: 'storage-v3', modelVersion: '0.5.0', dataVersion: '0.5.0' },
+        id: 'history-pending-model-050',
+        createdAt: '2026-08-23T00:00:00.000Z',
+        scenario: payloadV4().scenario,
+        soloName: 'Legacy pending solo',
+        groupName: 'Legacy pending group',
+        result: {
+          status: 'pending-recalculation',
+          legacySnapshot: { winnerName: 'Legacy pending winner', soloWinProbability: 0.75 },
+        },
+        migrationNotices: [{
+          code: 'history-result-pending-model-050',
+          severity: 'warning',
+          message: 'The saved inputs are intact, but the previous result must be recalculated.',
+        }],
+      }],
+    }
+    const raw = JSON.stringify(persistedStore)
+    storage.setItem(MODEL_04_HISTORY_STORAGE_KEY, raw)
+
+    const loaded = loadModel04History(storage, new Set(creatures.map((creature) => creature.id)))
+
+    expect(loaded).toMatchObject({
+      source: 'v3',
+      warning: expect.stringContaining(`model ${MODEL_04_VERSION}/data ${MODEL_04_DATA_VERSION}`),
+      items: [{
+        source: persistedStore.items[0].source,
+        scenario: persistedStore.items[0].scenario,
+        result: persistedStore.items[0].result,
+        migrationNotices: [expect.objectContaining({
+          code: 'history-result-pending-data-060',
+          message: expect.stringContaining(`model ${MODEL_04_VERSION}/data ${MODEL_04_DATA_VERSION}`),
+        })],
+      }],
+    })
+    expect(loaded.items[0].migrationNotices).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'history-result-pending-model-050' }),
+    ]))
+    expect(storage.getItem(MODEL_04_HISTORY_STORAGE_KEY)).toBe(raw)
+    expect(finalizeModel04HistoryItem(loaded.items[0], {
+      winnerName: 'Recalculated pending winner',
+      soloWinProbability: 0.625,
+    }).migrationNotices).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'history-result-pending-model-050' }),
+      expect.objectContaining({ code: 'history-result-pending-data-060' }),
+    ]))
+  })
+
 
   test('migrates v1 history inputs as pending and preserves the raw recovery store', () => {
     const storage = new MemoryStorage()

@@ -65,3 +65,27 @@ Output: exit 0; 8 browser checks passed across desktop/mobile Chromium, desktop 
 
 - Commit hash: recorded in the task handoff after the report is committed (a Git commit hash cannot be embedded into the tree it identifies without changing that hash).
 - No known implementation concerns. The pre-existing seven Task 3 documentation/provenance/checksum files were preserved exactly and excluded from staging.
+
+## Fix round 1: persisted legacy pending notices
+
+- Regression: an existing v3 `pending-recalculation` entry with the prior `history-result-pending-model-050` notice could load without the current recalculation warning and retain stale notice metadata.
+- Resolution: normalize either legacy or current pending-result notice to a single current data-0.6 notice in memory. Warning detection and finalization defensively recognize both codes. Source identity, scenario inputs, and the stored recovery bytes remain unchanged.
+
+RED command:
+
+```text
+npm.cmd exec vitest run src/test/model04Persistence.test.ts --testNamePattern="normalizes persisted v3 legacy pending notices"
+```
+
+RED output: 1 expected failure; the old code remained and the global warning was empty.
+
+GREEN commands:
+
+```text
+npm.cmd exec vitest run src/test/model04Persistence.test.ts --testNamePattern="normalizes persisted v3 legacy pending notices"
+npm.cmd exec vitest run src/test/model04Persistence.test.ts src/test/model04Runtime.test.ts
+npm.cmd run typecheck
+npm.cmd test
+```
+
+GREEN output: focused 18/18, relevant 26/26, typecheck exit 0, and full release suite 31 files / 427 tests passed.

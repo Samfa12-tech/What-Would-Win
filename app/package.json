@@ -9,7 +9,7 @@
     "prebuild": "npm run audit:release",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "npm run audit:release && vitest run",
+    "test": "npm run audit:release && vitest run --no-file-parallelism --maxWorkers 1",
     "audit:provenance": "node ../scripts/generate_provenance_audit.mjs",
     "audit:legal": "node ../scripts/generate_public_legal.mjs && node ../scripts/verify_runtime_notices.mjs",
     "audit:semantics": "node ../scripts/verify_creature_semantics.mjs",

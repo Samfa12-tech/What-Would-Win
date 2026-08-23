@@ -12,7 +12,7 @@ The release does not change the numerical engine coefficients, trial count, auth
 
 ## Current automated evidence
 
-- `npm test`: **429/429 tests passed across 32 Vitest files** after the complete release audit.
+- `npm test`: **429/429 tests passed across 32 Vitest files** after the complete release audit. The release command runs files serially with one worker; two consecutive runs passed in **143.51 s** and **40.08 s** wall-clock (Vitest **116.53 s** and **36.60 s**).
 - `npm run audit:narrative`: **111/111 passed**.
 - `npm run audit:narrative-semantics`: **96/96 passed**.
 - Full-roster layman audit: every one of the **159 profiles** entered the story pipeline in both matchup roles.

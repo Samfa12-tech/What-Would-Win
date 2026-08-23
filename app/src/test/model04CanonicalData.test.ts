@@ -341,6 +341,87 @@ describe('active model 0.4 canonical ability data', () => {
     expect(scarceBolts?.logDelta ?? 0).toBeLessThan(fullBolts?.logDelta ?? 0)
   })
 
+  test('rejects Utahraptor pack pressure for one attacker and activates it at two', () => {
+    const pressure = (quantity: number) => resolveAbilityKernel(
+      side(profile('utahraptor'), Math.log10(quantity)),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'possible-pack-pressure')
+    expect(pressure(1)).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['minimum-attacker-quantity'],
+    })
+    expect(pressure(2)).toMatchObject({ active: true })
+  })
+
+  test('enforces the coconut crab restraint mass ceiling', () => {
+    const grip = (targetId: string) => resolveAbilityKernel(
+      side(profile('coconut-crab')),
+      side(profile(targetId)),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crab-claw-grip')
+    expect(grip('brown-rat')).toMatchObject({ active: true })
+    expect(grip('average-unarmed-adult-human')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['maximum-target-mass'],
+    })
+  })
+
+  test('enforces the giant otter restraint mass ceiling', () => {
+    const grapple = (targetId: string) => resolveAbilityKernel(
+      side(profile('giant-otter')),
+      side(profile(targetId)),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'otter-grapple')
+    expect(grapple('average-unarmed-adult-human')).toMatchObject({ active: true })
+    expect(grapple('leopard-seal')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['maximum-target-mass'],
+    })
+  })
+
+  test('rejects the Mosasaurus bite on land and activates it in the ocean', () => {
+    const bite = (terrain: ScenarioV4Draft['terrain']) => resolveAbilityKernel(
+      side(profile('mosasaurus')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain, startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'mosasaur-bite')
+    expect(bite('open')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['terrain'],
+    })
+    expect(bite('ocean')).toMatchObject({ active: true })
+  })
+
+  test('reduces sword harm through Dunkleosteus armor', () => {
+    const swordFighter = side(profile('armoured-sword-and-shield-fighter'))
+    const armoredDunkleosteus = profile('dunkleosteus')
+    const unarmoredDunkleosteus: CreatureV4Draft = {
+      ...armoredDunkleosteus,
+      channelModifiers: { ...armoredDunkleosteus.channelModifiers, 'physical-slashing': 1 },
+    }
+    const swordAgainst = (target: CreatureV4Draft) => resolveAbilityKernel(
+      swordFighter,
+      side(target),
+      scenario({ terrain: 'ocean', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'sword-slash')
+    const armoredSword = swordAgainst(armoredDunkleosteus)
+    const unarmoredSword = swordAgainst(unarmoredDunkleosteus)
+    expect(armoredSword).toMatchObject({
+      active: true,
+      effects: [expect.objectContaining({ channel: 'physical-slashing', channelFactor: 0.45 })],
+    })
+    expect(unarmoredSword).toMatchObject({
+      active: true,
+      effects: [expect.objectContaining({ channel: 'physical-slashing', channelFactor: 1 })],
+    })
+    expect(armoredSword?.logDelta ?? 0).toBeLessThan(unarmoredSword?.logDelta ?? 0)
+  })
+
   test('locks the exact 16 handoff mythology fixtures to valid profiles and scenarios', () => {
     expect(mythologyFixturesJson.fixtures).toHaveLength(16)
     expect(mythologyFixturesJson.targetModel).toBe('0.5.0')

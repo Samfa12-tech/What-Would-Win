@@ -12,7 +12,7 @@ function auditWith(mutator?: (profiles: Array<Record<string, any>>) => void) {
 describe('model 0.5.0 ability coverage release audit', () => {
   test('routes every defining source token in the activated built-in roster', () => {
     const diagnostics = auditWith()
-    expect(diagnostics).toHaveLength(130)
+    expect(diagnostics).toHaveLength(140)
     expect(diagnostics.filter((diagnostic) => diagnostic.severity === 'error')).toEqual([])
   })
 

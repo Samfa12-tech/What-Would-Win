@@ -72,9 +72,9 @@ describe('model 0.4 atomic activation contract', () => {
   })
 
   test('activates the complete reviewed canonical roster without legacy markers', () => {
-    expect(runtime.creatures).toHaveLength(139)
+    expect(runtime.creatures).toHaveLength(159)
     expect(runtime.creatures.map((creature) => creature.id)).toEqual(creatures.map((creature) => creature.id))
-    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(139)
+    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(159)
     expect(runtime.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(runtime.creatures.every((creature) => creature.abilities.every((ability) => !('legacyGenerated' in ability)))).toBe(true)
   })

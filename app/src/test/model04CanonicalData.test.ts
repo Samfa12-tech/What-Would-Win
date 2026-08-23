@@ -70,10 +70,10 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
 }
 
 describe('active model 0.4 canonical ability data', () => {
-  test('validates the override contract and all 139 merged draft profiles', () => {
+  test('validates the override contract and all 159 merged draft profiles', () => {
     expect(validateOverrides(complexOverridesJson), ajv.errorsText(validateOverrides.errors)).toBe(true)
-    expect(draft.creatures).toHaveLength(139)
-    expect(Object.keys(draft.reviews)).toHaveLength(37)
+    expect(draft.creatures).toHaveLength(159)
+    expect(Object.keys(draft.reviews)).toHaveLength(57)
     for (const creature of draft.creatures) {
       expect(validateCreature(creature), `${creature.id}: ${ajv.errorsText(validateCreature.errors)}`).toBe(true)
       expect(new Set(creature.abilities.map((ability) => ability.id)).size).toBe(creature.abilities.length)
@@ -88,8 +88,8 @@ describe('active model 0.4 canonical ability data', () => {
 
   test('accepts conservative simple-profile migrations only after the activation review gate', () => {
     const activated = activateCanonicalModel04Data(draft)
-    expect(activated).toMatchObject({ reviewedComplexCount: 37, acceptedConservativeMigrationCount: 102 })
-    expect(activated.creatures).toHaveLength(139)
+    expect(activated).toMatchObject({ reviewedComplexCount: 57, acceptedConservativeMigrationCount: 102 })
+    expect(activated.creatures).toHaveLength(159)
     expect(activated.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(activated.creatures.every((creature) => creature.abilities.every((ability) => ability.legacyGenerated !== true))).toBe(true)
     for (const creature of activated.creatures) {
@@ -174,6 +174,119 @@ describe('active model 0.4 canonical ability data', () => {
     })
     expect(wraith.abilities.find((ability) => ability.id === 'spectral-touch')?.effects[0]).toMatchObject({ channel: 'incorporeal' })
     expect(wraith.abilities.find((ability) => ability.id === 'dread-aura')?.effects[0]).toMatchObject({ kind: 'morale', channel: 'fear' })
+  })
+
+  test('activates the 0.9 water, flight, armor, restraint, sword and ammunition mechanics', () => {
+    expect(profile('piranha')).toMatchObject({
+      locomotion: { aquatic: true, amphibious: false, land: false },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'piranha-bite', targetLimit: 'single' })]),
+    })
+    expect(profile('piranha').abilities.some((ability) => (
+      /swarm/i.test(`${ability.id} ${ability.name}`)
+      || ability.targetLimit !== 'single'
+      || (ability.conditions?.minimumAttackerQuantity ?? 0) > 1
+    ))).toBe(false)
+    expect(profile('giant-otter').locomotion).toMatchObject({ aquatic: true, amphibious: true, land: true })
+    expect(profile('harpy-eagle')).toMatchObject({
+      locomotion: { flight: true, land: true },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'flight', delivery: 'self' })]),
+    })
+    expect(profile('giant-freshwater-stingray').abilities.find((ability) => ability.id === 'tail-sting')).toMatchObject({
+      delivery: 'contact',
+      effects: expect.arrayContaining([expect.objectContaining({ channel: 'venom' })]),
+      conditions: { targetPhysiology: ['living'] },
+    })
+    for (const id of ['musk-ox', 'giant-armadillo', 'glyptodon']) {
+      expect(profile(id).channelModifiers).toMatchObject({ 'physical-slashing': expect.any(Number), 'physical-piercing': expect.any(Number) })
+    }
+    for (const id of ['trained-wrestler', 'sumo-wrestler']) {
+      expect(profile(id).abilities.some((ability) => ability.effects.some((effect) => effect.kind === 'restraint'))).toBe(true)
+    }
+    expect(profile('armoured-sword-and-shield-fighter').abilities).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'sword-slash',
+        effects: expect.arrayContaining([expect.objectContaining({ channel: 'physical-slashing' })]),
+      }),
+      expect.objectContaining({
+        id: 'shield-guard',
+        delivery: 'self',
+        effects: [{ kind: 'mobility', channel: 'mobility', potency: expect.any(Number) }],
+      }),
+    ]))
+    expect(profile('prepared-crossbow-carrier').abilities.find((ability) => ability.id === 'crossbow-bolt')).toMatchObject({
+      delivery: 'ranged',
+      effects: [{ kind: 'harm', channel: 'physical-piercing', potency: expect.any(Number) }],
+      resource: { pool: 'ability', capacity: 12 },
+    })
+  })
+
+  test('resolves aquatic-only, amphibious, flight, venom, armor, restraint and finite ammunition behavior', () => {
+    const piranhaOnLand = resolveAbilityKernel(
+      side(profile('piranha')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', waterDepthM: 0, startingDistanceM: 0 }),
+    )
+    expect(piranhaOnLand.resolutions.find((resolution) => resolution.abilityId === 'piranha-bite')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+    })
+
+    const otterOnLand = resolveAbilityKernel(
+      side(profile('giant-otter')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', waterDepthM: 0, startingDistanceM: 0 }),
+    )
+    expect(otterOnLand.resolutions.find((resolution) => resolution.abilityId === 'otter-bite')?.active).toBe(true)
+
+    const harpyAir = resolveAbilityKernel(
+      side(profile('harpy-eagle')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', startingDistanceM: 20 }),
+    )
+    expect(harpyAir.resolutions.find((resolution) => resolution.abilityId === 'flight')).toMatchObject({ active: true })
+
+    const stingray = resolveAbilityKernel(
+      side(profile('giant-freshwater-stingray')),
+      side(profile('stone-golem')),
+      scenario({ terrain: 'river', waterDepthM: 2, startingDistanceM: 0 }),
+    )
+    expect(stingray.resolutions.find((resolution) => resolution.abilityId === 'tail-sting')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+    })
+
+    const sword = resolveAbilityKernel(
+      side(profile('armoured-sword-and-shield-fighter')),
+      side(profile('giant-armadillo')),
+      scenario({ startingDistanceM: 0 }),
+    )
+    const swordEffect = sword.resolutions.find((resolution) => resolution.abilityId === 'sword-slash')
+      ?.effects.find((effect) => effect.channel === 'physical-slashing')
+    expect(swordEffect?.channelFactor).toBeLessThan(1)
+    expect(sword.resolutions.find((resolution) => resolution.abilityId === 'shield-guard')).toMatchObject({ active: true })
+
+    const wrestler = resolveAbilityKernel(
+      side(profile('trained-wrestler')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 0 }),
+    )
+    expect(wrestler.resolutions.find((resolution) => resolution.abilityId === 'wrestling-control')).toMatchObject({ active: true })
+
+    const fullBolts = resolveAbilityKernel(
+      side(profile('prepared-crossbow-carrier')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 30 }),
+      context({ durationSeconds: 120 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crossbow-bolt')
+    const scarceBolts = resolveAbilityKernel(
+      side(profile('prepared-crossbow-carrier')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 30, soloResources: { defaultPercent: 100, abilityPercent: { 'crossbow-bolt': 10 } } }),
+      context({ durationSeconds: 120 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crossbow-bolt')
+    expect(fullBolts).toMatchObject({ active: true, resolvedUses: 2 })
+    expect(scarceBolts?.resolvedUses).toBeLessThan(fullBolts?.resolvedUses ?? 0)
+    expect(scarceBolts?.logDelta ?? 0).toBeLessThan(fullBolts?.logDelta ?? 0)
   })
 
   test('locks the exact 16 handoff mythology fixtures to valid profiles and scenarios', () => {

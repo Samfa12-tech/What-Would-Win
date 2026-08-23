@@ -233,6 +233,6 @@ describe('reader battle narrative', () => {
       }
     }
     expect(failures).toEqual([])
-  // 139 profiles in both roles each execute the fixed 15,000-trial authoritative adapter.
+  // 159 profiles in both roles each execute the fixed 15,000-trial authoritative adapter.
   }, 60_000)
 })

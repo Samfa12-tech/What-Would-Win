@@ -36,7 +36,7 @@ function scenarioFromFixture(fixture: (typeof canonicalScenariosJson)[number]): 
 
 describe('canonical data contracts', () => {
   test('all canonical creatures satisfy the Draft 2020-12 schema', () => {
-    expect(canonicalCreatures).toHaveLength(139)
+    expect(canonicalCreatures).toHaveLength(159)
     for (const creature of canonicalCreatures) {
       const result = validateCreature(creature)
       expect(result.errors, `${creature.id}: ${result.errors.join('; ')}`).toEqual([])
@@ -44,10 +44,10 @@ describe('canonical data contracts', () => {
   })
 
   test('expanded roster keeps declared category boundaries and fixed cryptid interpretations', () => {
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'animal')).toHaveLength(76)
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'extinct')).toHaveLength(21)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'animal')).toHaveLength(86)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'extinct')).toHaveLength(25)
     expect(canonicalCreatures.filter((creature) => creature.kind === 'fantasy')).toHaveLength(38)
-    expect(canonicalCreatures.filter((creature) => creature.kind === 'human')).toHaveLength(4)
+    expect(canonicalCreatures.filter((creature) => creature.kind === 'human')).toHaveLength(10)
 
     const cryptids = canonicalCreatures.filter((creature) => creature.category === 'cryptid')
     expect(cryptids).toHaveLength(8)
@@ -75,6 +75,54 @@ describe('canonical data contracts', () => {
       attack_modes: ['bite', 'grapple', 'improvised-tool'],
       traits: ['hands', 'tool-use', 'arboreal'],
     })
+  })
+
+  test('declares the exact 0.9 roster slice and truthful baseline capability flags', () => {
+    const expected = [
+      ['piranha', 'Piranha', 'animal', 'fish'],
+      ['giant-otter', 'Giant otter', 'animal', 'mustelid'],
+      ['leopard-seal', 'Leopard seal', 'animal', 'marine-mammal'],
+      ['tasmanian-devil', 'Tasmanian devil', 'animal', 'marsupial'],
+      ['harpy-eagle', 'Harpy eagle', 'animal', 'bird-of-prey'],
+      ['musk-ox', 'Musk ox', 'animal', 'large-herbivore'],
+      ['giant-armadillo', 'Giant armadillo', 'animal', 'large-mammal'],
+      ['capybara', 'Capybara', 'animal', 'large-rodent'],
+      ['coconut-crab', 'Coconut crab', 'animal', 'crustacean'],
+      ['giant-freshwater-stingray', 'Giant freshwater stingray', 'animal', 'fish'],
+      ['utahraptor', 'Utahraptor', 'extinct', 'dinosaur'],
+      ['mosasaurus', 'Mosasaurus', 'extinct', 'marine-reptile'],
+      ['dunkleosteus', 'Dunkleosteus', 'extinct', 'placoderm'],
+      ['glyptodon', 'Glyptodon', 'extinct', 'prehistoric-mammal'],
+      ['average-unarmed-adult-human', 'Average unarmed adult human', 'human', 'human'],
+      ['trained-heavyweight-boxer', 'Trained heavyweight boxer', 'human', 'human'],
+      ['trained-wrestler', 'Trained wrestler', 'human', 'human'],
+      ['sumo-wrestler', 'Sumo wrestler', 'human', 'human'],
+      ['armoured-sword-and-shield-fighter', 'Armoured sword-and-shield fighter', 'human', 'human'],
+      ['prepared-crossbow-carrier', 'Prepared crossbow carrier', 'human', 'human'],
+    ] as const
+    for (const [id, name, kind, category] of expected) {
+      expect(canonicalCreatures.find((creature) => creature.id === id)).toMatchObject({ id, name, kind, category })
+    }
+
+    expect(canonicalCreatures.find((creature) => creature.id === 'piranha')).toMatchObject({
+      aquatic: true,
+      traits: expect.not.arrayContaining(['swarm']),
+    })
+    expect(canonicalCreatures.find((creature) => creature.id === 'giant-otter')).toMatchObject({
+      aquatic: true,
+      traits: expect.arrayContaining(['amphibious']),
+    })
+    expect(canonicalCreatures.find((creature) => creature.id === 'harpy-eagle')).toMatchObject({
+      can_fly: true,
+      traits: expect.arrayContaining(['flight']),
+    })
+    expect(canonicalCreatures.find((creature) => creature.id === 'giant-freshwater-stingray')).toMatchObject({
+      venomous: true,
+      attack_modes: expect.arrayContaining(['tail-sting']),
+    })
+    expect(canonicalCreatures.find((creature) => creature.id === 'average-unarmed-adult-human')?.model_notes).toMatch(/average adult/i)
+    expect(canonicalCreatures.filter((creature) => ['utahraptor', 'mosasaurus', 'dunkleosteus', 'glyptodon'].includes(creature.id))
+      .every((creature) => creature.data_confidence === 'low' && /uncertain|vary/i.test(creature.model_notes))).toBe(true)
   })
 
   test('canonical and bundled data stay synchronized with unique built-in IDs', () => {

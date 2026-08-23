@@ -47,9 +47,9 @@ function previousHistoryStore() {
   }
 }
 describe('model 0.4 activation runtime boundary', () => {
-  test('activates 139 reviewed profiles and simulates from the existing UI scenario shape', () => {
+  test('activates 159 reviewed profiles and simulates from the existing UI scenario shape', () => {
     const runtime = new Model04Runtime(creatures)
-    expect(runtime.creatures).toHaveLength(139)
+    expect(runtime.creatures).toHaveLength(159)
     expect(runtime.creatures.every((creature) => !creature.migration.reviewRequired)).toBe(true)
     const run = runtime.simulate(defaultScenario(creatures), {
       solo: { defaultPercent: 100, abilityPercent: {} },

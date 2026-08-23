@@ -19,7 +19,7 @@
     "audit:narrative": "vitest run src/test/laymanNarrative.test.ts src/test/readerNarrative.test.ts src/test/storyboard.test.ts src/test/tacticalChoreography.test.ts",
     "audit:narrative-semantics": "vitest run src/test/laymanNarrative.test.ts src/test/readerIdentity.test.ts src/test/battlefieldSemantics.test.ts src/test/narrativeSemantics.test.ts src/test/readerNarrative.test.ts",
     "test:simulation-budget": "vitest run src/test/performance.test.ts",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test --workers=1",
     "test:e2e:headed": "npm run build && playwright test --headed",
     "test:static-subpath": "npm run build && node scripts/check-static-subpath.mjs",
     "test:all": "npm run test && npm run test:e2e",

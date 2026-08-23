@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises'
-import { expect, test, type Browser, type Page } from '@playwright/test'
+import { expect, test, type Browser, type Locator, type Page } from '@playwright/test'
 
 const CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v3'
 const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
@@ -8,6 +8,11 @@ const CUSTOM_NAME = 'Codex Field Beast'
 async function openDeepDive(page: Page) {
   await page.getByRole('button', { name: 'Deep dive', exact: true }).click()
   await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
+}
+
+async function waitForHydratedHistory(page: Page, card: Locator) {
+  await expect(card).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('history-warning')).toBeVisible({ timeout: 15_000 })
 }
 
 function soloPanel(page: Page) {
@@ -521,8 +526,9 @@ test('history entries referencing a deleted custom profile remain visible but ca
   await page.reload()
   await openDeepDive(page)
 
-  await expect(page.getByTestId('history-warning')).toContainText('profile that is no longer available')
   const unavailableCard = page.locator('.history-card').filter({ hasText: 'History Field Beast' })
+  await waitForHydratedHistory(page, unavailableCard)
+  await expect(page.getByTestId('history-warning')).toContainText('profile that is no longer available')
   await expect(unavailableCard).toBeDisabled()
   await expect(unavailableCard).toContainText('Unavailable: missing custom profile')
 })

@@ -19,8 +19,8 @@ The release does not change the numerical engine coefficients, trial count, auth
 - Semantic audit: **159 profiles**, 33 habitats, 63 attack modes and 71 traits; **0 errors and 0 warnings**.
 - Ability audit: **140 defining mechanical source tokens** routed across all 159 profiles.
 - Provenance: **159/159 generated records** verified.
-- `npm run typecheck`: passed.
-- `npm run test:simulation-budget`: **1/1 passed in 71 ms**, below the two-second gate.
+- `npm run typecheck`: passed after a clean `npm ci`.
+- `npm run test:simulation-budget`: **1/1 passed in 78 ms**, below the two-second gate.
 - `npm run build`: passed with Vite 8.1.5 and **198 transformed modules**.
 - `node scripts/check-static-subpath.mjs`: **8/8 local references** resolved inside `/apps/what-would-win/`.
 - `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
@@ -60,11 +60,13 @@ The release does not change the numerical engine coefficients, trial count, auth
 
 ## Browser and visual evidence
 
-No fresh browser or visual capture was taken for this data-only 0.9.0 slice. The prior 0.8.2 responsive-capture observations remain historical presentation evidence, not exact-final visual evidence for this build. The current release evidence is the automated audit, unit, type, production-build, static-subpath and artifact-budget output recorded above.
+`npm run test:e2e` rebuilt the production app and passed **228 tests with 20 declared project-specific skips** in **11.2 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
+
+`e2e/roster-expansion.spec.ts` independently exercised all twenty 0.9 additions through the production UI rather than deriving them at runtime from source data: each hard-coded name was searched, its option was found, and its option was selected. It also asserted the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checked page reflow at each project's viewport and recorded zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
 
 ## Evidence boundaries
 
-- The standalone Playwright CLI, complete multi-browser matrix and in-app browser were not run for this patch; automated checks do not replace exact-final visual verification.
+- The complete Playwright test-runner matrix was run for this patch; automated browser coverage does not replace human-reviewed visual verification.
 - Exact-final physical iOS/Safari and Android validation was not performed.
 - Real NVDA, VoiceOver and TalkBack validation was not performed; automated checks are not substitutes for physical assistive-technology testing.
 - The likely-battle story remains an evidence-backed explanation of the aggregate result, not a simulated event history, injury model or replay of an individual trial.

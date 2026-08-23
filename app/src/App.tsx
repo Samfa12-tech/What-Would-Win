@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowRight } from '@phosphor-icons/react/ArrowRight'
 import { ChartLineUp } from '@phosphor-icons/react/ChartLineUp'
-import { Shuffle } from '@phosphor-icons/react/Shuffle'
+import { Shuffle } from '@phosphor-icons/react'
 import { SimpleCreaturePanel } from './components/SimpleCreaturePanel'
 import {
   cloneAsCustom,

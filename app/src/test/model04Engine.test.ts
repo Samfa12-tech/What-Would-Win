@@ -69,7 +69,7 @@ describe('active model 0.4 full-engine adapter', () => {
         expect(expectations.immuneChannels.every((channel) => solo?.channelModifiers[channel as keyof typeof solo.channelModifiers] === 0), fixture.id).toBe(true)
       }
     }
-  }, 30_000)
+  }, 8_000)
 
   test('finds the first group-favoured integer for the exported bull versus 100 dogs scenario', () => {
     const exportedScenario = scenario({

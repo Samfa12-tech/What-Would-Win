@@ -109,7 +109,7 @@ test('technical ledger and conceptual results have no serious axe violations', a
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByLabel('Quantity representation disclosure'))
-    .toContainText(/crowd this large.*does not pretend.*attack at once/i, { timeout: 15_000 })
+    .toContainText(/crowd this large.*rather than treating every member as a simultaneous attacker/i, { timeout: 15_000 })
   await expectNoSeriousAxeViolations(page)
 })
 

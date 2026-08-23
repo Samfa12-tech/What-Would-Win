@@ -65,7 +65,7 @@ the full payload budget continues to account for its bytes.
 
 ## Browser and visual evidence
 
-`npm run test:e2e` rebuilt the production app and passed **236 tests with 20 declared project-specific skips** in **8.2 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
+`npm run test:e2e` rebuilt the production app and passed **236 tests with 20 declared project-specific skips** in **16.4 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The release script runs this complete matrix with one worker after a two-worker post-merge run produced four unrelated WebKit timing failures that each passed in an isolated one-worker rerun; the project matrix, test set, declared skips, retry policy and generic timeouts are unchanged. The exact green run included fresh automated keyboard, axe, reflow and responsive coverage.
 
 `e2e/roster-expansion.spec.ts` independently exercises all twenty 0.9 additions through both Deep Dive contestant selectors rather than deriving them at runtime from source data: each hard-coded name is searched, found and selected as both The one and The many. It also smoke-tests fixed additions through both contestant sides of the separate Simple-mode implementation, asserts the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checks page reflow at each project's viewport and records zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
 

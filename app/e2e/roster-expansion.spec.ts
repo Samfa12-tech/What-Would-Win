@@ -75,6 +75,8 @@ async function assertSimpleRosterSearches(page: Page, side: 'solo' | 'group') {
 }
 
 test('makes every 0.9 roster addition searchable and selectable in both modes without browser errors', async ({ page }) => {
+  // This intentionally performs forty Deep Dive selections before the Simple-mode smoke checks.
+  test.setTimeout(60_000)
   const consoleErrors: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text())

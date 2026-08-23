@@ -26,13 +26,13 @@ const budgets = {
   environmentAssetMax: 500_000,
   audioAssetMax: 250_000,
   selectedTacticalAssets: 1_200_000,
-  // Measured after externalizing reviewed overrides: 77,335 B; 12,665 B (16.4%) headroom.
+  // Measured after externalizing reviewed overrides: 77,334 B; 12,666 B (16.4%) headroom.
   model04RuntimeJavascript: 90_000,
   // Model 0.5 adds explicit outcome fields, v2-to-v3 recovery and the verdict
   // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling retains
   // explicit headroom over the exact 0.8.1 candidate rather than hiding it in total.
   coreJavascript: 625_000,
-  // Measured after externalizing reviewed overrides: 1,687,482 B; total JavaScript remains independently capped.
+  // Measured after externalizing reviewed overrides: 1,687,702 B; leaves 87,298 B (4.9%) across all JavaScript.
   javascript: 1_775_000,
   // Measured 0.9.0: 143,031 B; leaves 6,969 B (4.9%) for reviewed roster data.
   creatureRoster: 150_000,
@@ -41,11 +41,11 @@ const budgets = {
   coreCss: 42_000,
   reconstructionCss: 12_000,
   css: 54_000,
-  // Measured after externalizing reviewed overrides: 2,087,026 B; leaves 37,974 B (1.8%) across the deployable payload.
+  // Measured after externalizing reviewed overrides: 2,087,246 B; leaves 37,754 B (1.8%) across the deployable payload.
   total: 2_125_000,
   // Includes the compact contender marks and 28 kB versus-ray asset. The overall
   // published-artifact ceiling is deliberately unchanged.
-  // Measured after externalizing reviewed overrides: 976,588 B; leaves 23,412 B (2.3%) outside lazy presentation/tactical paths.
+  // Measured after externalizing reviewed overrides: 976,808 B; leaves 23,192 B (2.3%) outside lazy presentation/tactical paths.
   coreDeployable: 1_000_000,
   socialImage: 300_000,
 }

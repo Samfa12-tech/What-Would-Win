@@ -1,4 +1,3 @@
-import complexOverridesJson from '../../../data/model-0.4/complex-profile-overrides.json'
 import type { Creature, CustomCreature, HistoryItem, Scenario, SimulationResult } from '../types'
 import { activateCanonicalModel04Data, buildCanonicalModel04Draft, type ComplexProfileOverrideStore } from './canonicalDraft'
 import {
@@ -150,8 +149,8 @@ export class Model04Runtime {
   private readonly builtInIds: ReadonlySet<string>
   private readonly complexReviews: ReadonlyMap<string, { interpretation: string; note: string }>
 
-  constructor(builtInCreatures: Creature[]) {
-    const draft = buildCanonicalModel04Draft(builtInCreatures, complexOverridesJson as ComplexProfileOverrideStore)
+  constructor(builtInCreatures: Creature[], complexOverrides: ComplexProfileOverrideStore) {
+    const draft = buildCanonicalModel04Draft(builtInCreatures, complexOverrides)
     this.creatures = activateCanonicalModel04Data(draft).creatures
     this.builtInIds = new Set(this.creatures.map((creature) => creature.id))
     this.complexReviews = new Map(Object.entries(draft.reviews).map(([id, review]) => [id, {

@@ -26,22 +26,27 @@ const budgets = {
   environmentAssetMax: 500_000,
   audioAssetMax: 250_000,
   selectedTacticalAssets: 1_200_000,
-  model04RuntimeJavascript: 115_000,
+  // Measured after externalizing reviewed overrides: 77,334 B; 12,666 B (16.4%) headroom.
+  model04RuntimeJavascript: 90_000,
   // Model 0.5 adds explicit outcome fields, v2-to-v3 recovery and the verdict
   // quantity/uncertainty pipeline to the eager graph. The reviewed ceiling retains
   // explicit headroom over the exact 0.8.1 candidate rather than hiding it in total.
   coreJavascript: 625_000,
-  javascript: 1_750_000,
-  creatureRoster: 132_000,
+  // Measured after externalizing reviewed overrides: 1,687,702 B; leaves 87,298 B (4.9%) across all JavaScript.
+  javascript: 1_775_000,
+  // Measured 0.9.0: 143,031 B; leaves 6,969 B (4.9%) for reviewed roster data.
+  creatureRoster: 150_000,
   // Simple mode adds a responsive three-step workspace and concise result view.
   // CSS is shared by both modes; total deployable size remains independently gated.
   coreCss: 42_000,
   reconstructionCss: 12_000,
   css: 54_000,
-  total: 2_050_000,
+  // Measured after externalizing reviewed overrides: 2,087,246 B; leaves 37,754 B (1.8%) across the deployable payload.
+  total: 2_125_000,
   // Includes the compact contender marks and 28 kB versus-ray asset. The overall
   // published-artifact ceiling is deliberately unchanged.
-  coreDeployable: 940_000,
+  // Measured after externalizing reviewed overrides: 976,808 B; leaves 23,192 B (2.3%) outside lazy presentation/tactical paths.
+  coreDeployable: 1_000_000,
   socialImage: 300_000,
 }
 
@@ -90,6 +95,7 @@ const presentationJavascript = presentationFiles.reduce((sum, file) => sum + fil
 const optionalUiJavascript = lazyJavascript - model04RuntimeJavascript - tacticalRuntimeJavascript - presentationJavascript
 const rosterFiles = sizes.filter((file) => /dist[\\/]assets[\\/]creatures-[^\\/]+\.json$/.test(relative(appRoot, file.path)))
 const creatureRoster = rosterFiles.reduce((sum, file) => sum + file.bytes, 0)
+const model04OverrideFiles = sizes.filter((file) => /dist[\\/]assets[\\/]complex-profile-overrides-[^\\/]+\.json$/.test(relative(appRoot, file.path)))
 const cssFiles = sizes.filter((file) => file.path.endsWith('.css'))
 const css = cssFiles.reduce((sum, file) => sum + file.bytes, 0)
 const reconstructionCss = cssFiles.filter((file) => /^dist\/assets\/(?:reconstruction|LikelyBattlePanel|TacticalReconstructionPanel)-[^/]+\.css$/.test(relative(appRoot, file.path).replaceAll('\\', '/'))).reduce((sum, file) => sum + file.bytes, 0)
@@ -112,8 +118,9 @@ const coreJavascript = javascript - presentationJavascript - tacticalRuntimeJava
 const coreDeployable = total - presentationJavascript - tacticalRuntimeJavascript - reconstructionCss
 
 if (rosterFiles.length !== 1) throw new Error(`Expected one emitted creature roster, found ${rosterFiles.length}.`)
+if (model04OverrideFiles.length !== 1) throw new Error(`Expected one emitted reviewed model override payload, found ${model04OverrideFiles.length}.`)
 const roster = JSON.parse(await readFile(rosterFiles[0].path, 'utf8'))
-if (!Array.isArray(roster) || roster.length !== 139) throw new Error(`Expected 139 emitted creature profiles, found ${Array.isArray(roster) ? roster.length : 'a non-array value'}.`)
+if (!Array.isArray(roster) || roster.length !== 159) throw new Error(`Expected 159 emitted creature profiles, found ${Array.isArray(roster) ? roster.length : 'a non-array value'}.`)
 
 const entrySources = await Promise.all(sizes.filter((file) => entryFiles.has(relative(distRoot, file.path).replaceAll('\\', '/'))).map((file) => readFile(file.path, 'utf8')))
 if (entrySources.some((source) => source.includes('African bush elephant'))) {

@@ -112,6 +112,14 @@
       "reviewStatus": "required"
     },
     {
+      "id": "musk-ox",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "mountain-goat",
       "legacyEffectiveReachM": 0.8,
       "contactReachM": 0.8,
@@ -224,6 +232,14 @@
       "reviewStatus": "required"
     },
     {
+      "id": "tasmanian-devil",
+      "legacyEffectiveReachM": 0.28,
+      "contactReachM": 0.28,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "silverback-gorilla",
       "legacyEffectiveReachM": 1,
       "contactReachM": 1,
@@ -272,9 +288,25 @@
       "reviewStatus": "required"
     },
     {
+      "id": "giant-armadillo",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "giant-anteater",
       "legacyEffectiveReachM": 0.9,
       "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "capybara",
+      "legacyEffectiveReachM": 0.35,
+      "contactReachM": 0.35,
       "rangedAbilityRangeM": null,
       "migrationStrategy": "conservative-copy",
       "reviewStatus": "required"
@@ -440,6 +472,38 @@
       "reviewStatus": "required"
     },
     {
+      "id": "harpy-eagle",
+      "legacyEffectiveReachM": 0.75,
+      "contactReachM": 0.75,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "piranha",
+      "legacyEffectiveReachM": 0.12,
+      "contactReachM": 0.12,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "giant-otter",
+      "legacyEffectiveReachM": 0.45,
+      "contactReachM": 0.45,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "leopard-seal",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "great-white-shark",
       "legacyEffectiveReachM": 1.1,
       "contactReachM": 1.1,
@@ -496,9 +560,25 @@
       "reviewStatus": "required"
     },
     {
+      "id": "giant-freshwater-stingray",
+      "legacyEffectiveReachM": 1.5,
+      "contactReachM": 1.5,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "peacock-mantis-shrimp",
       "legacyEffectiveReachM": 0.08,
       "contactReachM": 0.08,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "coconut-crab",
+      "legacyEffectiveReachM": 0.22,
+      "contactReachM": 0.22,
       "rangedAbilityRangeM": null,
       "migrationStrategy": "conservative-copy",
       "reviewStatus": "required"
@@ -616,6 +696,38 @@
       "reviewStatus": "required"
     },
     {
+      "id": "utahraptor",
+      "legacyEffectiveReachM": 1.4,
+      "contactReachM": 1.4,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "mosasaurus",
+      "legacyEffectiveReachM": 2,
+      "contactReachM": 2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "dunkleosteus",
+      "legacyEffectiveReachM": 1.2,
+      "contactReachM": 1.2,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "glyptodon",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
       "id": "unarmed-peak-adult-human",
       "legacyEffectiveReachM": 0.8,
       "contactReachM": 0.8,
@@ -644,6 +756,54 @@
       "legacyEffectiveReachM": 80,
       "contactReachM": 80,
       "rangedAbilityRangeM": 80,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "average-unarmed-adult-human",
+      "legacyEffectiveReachM": 0.7,
+      "contactReachM": 0.7,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "trained-heavyweight-boxer",
+      "legacyEffectiveReachM": 0.85,
+      "contactReachM": 0.85,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "trained-wrestler",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "sumo-wrestler",
+      "legacyEffectiveReachM": 0.9,
+      "contactReachM": 0.9,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "armoured-sword-and-shield-fighter",
+      "legacyEffectiveReachM": 1.1,
+      "contactReachM": 1.1,
+      "rangedAbilityRangeM": null,
+      "migrationStrategy": "conservative-copy",
+      "reviewStatus": "required"
+    },
+    {
+      "id": "prepared-crossbow-carrier",
+      "legacyEffectiveReachM": 60,
+      "contactReachM": 60,
+      "rangedAbilityRangeM": 60,
       "migrationStrategy": "conservative-copy",
       "reviewStatus": "required"
     },

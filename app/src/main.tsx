@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { loadComplexProfileOverrides } from './data/loadComplexProfileOverrides'
 import { loadBuiltInCreatures } from './data/loadBuiltInCreatures'
 import './styles.css'
 
@@ -18,9 +19,12 @@ async function start(): Promise<void> {
   )
 
   try {
-    const builtInCreatures = await loadBuiltInCreatures()
+    const [builtInCreatures, complexOverrides] = await Promise.all([
+      loadBuiltInCreatures(),
+      loadComplexProfileOverrides(),
+    ])
     const { Model04Runtime } = await import('./model04/runtime')
-    const model04Runtime = new Model04Runtime(builtInCreatures)
+    const model04Runtime = new Model04Runtime(builtInCreatures, complexOverrides)
     root.render(
       <StrictMode>
         <App builtInCreatures={builtInCreatures} model04Runtime={model04Runtime} />

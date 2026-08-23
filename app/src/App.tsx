@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowRight } from '@phosphor-icons/react/ArrowRight'
 import { ChartLineUp } from '@phosphor-icons/react/ChartLineUp'
-import { Shuffle } from '@phosphor-icons/react/Shuffle'
+import { Shuffle } from '@phosphor-icons/react'
 import { SimpleCreaturePanel } from './components/SimpleCreaturePanel'
 import {
   cloneAsCustom,
@@ -15,7 +15,7 @@ import type { Creature, HistoryItem, Scenario, SimulationResult, StatOverrides }
 import { APPLICATION_VERSION, DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from './version'
 import { withMethodologyDefaults } from './scenarioDefaults'
 import type { Model04Runtime, Model04RuntimeResources, Model04RuntimeResult } from './model04/runtime'
-import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from './model04/contracts'
+import { MODEL_04_DATA_VERSION, MODEL_04_VERSION, RELEASED_MODEL_04_DATA_VERSION } from './model04/contracts'
 import type { Model04SensitivityPoint } from './model04/engineV4'
 import { HISTORY_ITEM_FORMAT_VERSION, historyItemNeedsRecalculation } from './legacyHistory'
 import type { BattleReconstructionInput, DecisiveSimulationResult } from './storyboard'
@@ -228,8 +228,11 @@ function initialAppState(builtInCreatures: Creature[], model04Runtime: Model04Ru
     ? [...new Set([decodedScenario.soloId, decodedScenario.groupId].filter((id) => !availableIds.has(id)))]
     : []
   const loadedHistory = model04Runtime.loadHistory(window.localStorage, creatures)
+  const currentModel04Identity = `model ${MODEL_04_VERSION}/data ${MODEL_04_DATA_VERSION}`
   const shareWarning = decodedV4 && decodedV4.status !== 'current'
-    ? `This earlier share was migrated and will be recalculated under model ${MODEL_04_VERSION}.`
+    ? decodedV4.status === 'migrated-v5'
+      ? `This released share used model ${MODEL_04_VERSION}/data ${RELEASED_MODEL_04_DATA_VERSION} and is now running under current ${currentModel04Identity}.`
+      : `This earlier share was migrated and is now running under current ${currentModel04Identity}.`
     : encoded && !decodedV4
       ? 'This shared scenario is corrupt, oversized or incompatible and could not be opened.'
       : ''
@@ -1329,7 +1332,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                     <small>{unavailable.length > 0
                       ? 'Unavailable: missing custom profile'
                       : historyItemNeedsRecalculation(item)
-                        ? `Recalculate under model ${MODEL_VERSION} when opened`
+                        ? `Recalculate from model ${item.modelVersion}/data ${item.dataVersion} to current model ${MODEL_VERSION}/data ${DATA_VERSION} when opened`
                         : `Result: ${item.winnerName}`}</small>
                   </button>
                 )

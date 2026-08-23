@@ -6,7 +6,7 @@ const HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const CUSTOM_NAME = 'Codex Field Beast'
 
 async function openDeepDive(page: Page) {
-  await page.getByRole('button', { name: 'Deep dive' }).click()
+  await page.getByRole('button', { name: 'Deep dive', exact: true }).click()
   await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible()
 }
 
@@ -106,6 +106,32 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('navigation', { name: 'Samfa12 links' }).getByRole('link', { name: 'Licences' })).toHaveAttribute('href', './legal-notices.txt')
   await expect(page.getByRole('button', { name: 'Run simulation' })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
+})
+
+test('loads the required reviewed override payload without browser console or network errors', async ({ page }) => {
+  const consoleErrors: string[] = []
+  const failedRequests: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('requestfailed', (request) => failedRequests.push(`${request.method()} ${request.url()}`))
+
+  const overrideResponse = page.waitForResponse((response) => (
+    /\/assets\/complex-profile-overrides-[^/]+\.json$/.test(new URL(response.url()).pathname)
+  ))
+  await page.reload()
+
+  const response = await overrideResponse
+  expect(response.status()).toBeLessThan(400)
+  const payloadResponse = response.status() === 304 ? await page.request.get(response.url()) : response
+  expect(payloadResponse.ok()).toBe(true)
+  await openDeepDive(page)
+  await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
+  const payload = await payloadResponse.json() as { schemaVersion: number; targetModel: string; profiles: unknown[] }
+  expect(payload).toMatchObject({ schemaVersion: 1, targetModel: '0.5.0' })
+  expect(payload.profiles).toHaveLength(57)
+  expect(consoleErrors).toEqual([])
+  expect(failedRequests).toEqual([])
 })
 
 test('shows a durable roster error and retries without mutating stored data', async ({ page }) => {
@@ -216,7 +242,7 @@ test('rejects invalid quantities and handles 10^100 as a conceptual calculation'
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByLabel('Three-part likely battle story').locator('.layman-story-stage')).toHaveCount(3, { timeout: 15_000 })
   await expect(page.locator('details.detailed-reconstruction')).not.toHaveAttribute('open', '')
-  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/crowd this large.*does not pretend.*attack at once/i)
+  await expect(page.getByLabel('Quantity representation disclosure')).toContainText(/crowd this large.*rather than treating every member as a simultaneous attacker/i)
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 
@@ -371,7 +397,7 @@ test('clones, names, edits, saves, reloads and uses a private custom profile', a
   expect(edited.items[0].creature.attack).toBe(81)
 })
 
-test('versioned share URL embeds a custom profile without saving it in a clean browser', async ({ page, browser }) => {
+test('released v5 share preserves a custom scenario and identifies the data-version transition', async ({ page, browser }) => {
   const customId = await createSavedCustom(page, 'Shared Field Beast')
   await page.getByLabel('Quantity').fill('37')
   await page.getByRole('button', { name: 'Run simulation' }).click()
@@ -388,9 +414,13 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   }))
   expect(payload.customCreatures?.[0]?.id).toBe(customId)
   expect(payload.customCreatures?.[0]?.name).toBe('Shared Field Beast')
+  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.6.0' })
+  payload.dataVersion = '0.5.0'
 
-  const clean = await openSharedScenarioInCleanBrowser(browser, shareUrl)
+  const clean = await openSharedScenarioInCleanBrowser(browser, `/?s=${encodeSharePayload(payload)}`)
   try {
+    await expect(clean.page.getByRole('alert')).toContainText('model 0.5.0/data 0.5.0')
+    await expect(clean.page.getByRole('alert')).toContainText('model 0.5.0/data 0.6.0')
     await expect(clean.page.getByTestId('solo-creature-select')).toHaveValue(customId)
     await expect(clean.page.getByTestId('group-creature-select')).toHaveValue(groupId)
     await expect(clean.page.getByLabel('Quantity')).toHaveValue('37')
@@ -401,8 +431,6 @@ test('versioned share URL embeds a custom profile without saving it in a clean b
   } finally {
     await clean.context.close()
   }
-
-  expect(payload).toMatchObject({ formatVersion: 5, modelVersion: '0.5.0', dataVersion: '0.5.0' })
 })
 
 test('a share with an unavailable built-in creature reports the default substitution', async ({ page }) => {
@@ -456,13 +484,33 @@ test('version 3 history persists while corrupt history remains untouched', async
   await page.getByRole('button', { name: 'Run simulation' }).click()
   const current = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
   expect(current.storageVersion).toBe(3)
-  expect(current.items[0]).toMatchObject({ formatVersion: 3, result: { status: 'current', modelVersion: '0.5.0', dataVersion: '0.5.0' } })
+  expect(current.items[0]).toMatchObject({ formatVersion: 3, result: { status: 'current', modelVersion: '0.5.0', dataVersion: '0.6.0' } })
 
   await page.evaluate((key) => localStorage.setItem(key, '{bad history json'), HISTORY_STORAGE_KEY)
   await page.reload()
   await openDeepDive(page)
   await expect(page.getByTestId('history-warning')).toContainText('incompatible or damaged')
   expect(await page.evaluate((key) => localStorage.getItem(key), HISTORY_STORAGE_KEY)).toBe('{bad history json')
+})
+
+test('released data history identifies its source and current data versions before recalculation', async ({ page }) => {
+  await page.getByLabel('Quantity').fill('37')
+  await page.getByRole('button', { name: 'Run simulation' }).click()
+  const released = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? '{}'), HISTORY_STORAGE_KEY)
+  released.items[0].source = { shareFormat: 'storage-v3', modelVersion: '0.5.0', dataVersion: '0.5.0' }
+  released.items[0].result.modelVersion = '0.5.0'
+  released.items[0].result.dataVersion = '0.5.0'
+  const sourceScenario = structuredClone(released.items[0].scenario)
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), { key: HISTORY_STORAGE_KEY, value: released })
+
+  await page.reload()
+  await openDeepDive(page)
+
+  const card = page.locator('.history-card').filter({ hasText: '37' })
+  await expect(page.getByTestId('history-warning')).toContainText('model 0.5.0/data 0.6.0')
+  await expect(card).toContainText('from model 0.5.0/data 0.5.0 to current model 0.5.0/data 0.6.0')
+  await card.click()
+  await expect(page.getByLabel('Quantity')).toHaveValue(sourceScenario.groupQuantity)
 })
 
 test('history entries referencing a deleted custom profile remain visible but cannot be restored', async ({ page }) => {
@@ -492,7 +540,7 @@ test('result JSON download includes version metadata and the selected custom rec
   expect(path).toBeTruthy()
   const exported = JSON.parse(await readFile(path!, 'utf8'))
 
-  expect(exported.applicationVersion).toBe('0.8.1')
+  expect(exported.applicationVersion).toBe('0.9.0')
   expect(exported.modelVersion).toEqual(expect.any(String))
   expect(exported.dataVersion).toEqual(expect.any(String))
   expect(exported.shareFormatVersion).toEqual(expect.any(Number))

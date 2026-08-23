@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import creaturesJson from '../../../data/creatures.json'
 import { defaultScenario } from '../simulation/engine'
-import { Model04Runtime, type Model04RuntimeResources } from '../model04/runtime'
+import { type Model04RuntimeResources } from '../model04/runtime'
+import { createModel04Runtime } from './fixtures/model04Runtime'
 import type { Creature, Scenario } from '../types'
 import { buildTacticalChoreography } from '../components/tactical/beatPlan'
 import {
@@ -13,7 +14,7 @@ import {
 } from '../storyboard'
 
 const creatures = creaturesJson as Creature[]
-const runtime = new Model04Runtime(creatures)
+const runtime = createModel04Runtime(creatures)
 const resources = {
   solo: { defaultPercent: 100, abilityPercent: {} },
   group: { defaultPercent: 100, abilityPercent: {} },
@@ -233,6 +234,6 @@ describe('reader battle narrative', () => {
       }
     }
     expect(failures).toEqual([])
-  // 139 profiles in both roles each execute the fixed 15,000-trial authoritative adapter.
+  // 159 profiles in both roles each execute the fixed 15,000-trial authoritative adapter.
   }, 60_000)
 })

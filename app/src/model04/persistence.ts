@@ -13,6 +13,7 @@ import {
   MODEL_04_HISTORY_STORAGE_VERSION,
   MODEL_04_SHARE_FORMAT_VERSION,
   MODEL_04_VERSION,
+  RELEASED_MODEL_04_DATA_VERSION,
   type CreatureV4Draft,
   type Model04MigrationNotice,
   type Model04SourceIdentity,
@@ -28,6 +29,9 @@ export const MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v3'
 const PREVIOUS_MODEL_04_CUSTOM_STORAGE_KEY = 'what-would-win-custom-creatures-v2'
 const PREVIOUS_MODEL_04_HISTORY_STORAGE_KEY = 'what-would-win-history-v2'
 export const MODEL_04_CUSTOM_EXPORT_KIND = 'what-would-win-custom-creature' as const
+const CURRENT_MODEL_04_IDENTITY_LABEL = `model ${MODEL_04_VERSION}/data ${MODEL_04_DATA_VERSION}`
+const PENDING_DATA_060_NOTICE_CODE = 'history-result-pending-data-060' as const
+const LEGACY_PENDING_MODEL_050_NOTICE_CODE = 'history-result-pending-model-050' as const
 
 export interface SavedCustomCreatureV2 {
   creature: CreatureV4Draft
@@ -425,12 +429,13 @@ function decodeStructuredShare(value: string, builtInIds: ReadonlySet<string>): 
     const wire: unknown = JSON.parse(decoded)
     if (!Array.isArray(wire) || (wire.length !== 3 && wire.length !== 4)) throw new Error('Invalid envelope.')
     const currentIdentity = wire[0] === MODEL_04_VERSION && wire[1] === MODEL_04_DATA_VERSION
-    const previousIdentity = (
+    const releasedV5Identity = wire[0] === MODEL_04_VERSION && wire[1] === RELEASED_MODEL_04_DATA_VERSION
+    const previousV4Identity = (
       (wire[0] === '0.4.0' && wire[1] === '0.4.0')
       || (wire[0] === '0.4.1' && wire[1] === '0.4.1')
       || (wire[0] === '0.4.2' && wire[1] === '0.4.1')
     )
-    if (!currentIdentity && !previousIdentity) {
+    if (!currentIdentity && !releasedV5Identity && !previousV4Identity) {
       return { ok: false, reason: 'incompatible', message: 'This structured share uses incompatible model or data versions.' }
     }
     if (!isScenarioV4Draft(wire[2])) throw new Error('Invalid scenario.')
@@ -438,7 +443,7 @@ function decodeStructuredShare(value: string, builtInIds: ReadonlySet<string>): 
     if (!customs || !validateReferencedCustomProfiles(wire[2], customs, builtInIds)) throw new Error('Invalid custom profiles.')
     return {
       ok: true,
-      status: previousIdentity ? 'migrated-v4' : 'current',
+      status: releasedV5Identity ? 'migrated-v5' : previousV4Identity ? 'migrated-v4' : 'current',
       payload: currentPayload(wire[2], customs),
     }
   } catch {
@@ -521,6 +526,26 @@ function validHistoryText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= 200
 }
 
+function currentPendingRecalculationNotice(): Model04MigrationNotice {
+  return {
+    code: PENDING_DATA_060_NOTICE_CODE,
+    severity: 'warning',
+    message: `The saved inputs are intact, but the previous result must be recalculated under ${CURRENT_MODEL_04_IDENTITY_LABEL} before it can be current.`,
+  }
+}
+
+function isPendingRecalculationNotice(notice: Model04MigrationNotice): boolean {
+  return notice.code === PENDING_DATA_060_NOTICE_CODE || notice.code === LEGACY_PENDING_MODEL_050_NOTICE_CODE
+}
+
+function normalizePendingRecalculationNotices(notices: Model04MigrationNotice[]): Model04MigrationNotice[] {
+  if (!notices.some(isPendingRecalculationNotice)) return notices
+  return [
+    ...notices.filter((notice) => !isPendingRecalculationNotice(notice)),
+    currentPendingRecalculationNotice(),
+  ]
+}
+
 function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
   if (!isRecord(value) || value.formatVersion !== MODEL_04_HISTORY_STORAGE_VERSION || !isRecord(value.source) || !isScenarioV4Draft(value.scenario)) return null
   if (!validHistoryText(value.id) || !validDate(value.createdAt) || !validHistoryText(value.soloName) || !validHistoryText(value.groupName)) return null
@@ -536,6 +561,8 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
       && value.result.dataVersion === MODEL_04_DATA_VERSION
     if (currentIdentity) return structuredClone(value) as unknown as HistoryItemV2
     const previousIdentity = (
+      (value.result.modelVersion === MODEL_04_VERSION && value.result.dataVersion === RELEASED_MODEL_04_DATA_VERSION)
+      ||
       (value.result.modelVersion === '0.4.0' && value.result.dataVersion === '0.4.0')
       || (value.result.modelVersion === '0.4.1' && value.result.dataVersion === '0.4.1')
       || (value.result.modelVersion === '0.4.2' && value.result.dataVersion === '0.4.1')
@@ -553,11 +580,7 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
       },
       migrationNotices: [
         ...cloned.migrationNotices,
-        {
-          code: 'history-result-pending-model-050',
-          severity: 'warning',
-          message: 'The saved inputs are intact, but the previous result must be recalculated under model 0.5.0/data 0.5.0 before it can be current.',
-        },
+        currentPendingRecalculationNotice(),
       ],
     }
   }
@@ -566,7 +589,11 @@ function parseHistoryV2Item(value: unknown): HistoryItemV2 | null {
   } else if (value.result.status === 'pending-unavailable-profile') {
     if (!Array.isArray(value.result.missingIds) || !isRecord(value.result.legacySnapshot)) return null
   } else return null
-  return structuredClone(value) as unknown as HistoryItemV2
+  const cloned = structuredClone(value) as unknown as HistoryItemV2
+  return {
+    ...cloned,
+    migrationNotices: normalizePendingRecalculationNotices(cloned.migrationNotices),
+  }
 }
 
 function sourceIdentity(value: Record<string, unknown>, legacyArray: boolean): Model04SourceIdentity {
@@ -630,9 +657,9 @@ export function loadModel04History(storage: Storage, availableIds: ReadonlySet<s
       if (items.some((item) => item === null)) throw new Error('Invalid item.')
       const loadedItems = items as HistoryItemV2[]
       const hasPreviousResults = loadedItems.some((item) => item.migrationNotices.some((notice) => (
-        notice.code === 'history-result-pending-model-050'
+        isPendingRecalculationNotice(notice)
       )))
-      return { items: loadedItems, warning: hasPreviousResults ? 'Previous results are preserved as snapshots and must be recalculated under model 0.5.0/data 0.5.0.' : '', source: 'v3' }
+      return { items: loadedItems, warning: hasPreviousResults ? `Previous results are preserved as snapshots and must be recalculated under ${CURRENT_MODEL_04_IDENTITY_LABEL}.` : '', source: 'v3' }
     } catch {
       return { items: [], warning: 'Saved current-model history is incompatible or damaged. The stored data was left untouched.', source: 'v3' }
     }
@@ -649,7 +676,7 @@ export function loadModel04History(storage: Storage, availableIds: ReadonlySet<s
       if (items.some((item) => item === null)) throw new Error('Invalid v2 item.')
       const migrated = items as HistoryItemV2[]
       saveModel04History(storage, migrated)
-      return { items: migrated, warning: 'History inputs were copied to version 3; previous numerical results remain snapshots pending model 0.5.0 recalculation. The version 2 recovery copy was left untouched.', source: 'migrated-v2' }
+      return { items: migrated, warning: `History inputs were copied to version 3; previous numerical results remain snapshots pending ${CURRENT_MODEL_04_IDENTITY_LABEL} recalculation. The version 2 recovery copy was left untouched.`, source: 'migrated-v2' }
     } catch {
       return { items: [], warning: 'Version 2 history could not be migrated. The stored data was left untouched.', source: 'migrated-v2' }
     }
@@ -701,6 +728,6 @@ export function finalizeModel04HistoryItem(
       winnerName: result.winnerName,
       soloWinProbability: result.soloWinProbability,
     },
-    migrationNotices: item.migrationNotices.filter((notice) => notice.code !== 'history-result-pending-model-050'),
+    migrationNotices: item.migrationNotices.filter((notice) => !isPendingRecalculationNotice(notice)),
   }
 }

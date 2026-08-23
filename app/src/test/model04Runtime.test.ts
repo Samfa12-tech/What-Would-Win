@@ -5,7 +5,7 @@ import { migrateCreatureV3ToV4Draft, migrateScenarioV3ToV4Draft } from '../model
 import { MODEL_04_CUSTOM_STORAGE_KEY, MODEL_04_HISTORY_STORAGE_KEY } from '../model04/persistence'
 import { defaultScenario } from '../simulation/engine'
 import { MODEL_04_DATA_VERSION, MODEL_04_VERSION } from '../model04/contracts'
-import { Model04Runtime } from '../model04/runtime'
+import { createModel04Runtime } from './fixtures/model04Runtime'
 import { simulateModel04 } from '../model04/engineV4'
 import type { Creature, HistoryItem } from '../types'
 
@@ -47,22 +47,22 @@ function previousHistoryStore() {
   }
 }
 describe('model 0.4 activation runtime boundary', () => {
-  test('activates 139 reviewed profiles and simulates from the existing UI scenario shape', () => {
-    const runtime = new Model04Runtime(creatures)
-    expect(runtime.creatures).toHaveLength(139)
+  test('activates 159 reviewed profiles and simulates from the existing UI scenario shape', () => {
+    const runtime = createModel04Runtime(creatures)
+    expect(runtime.creatures).toHaveLength(159)
     expect(runtime.creatures.every((creature) => !creature.migration.reviewRequired)).toBe(true)
     const run = runtime.simulate(defaultScenario(creatures), {
       solo: { defaultPercent: 100, abilityPercent: {} },
       group: { defaultPercent: 50, abilityPercent: {} },
     })
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.5.0' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.6.0' })
     expect(run.scenario).toMatchObject({ schemaVersion: 4, soloResources: { defaultPercent: 100 }, groupResources: { defaultPercent: 50 } })
     expect(run.contestants).toMatchObject({ solo: { id: run.scenario.soloId, schemaVersion: 4 }, group: { id: run.scenario.groupId, schemaVersion: 4 } })
     expect(run.abilityResolutions.length).toBeGreaterThan(0)
   })
 
   test('returns a complete immutable run snapshot that reproduces the authoritative result', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const scenario = { ...defaultScenario(creatures), seed: 481516, startingDistanceM: 24, reportDepth: 'technical' as const }
     const resources = {
       solo: { defaultPercent: 63, abilityPercent: { 'legacy-contact': 31 } },
@@ -93,7 +93,7 @@ describe('model 0.4 activation runtime boundary', () => {
   })
 
   test('exposes activated v4 dossiers without replacing the compact creature projection', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const dragon = creatures.find((creature) => creature.id === 'western-dragon')!
     const dragonDossier = runtime.dossier(dragon)
     expect(dragonDossier).toMatchObject({
@@ -113,7 +113,7 @@ describe('model 0.4 activation runtime boundary', () => {
 
   test('round trips v4 shares back to the UI scenario and asymmetric resources', () => {
     vi.stubGlobal('window', { location: { href: 'https://example.test/apps/what-would-win/' } })
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const scenario = defaultScenario(creatures)
     const resources = {
       solo: { defaultPercent: 75, abilityPercent: { 'legacy-contact': 25 } },
@@ -125,7 +125,7 @@ describe('model 0.4 activation runtime boundary', () => {
   })
 
   test('restores the exact asymmetric and per-ability resources for a v2 history item ID', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const storage = new MemoryStorage()
     const scenario = { ...defaultScenario(creatures), seed: 4815, resourcesPercent: 61 }
     const resources = {
@@ -157,7 +157,7 @@ describe('model 0.4 activation runtime boundary', () => {
   })
 
   test('finalizes a pending migrated history item with the current recalculated result', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const storage = new MemoryStorage()
     storage.setItem(PREVIOUS_HISTORY_STORAGE_KEY, JSON.stringify(previousHistoryStore()))
     const loaded = runtime.loadHistory(storage, creatures)
@@ -184,7 +184,7 @@ describe('model 0.4 activation runtime boundary', () => {
       },
     })
     expect(saved.items[0].migrationNotices).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'history-result-pending-model-050' }),
+      expect.objectContaining({ code: 'history-result-pending-data-060' }),
     ]))
     expect(runtime.loadHistory(storage, creatures).items[0]).toMatchObject({
       modelVersion: MODEL_04_VERSION,
@@ -195,7 +195,7 @@ describe('model 0.4 activation runtime boundary', () => {
   })
 
   test('clears current history with an empty tombstone without deleting or reviving recovery bytes', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const storage = new MemoryStorage()
     const previousRaw = JSON.stringify(previousHistoryStore())
     storage.setItem(PREVIOUS_HISTORY_STORAGE_KEY, previousRaw)
@@ -208,7 +208,7 @@ describe('model 0.4 activation runtime boundary', () => {
     expect(runtime.loadHistory(storage, creatures).items).toEqual([])
   })
   test('preserves imported structured custom abilities when legacy fields are edited and saved', () => {
-    const runtime = new Model04Runtime(creatures)
+    const runtime = createModel04Runtime(creatures)
     const storage = new MemoryStorage()
     const saved = cloneAsCustom(creatures[0], 'custom:structured-runtime', '2026-07-19T00:00:00.000Z')
     const profile = migrateCreatureV3ToV4Draft(saved.creature, 'custom-v1')

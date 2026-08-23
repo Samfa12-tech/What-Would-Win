@@ -11,6 +11,7 @@ const familyLabels: Record<string, string> = {
   'dry-land-evidence': 'dry-land access',
   'aquatic-inference': 'aquatic capability inference',
   'contact-piercing': 'contact piercing',
+  'contact-slashing': 'contact slashing',
   'ranged-unambiguous': 'ranged delivery',
   'ranged-when-declared': 'conditional ranged delivery',
   'venom-delivery': 'venom delivery',
@@ -27,7 +28,8 @@ const familyLabels: Record<string, string> = {
 const mechanicalFamilies: Record<'attack_modes' | 'traits', Record<string, string[]>> = {
   attack_modes: {
     'contact-piercing': ['claw', 'horn', 'saber-bite', 'spear', 'spur', 'sting', 'tail-spike', 'tail-sting', 'talon', 'tusk', 'venomous-bite'],
-    'ranged-unambiguous': ['bow', 'electric-shock', 'fire-breath', 'fire-burst', 'gaze', 'throw', 'web'],
+    'contact-slashing': ['sword'],
+    'ranged-unambiguous': ['bow', 'crossbow', 'electric-shock', 'fire-breath', 'fire-burst', 'gaze', 'throw', 'web'],
     'ranged-when-declared': ['song', 'tail-spike', 'whirlpool'],
     'venom-delivery': ['venom', 'venomous-bite'],
     'stopping-bypass': ['electric-shock', 'whirlpool'],

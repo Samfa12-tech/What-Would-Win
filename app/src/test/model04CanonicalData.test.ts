@@ -16,6 +16,28 @@ import type { Creature } from '../types'
 
 const creaturesV3 = creaturesJson as Creature[]
 const overrideStore = complexOverridesJson as ComplexProfileOverrideStore
+const roster09Ids = [
+  'piranha',
+  'giant-otter',
+  'leopard-seal',
+  'tasmanian-devil',
+  'harpy-eagle',
+  'musk-ox',
+  'giant-armadillo',
+  'capybara',
+  'coconut-crab',
+  'giant-freshwater-stingray',
+  'utahraptor',
+  'mosasaurus',
+  'dunkleosteus',
+  'glyptodon',
+  'average-unarmed-adult-human',
+  'trained-heavyweight-boxer',
+  'trained-wrestler',
+  'sumo-wrestler',
+  'armoured-sword-and-shield-fighter',
+  'prepared-crossbow-carrier',
+] as const
 const draft = buildCanonicalModel04Draft(creaturesV3, overrideStore)
 const creatureMap = new Map(draft.creatures.map((creature) => [creature.id, creature]))
 const ajv = new Ajv2020({ allErrors: true, strict: true })
@@ -27,6 +49,12 @@ const validateScenario = ajv.compile(scenarioV4Schema)
 function profile(id: string): CreatureV4Draft {
   const found = creatureMap.get(id)
   if (!found) throw new Error(`Missing model 0.4 draft profile ${id}.`)
+  return found
+}
+
+function ability(creatureId: string, abilityId: string) {
+  const found = profile(creatureId).abilities.find((candidate) => candidate.id === abilityId)
+  if (!found) throw new Error(`Missing model 0.4 ability ${creatureId}:${abilityId}.`)
   return found
 }
 
@@ -70,10 +98,10 @@ function context(overrides: Partial<AbilityKernelContext> = {}): AbilityKernelCo
 }
 
 describe('active model 0.4 canonical ability data', () => {
-  test('validates the override contract and all 139 merged draft profiles', () => {
+  test('validates the override contract and all 159 merged draft profiles', () => {
     expect(validateOverrides(complexOverridesJson), ajv.errorsText(validateOverrides.errors)).toBe(true)
-    expect(draft.creatures).toHaveLength(139)
-    expect(Object.keys(draft.reviews)).toHaveLength(37)
+    expect(draft.creatures).toHaveLength(159)
+    expect(Object.keys(draft.reviews)).toHaveLength(57)
     for (const creature of draft.creatures) {
       expect(validateCreature(creature), `${creature.id}: ${ajv.errorsText(validateCreature.errors)}`).toBe(true)
       expect(new Set(creature.abilities.map((ability) => ability.id)).size).toBe(creature.abilities.length)
@@ -88,8 +116,8 @@ describe('active model 0.4 canonical ability data', () => {
 
   test('accepts conservative simple-profile migrations only after the activation review gate', () => {
     const activated = activateCanonicalModel04Data(draft)
-    expect(activated).toMatchObject({ reviewedComplexCount: 37, acceptedConservativeMigrationCount: 102 })
-    expect(activated.creatures).toHaveLength(139)
+    expect(activated).toMatchObject({ reviewedComplexCount: 57, acceptedConservativeMigrationCount: 102 })
+    expect(activated.creatures).toHaveLength(159)
     expect(activated.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(activated.creatures.every((creature) => creature.abilities.every((ability) => ability.legacyGenerated !== true))).toBe(true)
     for (const creature of activated.creatures) {
@@ -174,6 +202,224 @@ describe('active model 0.4 canonical ability data', () => {
     })
     expect(wraith.abilities.find((ability) => ability.id === 'spectral-touch')?.effects[0]).toMatchObject({ channel: 'incorporeal' })
     expect(wraith.abilities.find((ability) => ability.id === 'dread-aura')?.effects[0]).toMatchObject({ kind: 'morale', channel: 'fear' })
+  })
+
+  test('activates exactly the 20 reviewed 0.9 profiles with their bounded identity mechanics', () => {
+    expect(roster09Ids).toHaveLength(20)
+    expect(roster09Ids.map((id) => profile(id).id)).toEqual(roster09Ids)
+    expect(roster09Ids.map((id) => overrideStore.profiles.find((override) => override.id === id)?.review.status))
+      .toEqual(Array.from({ length: 20 }, () => 'reviewed'))
+    const activated = activateCanonicalModel04Data(draft)
+    expect(roster09Ids.map((id) => activated.creatures.find((creature) => creature.id === id)?.migration.reviewRequired))
+      .toEqual(Array.from({ length: 20 }, () => false))
+
+    expect(profile('piranha')).toMatchObject({
+      locomotion: { aquatic: true, amphibious: false, land: false },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'piranha-bite', targetLimit: 'single' })]),
+    })
+    expect(profile('piranha').abilities.some((ability) => (
+      /swarm/i.test(`${ability.id} ${ability.name}`)
+      || ability.targetLimit !== 'single'
+      || (ability.conditions?.minimumAttackerQuantity ?? 0) > 1
+    ))).toBe(false)
+    expect(ability('piranha', 'piranha-bite').conditions).toEqual({ terrains: ['river', 'swamp'] })
+    expect(profile('giant-otter').locomotion).toMatchObject({ aquatic: true, amphibious: true, land: true })
+    expect(ability('giant-otter', 'otter-grapple').conditions).toEqual({ maximumTargetMassKg: 150 })
+    expect(profile('leopard-seal').locomotion).toMatchObject({ aquatic: true, land: true })
+    expect(profile('tasmanian-devil').abilities.map((candidate) => candidate.id)).toEqual(['devil-bite'])
+    expect(profile('harpy-eagle')).toMatchObject({
+      locomotion: { flight: true, land: true },
+      abilities: expect.arrayContaining([expect.objectContaining({ id: 'flight', delivery: 'self' })]),
+    })
+    expect(profile('musk-ox').channelModifiers).toEqual({ cold: 0.35, 'physical-slashing': 0.85, 'physical-piercing': 0.9 })
+    expect(profile('giant-armadillo').channelModifiers).toEqual({ 'physical-slashing': 0.55, 'physical-piercing': 0.65, 'physical-blunt': 0.9 })
+    expect(profile('capybara').locomotion).toMatchObject({ aquatic: true, amphibious: true, land: true })
+    expect(profile('coconut-crab')).toMatchObject({
+      locomotion: { aquatic: false, land: true, arboreal: true },
+      channelModifiers: { 'physical-slashing': 0.7, 'physical-piercing': 0.75, 'physical-blunt': 0.85 },
+    })
+    expect(ability('coconut-crab', 'crab-claw-grip').conditions).toEqual({ maximumTargetMassKg: 40 })
+    expect(profile('giant-freshwater-stingray').abilities.find((ability) => ability.id === 'tail-sting')).toMatchObject({
+      delivery: 'contact',
+      effects: expect.arrayContaining([expect.objectContaining({ channel: 'venom' })]),
+      conditions: { targetPhysiology: ['living'], terrains: ['river', 'swamp'] },
+    })
+    expect(ability('utahraptor', 'possible-pack-pressure').conditions).toEqual({ minimumAttackerQuantity: 2 })
+    expect(profile('mosasaurus').locomotion).toMatchObject({ aquatic: true, amphibious: false, land: false })
+    expect(ability('mosasaurus', 'mosasaur-bite').conditions).toEqual({ terrains: ['ocean', 'deep-ocean', 'prehistoric-ocean'] })
+    expect(profile('dunkleosteus').channelModifiers).toEqual({ 'physical-slashing': 0.45, 'physical-piercing': 0.55, 'physical-blunt': 0.8 })
+    expect(profile('glyptodon').channelModifiers).toEqual({ 'physical-slashing': 0.35, 'physical-piercing': 0.45, 'physical-blunt': 0.75 })
+    expect(profile('average-unarmed-adult-human').review?.note).toMatch(/does not use the high-end-adult convention/i)
+    expect(profile('trained-heavyweight-boxer').abilities.map((candidate) => candidate.id)).toEqual(['boxing-combination'])
+    expect(ability('trained-wrestler', 'wrestling-control').conditions).toEqual({ maximumTargetMassKg: 250 })
+    expect(ability('sumo-wrestler', 'sumo-drive').conditions).toEqual({ maximumTargetMassKg: 350 })
+
+    const swordFighter = profile('armoured-sword-and-shield-fighter')
+    expect(swordFighter.channelModifiers).toEqual({ 'physical-slashing': 0.55, 'physical-piercing': 0.65, 'physical-blunt': 0.85 })
+    expect(swordFighter.abilities).toEqual([expect.objectContaining({
+      id: 'sword-slash',
+      delivery: 'contact',
+      effects: [{ kind: 'harm', channel: 'physical-slashing', potency: 68 }],
+    })])
+    expect(swordFighter.review?.note).toMatch(/armour.*shield.*channel modifiers/i)
+
+    expect(ability('prepared-crossbow-carrier', 'crossbow-bolt')).toMatchObject({
+      delivery: 'ranged',
+      effects: [{ kind: 'harm', channel: 'physical-piercing', potency: expect.any(Number) }],
+      rangeM: 60,
+      geometryScaling: 'linear',
+      resource: { pool: 'ability', capacity: 12 },
+    })
+  })
+
+  test('resolves aquatic-only, amphibious, flight, venom, armor, restraint and finite ammunition behavior', () => {
+    const piranhaOnLand = resolveAbilityKernel(
+      side(profile('piranha')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', waterDepthM: 0, startingDistanceM: 0 }),
+    )
+    expect(piranhaOnLand.resolutions.find((resolution) => resolution.abilityId === 'piranha-bite')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+    })
+
+    const otterOnLand = resolveAbilityKernel(
+      side(profile('giant-otter')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', waterDepthM: 0, startingDistanceM: 0 }),
+    )
+    expect(otterOnLand.resolutions.find((resolution) => resolution.abilityId === 'otter-bite')?.active).toBe(true)
+
+    const harpyAir = resolveAbilityKernel(
+      side(profile('harpy-eagle')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', startingDistanceM: 20 }),
+    )
+    expect(harpyAir.resolutions.find((resolution) => resolution.abilityId === 'flight')).toMatchObject({ active: true })
+
+    const stingray = resolveAbilityKernel(
+      side(profile('giant-freshwater-stingray')),
+      side(profile('stone-golem')),
+      scenario({ terrain: 'river', waterDepthM: 2, startingDistanceM: 0 }),
+    )
+    expect(stingray.resolutions.find((resolution) => resolution.abilityId === 'tail-sting')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+    })
+
+    const sword = resolveAbilityKernel(
+      side(profile('armoured-sword-and-shield-fighter')),
+      side(profile('giant-armadillo')),
+      scenario({ startingDistanceM: 0 }),
+    )
+    const swordEffect = sword.resolutions.find((resolution) => resolution.abilityId === 'sword-slash')
+      ?.effects.find((effect) => effect.channel === 'physical-slashing')
+    expect(swordEffect?.channelFactor).toBeLessThan(1)
+    expect(sword.resolutions.find((resolution) => resolution.abilityId === 'shield-guard')).toBeUndefined()
+
+    const wrestler = resolveAbilityKernel(
+      side(profile('trained-wrestler')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 0 }),
+    )
+    expect(wrestler.resolutions.find((resolution) => resolution.abilityId === 'wrestling-control')).toMatchObject({ active: true })
+
+    const fullBolts = resolveAbilityKernel(
+      side(profile('prepared-crossbow-carrier')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 30 }),
+      context({ durationSeconds: 120 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crossbow-bolt')
+    const scarceBolts = resolveAbilityKernel(
+      side(profile('prepared-crossbow-carrier')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ startingDistanceM: 30, soloResources: { defaultPercent: 100, abilityPercent: { 'crossbow-bolt': 10 } } }),
+      context({ durationSeconds: 120 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crossbow-bolt')
+    expect(fullBolts).toMatchObject({ active: true, resolvedUses: 2 })
+    expect(scarceBolts?.resolvedUses).toBeLessThan(fullBolts?.resolvedUses ?? 0)
+    expect(scarceBolts?.logDelta ?? 0).toBeLessThan(fullBolts?.logDelta ?? 0)
+  })
+
+  test('rejects Utahraptor pack pressure for one attacker and activates it at two', () => {
+    const pressure = (quantity: number) => resolveAbilityKernel(
+      side(profile('utahraptor'), Math.log10(quantity)),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'possible-pack-pressure')
+    expect(pressure(1)).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['minimum-attacker-quantity'],
+    })
+    expect(pressure(2)).toMatchObject({ active: true })
+  })
+
+  test('enforces the coconut crab restraint mass ceiling', () => {
+    const grip = (targetId: string) => resolveAbilityKernel(
+      side(profile('coconut-crab')),
+      side(profile(targetId)),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'crab-claw-grip')
+    expect(grip('brown-rat')).toMatchObject({ active: true })
+    expect(grip('average-unarmed-adult-human')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['maximum-target-mass'],
+    })
+  })
+
+  test('enforces the giant otter restraint mass ceiling', () => {
+    const grapple = (targetId: string) => resolveAbilityKernel(
+      side(profile('giant-otter')),
+      side(profile(targetId)),
+      scenario({ terrain: 'open', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'otter-grapple')
+    expect(grapple('average-unarmed-adult-human')).toMatchObject({ active: true })
+    expect(grapple('leopard-seal')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['maximum-target-mass'],
+    })
+  })
+
+  test('rejects the Mosasaurus bite on land and activates it in the ocean', () => {
+    const bite = (terrain: ScenarioV4Draft['terrain']) => resolveAbilityKernel(
+      side(profile('mosasaurus')),
+      side(profile('average-unarmed-adult-human')),
+      scenario({ terrain, startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'mosasaur-bite')
+    expect(bite('open')).toMatchObject({
+      active: false,
+      rejectionReason: 'condition-unmet',
+      conditionFailures: ['terrain'],
+    })
+    expect(bite('ocean')).toMatchObject({ active: true })
+  })
+
+  test('reduces sword harm through Dunkleosteus armor', () => {
+    const swordFighter = side(profile('armoured-sword-and-shield-fighter'))
+    const armoredDunkleosteus = profile('dunkleosteus')
+    const unarmoredDunkleosteus: CreatureV4Draft = {
+      ...armoredDunkleosteus,
+      channelModifiers: { ...armoredDunkleosteus.channelModifiers, 'physical-slashing': 1 },
+    }
+    const swordAgainst = (target: CreatureV4Draft) => resolveAbilityKernel(
+      swordFighter,
+      side(target),
+      scenario({ terrain: 'ocean', startingDistanceM: 0 }),
+    ).resolutions.find((resolution) => resolution.abilityId === 'sword-slash')
+    const armoredSword = swordAgainst(armoredDunkleosteus)
+    const unarmoredSword = swordAgainst(unarmoredDunkleosteus)
+    expect(armoredSword).toMatchObject({
+      active: true,
+      effects: [expect.objectContaining({ channel: 'physical-slashing', channelFactor: 0.45 })],
+    })
+    expect(unarmoredSword).toMatchObject({
+      active: true,
+      effects: [expect.objectContaining({ channel: 'physical-slashing', channelFactor: 1 })],
+    })
+    expect(armoredSword?.logDelta ?? 0).toBeLessThan(unarmoredSword?.logDelta ?? 0)
   })
 
   test('locks the exact 16 handoff mythology fixtures to valid profiles and scenarios', () => {

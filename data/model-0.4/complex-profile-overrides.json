@@ -668,6 +668,176 @@
       "review": { "status": "reviewed", "interpretation": "Large pterosaur with terrestrial stalking and powered flight", "note": "One bounded contact package covers the chosen grounded or aerial approach without stacking mutually exclusive attacks; no speculative group hunting is inferred." }
     },
     {
+      "id": "piranha", "contact_reach_m": 0.12, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": false, "land": false, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "piranha-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 32 }], "targetLimit": "single", "activationRate": 0.72, "conditions": { "terrains": ["river", "swamp"] }, "resource": { "pool": "none" }, "notes": "Solo aquatic bite only; no swarm bonus is granted without declared quantity." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Solo adult piranha in water", "note": "Aquatic access and single-target bite are explicit; no artificial swarm route is inferred." }
+    },
+    {
+      "id": "giant-otter", "contact_reach_m": 0.45, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": true, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "otter-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 52 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Piercing bite remains available on land and in water." },
+        { "id": "otter-grapple", "name": "Grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 42 }], "targetLimit": "single", "activationRate": 0.66, "conditions": { "maximumTargetMassKg": 150 }, "resource": { "pool": "none" }, "notes": "Bounded mustelid grappling against targets within a reviewed mass ceiling." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large amphibious giant otter", "note": "Aquatic, land and restraint routes are explicit without granting undeclared pack bodies." }
+    },
+    {
+      "id": "leopard-seal", "contact_reach_m": 0.9, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "seal-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 76 }], "targetLimit": "single", "activationRate": 0.82, "resource": { "pool": "none" }, "notes": "Primary aquatic predatory bite with limited land access." },
+        { "id": "seal-ram", "name": "Body ram", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 58 }], "targetLimit": "single", "activationRate": 0.64, "conditions": { "terrains": ["ocean", "coast", "deep-ocean"] }, "resource": { "pool": "none" }, "notes": "Water-supported impact route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large amphibious marine predator", "note": "Water access and contact harm are explicit; land movement is real but limited." }
+    },
+    {
+      "id": "tasmanian-devil", "contact_reach_m": 0.28, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "devil-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 42 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Small carnivorous marsupial bite route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large healthy Tasmanian devil", "note": "No disease, swarm or supernatural interpretation is inferred." }
+    },
+    {
+      "id": "harpy-eagle", "contact_reach_m": 0.75, "physiology": "living",
+      "locomotion": { "flight": true, "aquatic": false, "amphibious": false, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "harpy-talons", "name": "Talons and beak", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 62 }, { "kind": "harm", "channel": "physical-slashing", "potency": 48 }], "targetLimit": "single", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Raptorial contact attack; no projectile is inferred." },
+        { "id": "flight", "name": "Flight", "kind": "mobility", "delivery": "self", "effects": [{ "kind": "mobility", "channel": "mobility", "potency": 88 }], "targetLimit": "single", "activationRate": 1, "resource": { "pool": "none" }, "notes": "Forest-canopy flight route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large flying forest eagle", "note": "Flight and talon contact are explicit and separate." }
+    },
+    {
+      "id": "musk-ox", "contact_reach_m": 1.2, "physiology": "living",
+      "channelModifiers": { "cold": 0.35, "physical-slashing": 0.85, "physical-piercing": 0.9 },
+      "abilities": [
+        { "id": "horn-charge", "name": "Horn charge", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 74 }, { "kind": "harm", "channel": "physical-blunt", "potency": 62 }], "targetLimit": "frontage", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Horns and body mass create bounded frontage pressure." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large cold-adapted horned herbivore", "note": "Hide and horn contact channels are explicit; herd trait does not add bodies." }
+    },
+    {
+      "id": "giant-armadillo", "contact_reach_m": 0.45, "physiology": "living",
+      "channelModifiers": { "physical-slashing": 0.55, "physical-piercing": 0.65, "physical-blunt": 0.9 },
+      "abilities": [
+        { "id": "armadillo-claws", "name": "Claws and bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 44 }, { "kind": "harm", "channel": "physical-piercing", "potency": 30 }], "targetLimit": "single", "activationRate": 0.68, "resource": { "pool": "none" }, "notes": "Defensive claws and bite; armor is handled through channel modifiers." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Armored giant armadillo", "note": "Shell resistance is channel-specific and does not imply offensive scaling." }
+    },
+    {
+      "id": "capybara", "contact_reach_m": 0.35, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": true, "land": true, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "capybara-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 28 }], "targetLimit": "single", "activationRate": 0.56, "resource": { "pool": "none" }, "notes": "Modest defensive bite; water access is mobility, not extra offense." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large semi-aquatic rodent", "note": "Amphibious access is explicit without inventing a combat swim attack." }
+    },
+    {
+      "id": "coconut-crab", "contact_reach_m": 0.22, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": false, "amphibious": false, "land": true, "arboreal": true },
+      "channelModifiers": { "physical-slashing": 0.7, "physical-piercing": 0.75, "physical-blunt": 0.85 },
+      "abilities": [
+        { "id": "crab-claw-grip", "name": "Claw grip", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-crushing", "potency": 38 }, { "kind": "restraint", "channel": "restraint", "potency": 36 }], "targetLimit": "single", "activationRate": 0.64, "conditions": { "maximumTargetMassKg": 40 }, "resource": { "pool": "none" }, "notes": "Claw force is bounded to targets near the crab's scale." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large armored land crab", "note": "Armor, climbing and claw restraint are explicit; no aquatic bonus is inferred." }
+    },
+    {
+      "id": "giant-freshwater-stingray", "contact_reach_m": 1.5, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": false, "land": false, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "tail-sting", "name": "Tail sting", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 50 }, { "kind": "harm", "channel": "venom", "potency": 58 }], "targetLimit": "single", "activationRate": 0.68, "conditions": { "targetPhysiology": ["living"], "terrains": ["river", "swamp"] }, "resource": { "pool": "none" }, "notes": "Venom is delivered through a living-target tail sting in freshwater." },
+        { "id": "ray-ram", "name": "Body ram", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 44 }], "targetLimit": "single", "activationRate": 0.5, "conditions": { "terrains": ["river", "swamp"] }, "resource": { "pool": "none" }, "notes": "Water-supported contact fallback." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large venomous freshwater ray", "note": "Aquatic locomotion and venom delivery are explicit and terrain-bound." }
+    },
+    {
+      "id": "utahraptor", "contact_reach_m": 1.4, "physiology": "living",
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "raptor-claw-pounce", "name": "Claw pounce", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 82 }, { "kind": "harm", "channel": "physical-piercing", "potency": 66 }], "targetLimit": "single", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Large dromaeosaur contact package; reconstruction uncertainty is retained in data confidence." },
+        { "id": "possible-pack-pressure", "name": "Possible pack pressure", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 42 }], "targetLimit": "frontage", "activationRate": 0.52, "conditions": { "minimumAttackerQuantity": 2 }, "resource": { "pool": "none" }, "notes": "Pack-compatible behavior is speculative and only activates for declared groups." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large reconstructed dromaeosaur", "note": "Contact attacks are explicit; possible pack pressure requires declared quantity and remains low-confidence." }
+    },
+    {
+      "id": "mosasaurus", "contact_reach_m": 2, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": false, "land": false, "arboreal": false },
+      "channelModifiers": {},
+      "abilities": [
+        { "id": "mosasaur-bite", "name": "Bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 96 }, { "kind": "harm", "channel": "physical-crushing", "potency": 72 }], "targetLimit": "single", "activationRate": 0.86, "conditions": { "terrains": ["ocean", "deep-ocean", "prehistoric-ocean"] }, "resource": { "pool": "none" }, "notes": "Aquatic marine bite route." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Large aquatic mosasaur", "note": "Obligate water access and bite channels are explicit." }
+    },
+    {
+      "id": "dunkleosteus", "contact_reach_m": 1.2, "physiology": "living",
+      "locomotion": { "flight": false, "aquatic": true, "amphibious": false, "land": false, "arboreal": false },
+      "channelModifiers": { "physical-slashing": 0.45, "physical-piercing": 0.55, "physical-blunt": 0.8 },
+      "abilities": [
+        { "id": "armored-fish-bite", "name": "Armored bite", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 90 }, { "kind": "harm", "channel": "physical-crushing", "potency": 78 }], "targetLimit": "single", "activationRate": 0.82, "conditions": { "terrains": ["ocean", "deep-ocean", "prehistoric-ocean"] }, "resource": { "pool": "none" }, "notes": "Bite and armor are reconstructed with honest uncertainty." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Armored aquatic placoderm", "note": "Aquatic access, bite and armor channels are explicit and low-confidence." }
+    },
+    {
+      "id": "glyptodon", "contact_reach_m": 0.9, "physiology": "living",
+      "channelModifiers": { "physical-slashing": 0.35, "physical-piercing": 0.45, "physical-blunt": 0.75 },
+      "abilities": [
+        { "id": "glyptodon-tail-strike", "name": "Tail strike", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 58 }], "targetLimit": "single", "activationRate": 0.58, "resource": { "pool": "none" }, "notes": "Conservative tail-strike route; armor is handled separately." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Armored extinct glyptodont", "note": "Armor is channel-specific and tail use remains a bounded reconstruction." }
+    },
+    {
+      "id": "average-unarmed-adult-human", "contact_reach_m": 0.7, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "average-human-strike", "name": "Strike and kick", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 34 }], "targetLimit": "single", "activationRate": 0.66, "resource": { "pool": "none" }, "notes": "Explicit average adult unarmed baseline." },
+        { "id": "average-human-grapple", "name": "Basic grapple", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "restraint", "channel": "restraint", "potency": 26 }], "targetLimit": "single", "activationRate": 0.52, "conditions": { "maximumTargetMassKg": 100 }, "resource": { "pool": "none" }, "notes": "Basic restraint is bounded and not specialized training." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Explicit average adult human", "note": "This is the one new real profile that deliberately does not use the high-end-adult convention." }
+    },
+    {
+      "id": "trained-heavyweight-boxer", "contact_reach_m": 0.85, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "boxing-combination", "name": "Boxing combination", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 58 }], "targetLimit": "single", "activationRate": 0.84, "resource": { "pool": "none" }, "notes": "Unarmed trained striking; no grappling specialization or weapons." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic trained heavyweight boxer", "note": "Boxing is represented as contact blunt harm, not a named-person profile." }
+    },
+    {
+      "id": "trained-wrestler", "contact_reach_m": 0.9, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "wrestling-control", "name": "Wrestling control", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 42 }, { "kind": "restraint", "channel": "restraint", "potency": 72 }], "targetLimit": "single", "activationRate": 0.86, "conditions": { "maximumTargetMassKg": 250 }, "resource": { "pool": "none" }, "notes": "Throws, pins and clinch control are represented as bounded contact restraint." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic trained wrestler", "note": "Restraint is explicit and mass-bounded." }
+    },
+    {
+      "id": "sumo-wrestler", "contact_reach_m": 0.9, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "sumo-drive", "name": "Sumo drive", "kind": "restraint", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-blunt", "potency": 56 }, { "kind": "restraint", "channel": "restraint", "potency": 66 }], "targetLimit": "single", "activationRate": 0.82, "conditions": { "maximumTargetMassKg": 350 }, "resource": { "pool": "none" }, "notes": "Mass, balance and pushing control are represented as contact restraint." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic sumo wrestler", "note": "Restraint and body impact are explicit; no ring boundary rule is assumed." }
+    },
+    {
+      "id": "armoured-sword-and-shield-fighter", "contact_reach_m": 1.1, "physiology": "living",
+      "channelModifiers": { "physical-slashing": 0.55, "physical-piercing": 0.65, "physical-blunt": 0.85 },
+      "abilities": [
+        { "id": "sword-slash", "name": "Sword slash", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-slashing", "potency": 68 }], "targetLimit": "single", "activationRate": 0.78, "resource": { "pool": "none" }, "notes": "Sword is one bounded contact-slashing route; mutually exclusive thrust techniques are not stacked." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Generic armoured sword-and-shield fighter", "note": "Armour and actively handled shield are represented through defensive channel modifiers; sword slashing remains a separate contact route." }
+    },
+    {
+      "id": "prepared-crossbow-carrier", "contact_reach_m": 1.0, "physiology": "living", "channelModifiers": {},
+      "abilities": [
+        { "id": "crossbow-bolt", "name": "Crossbow bolt", "kind": "attack", "delivery": "ranged", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 64 }], "rangeM": 60, "geometryScaling": "linear", "targetLimit": "single", "activationRate": 0.74, "resource": { "pool": "ability", "capacity": 12 }, "notes": "Prepared crossbow uses finite piercing ammunition." },
+        { "id": "knife", "name": "Knife", "kind": "attack", "delivery": "contact", "effects": [{ "kind": "harm", "channel": "physical-piercing", "potency": 42 }], "targetLimit": "single", "activationRate": 0.62, "resource": { "pool": "none" }, "notes": "Contact fallback after bolts deplete or range closes." }
+      ],
+      "review": { "status": "reviewed", "interpretation": "Prepared human crossbow carrier", "note": "Ranged piercing and finite ammunition are explicit; the profile is not a historical-culture claim." }
+    },
+    {
       "id": "generic-wraith",
       "contact_reach_m": 1.5,
       "physiology": "spirit",

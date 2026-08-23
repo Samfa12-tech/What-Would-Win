@@ -13,13 +13,14 @@ import {
   MODEL_04_HISTORY_STORAGE_KEY,
   decodeModel04Scenario,
 } from '../model04/persistence'
-import { Model04Runtime, type Model04RuntimeResult } from '../model04/runtime'
+import { type Model04RuntimeResult } from '../model04/runtime'
+import { createModel04Runtime } from './fixtures/model04Runtime'
 import { defaultScenario } from '../simulation/engine'
 import type { Creature, Scenario } from '../types'
 import { APPLICATION_VERSION, DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
 
 const creatures = creaturesJson as Creature[]
-const runtime = new Model04Runtime(creatures)
+const runtime = createModel04Runtime(creatures)
 
 const frozenLegacyShares = [
   {
@@ -61,9 +62,11 @@ function resultIdentity(run: Model04RuntimeResult) {
 describe('model 0.4 atomic activation contract', () => {
   test('locks application and active model, data, share, custom and history identities explicitly', () => {
     expect(packageJson.version).toBe(APPLICATION_VERSION)
-    expect(String(APPLICATION_VERSION)).toBe('0.8.2')
+    expect(String(APPLICATION_VERSION)).toBe('0.9.0')
     expect(String(MODEL_VERSION)).toBe(MODEL_04_VERSION)
     expect(String(DATA_VERSION)).toBe(MODEL_04_DATA_VERSION)
+    expect(String(MODEL_VERSION)).toBe('0.5.0')
+    expect(String(DATA_VERSION)).toBe('0.6.0')
     expect(Number(SHARE_FORMAT_VERSION)).toBe(MODEL_04_SHARE_FORMAT_VERSION)
     expect(MODEL_04_CUSTOM_STORAGE_VERSION).toBe(3)
     expect(MODEL_04_HISTORY_STORAGE_VERSION).toBe(3)
@@ -72,9 +75,9 @@ describe('model 0.4 atomic activation contract', () => {
   })
 
   test('activates the complete reviewed canonical roster without legacy markers', () => {
-    expect(runtime.creatures).toHaveLength(139)
+    expect(runtime.creatures).toHaveLength(159)
     expect(runtime.creatures.map((creature) => creature.id)).toEqual(creatures.map((creature) => creature.id))
-    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(139)
+    expect(new Set(runtime.creatures.map((creature) => creature.id)).size).toBe(159)
     expect(runtime.creatures.every((creature) => creature.migration.reviewRequired === false)).toBe(true)
     expect(runtime.creatures.every((creature) => creature.abilities.every((ability) => !('legacyGenerated' in ability)))).toBe(true)
   })

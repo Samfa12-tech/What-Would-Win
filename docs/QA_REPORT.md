@@ -1,27 +1,27 @@
-# What Would Win — application 0.8.2 release QA report
+# What Would Win — roster expansion 0.9 QA report
 
-**QA date:** 1 August 2026
+**QA date:** 23 August 2026
 
-**Release identity:** application **0.8.2**, model **0.5.0**, data **0.5.0**, storyboard **v3**, share format **v5**, custom/history storage **v3**
+**Release identity:** application **0.9.0**, model **0.5.0**, data **0.6.0**, storyboard **v3**, share format **v5**, custom/history storage **v3**
 
 ## Release outcome
 
-The casual result now gives a concrete, evidence-backed explanation of how the winner's advantages decide the matchup. Small simultaneous groups are separated from reserve-supported crowds, conceptual populations use capped aggregate language, defensive morphology can add safe contact detail, and plural contestant grammar remains intact. The single-creature size selector also stays within its card at the narrow desktop breakpoint.
+The data-only roster slice adds twenty canonical profiles and reviewed structured mechanics for aquatic-only and amphibious movement, flight, armour, venom, restraint, sword-and-shield handling and finite crossbow ammunition.
 
-The release does not change the numerical engine, roster, coefficients, trial count, authoritative winner, probability or draw boundary.
+The release does not change the numerical engine coefficients, trial count, authoritative winner calculation, probability or draw boundary.
 
 ## Current automated evidence
 
-- `npm test`: **414/414 tests passed across 31 Vitest files** after the complete release audit.
+- `npm test`: **429/429 tests passed across 32 Vitest files** after the complete release audit. The release command runs files serially with one worker; two consecutive runs passed in **143.51 s** and **40.08 s** wall-clock (Vitest **116.53 s** and **36.60 s**).
 - `npm run audit:narrative`: **111/111 passed**.
 - `npm run audit:narrative-semantics`: **96/96 passed**.
-- Full-roster layman audit: every one of the **139 profiles** entered the story pipeline in both matchup roles.
-- Semantic audit: **139 profiles**, 33 habitats, 61 attack modes and 71 traits; **0 errors and 0 warnings**.
-- Ability audit: **130 defining mechanical source tokens** routed across all 139 profiles.
-- Provenance: **139/139 generated records** verified.
-- `npm run typecheck`: passed.
-- `npm run test:simulation-budget`: **1/1 passed in 81 ms**, below the two-second gate.
-- `npm run build`: passed with Vite 8.1.5 and **198 transformed modules**.
+- Full-roster layman audit: every one of the **159 profiles** entered the story pipeline in both matchup roles.
+- Semantic audit: **159 profiles**, 33 habitats, 63 attack modes and 71 traits; **0 errors and 0 warnings**.
+- Ability audit: **140 defining mechanical source tokens** routed across all 159 profiles.
+- Provenance: **159/159 generated records** verified.
+- `npm run typecheck`: passed after a clean `npm ci`.
+- `npm run test:simulation-budget`: **1/1 passed in 70 ms**, below the two-second gate.
+- `npm run build`: passed with Vite 8.1.5 and **4,724 transformed modules**.
 - `node scripts/check-static-subpath.mjs`: **8/8 local references** resolved inside `/apps/what-would-win/`.
 - `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
 
@@ -42,31 +42,38 @@ The release does not change the numerical engine, roster, coefficients, trial co
 
 ## Production build snapshot
 
+The 57 reviewed complex-profile overrides are emitted as one 54,536-byte
+minified JSON asset and fetched alongside the roster before lazy model-runtime
+construction. The build budget check requires exactly one such asset, while
+the full payload budget continues to account for its bytes.
+
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 452,962 bytes | 460,000 bytes |
-| Optional UI JavaScript | 58,208 bytes | 60,000 bytes |
+| Entry JavaScript | 453,630 bytes | 460,000 bytes |
+| Optional UI JavaScript | 58,286 bytes | 60,000 bytes |
 | Presentation JavaScript | 149,072 bytes | 150,000 bytes |
 | Lazy tactical runtime JavaScript | 949,380 bytes | 980,000 bytes |
-| Model runtime JavaScript | 112,318 bytes | 115,000 bytes |
-| Core JavaScript | 623,488 bytes | 625,000 bytes |
-| Total JavaScript | 1,721,940 bytes | 1,750,000 bytes |
-| Creature roster | 125,270 bytes | 132,000 bytes |
+| Model runtime JavaScript | 77,334 bytes | 90,000 bytes |
+| Core JavaScript | 589,250 bytes | 625,000 bytes |
+| Total JavaScript | 1,687,702 bytes | 1,775,000 bytes |
+| Creature roster | 143,031 bytes | 150,000 bytes |
 | Core CSS | 41,704 bytes | 42,000 bytes |
 | Reconstruction CSS | 11,986 bytes | 12,000 bytes |
 | Total CSS | 53,690 bytes | 54,000 bytes |
-| Core deployable payload | 938,507 bytes | 940,000 bytes |
-| Total deployable payload | 2,048,945 bytes | 2,050,000 bytes |
+| Core deployable payload | 976,808 bytes | 1,000,000 bytes |
+| Total deployable payload | 2,087,246 bytes | 2,125,000 bytes |
 
 ## Browser and visual evidence
 
-The exact final production build was reloaded in the in-app browser. At the normal 1,265-pixel viewport and at the reported 910-pixel narrow desktop width (895-pixel document viewport), both optional creature images and size selectors remained inside their cards with no page overflow. The 910-pixel measurement placed the first selector's right edge at 340 pixels inside its 352.8-pixel control edge.
+`npm run test:e2e` rebuilt the production app and passed **236 tests with 20 declared project-specific skips** in **8.2 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
 
-Responsive DOM checks also covered the layout transitions around 901/900 and 621/620 pixels plus a 480-pixel mobile width. The supplied overlap screenshot and the corrected 910-pixel capture were compared at the same setup state.
+`e2e/roster-expansion.spec.ts` independently exercises all twenty 0.9 additions through both Deep Dive contestant selectors rather than deriving them at runtime from source data: each hard-coded name is searched, found and selected as both The one and The many. It also smoke-tests fixed additions through both contestant sides of the separate Simple-mode implementation, asserts the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checks page reflow at each project's viewport and records zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
+
+The final matrix also reloads the application and proves the required 57-profile override JSON asset returns successfully (including valid cache revalidation), with no browser-console errors or failed browser requests. It exercises both released-share and released-history identity-transition notices before recalculation.
 
 ## Evidence boundaries
 
-- The standalone Playwright CLI and complete multi-browser matrix were not run for this patch; final browser evidence comes from the selected in-app browser plus the automated unit, semantic, type and build gates above.
+- The complete Playwright test-runner matrix was run for this patch; automated browser coverage does not replace human-reviewed visual verification.
 - Exact-final physical iOS/Safari and Android validation was not performed.
 - Real NVDA, VoiceOver and TalkBack validation was not performed; automated checks are not substitutes for physical assistive-technology testing.
 - The likely-battle story remains an evidence-backed explanation of the aggregate result, not a simulated event history, injury model or replay of an individual trial.

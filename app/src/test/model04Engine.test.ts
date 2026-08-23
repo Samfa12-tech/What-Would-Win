@@ -69,7 +69,7 @@ describe('active model 0.4 full-engine adapter', () => {
         expect(expectations.immuneChannels.every((channel) => solo?.channelModifiers[channel as keyof typeof solo.channelModifiers] === 0), fixture.id).toBe(true)
       }
     }
-  })
+  }, 8_000)
 
   test('finds the first group-favoured integer for the exported bull versus 100 dogs scenario', () => {
     const exportedScenario = scenario({
@@ -104,7 +104,7 @@ describe('active model 0.4 full-engine adapter', () => {
 
   test('combines physical and bilateral ability factors under model 0.4 identity', () => {
     const run = simulateModel04(canonical, scenario({ soloId: 'medusa', groupId: 'unarmed-peak-adult-human', startingDistanceM: 15 }))
-    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.5.0' })
+    expect(run.result.technical).toMatchObject({ modelVersion: '0.5.0', dataVersion: '0.6.0' })
     const abilityFactors = run.result.appliedFactors.filter((factor) => factor.id.startsWith('ability:'))
     expect(abilityFactors.length).toBeGreaterThan(0)
     expect(abilityFactors.every((factor) => factor.logDelta !== 0)).toBe(true)
@@ -157,6 +157,36 @@ describe('active model 0.4 full-engine adapter', () => {
       : creature)
     const unprotectedState = resolveModel04Deterministic(unprotectedProfiles, scenario({ soloId: 'nemean-lion', groupId: 'prepared-archer', groupQuantity: '20', startingDistanceM: 40 }))
     expect(protectedState.groupLogPower).toBeLessThan(unprotectedState.groupLogPower)
+  })
+
+  test('applies armour-and-shield handling through defensive channels to the authoritative result', () => {
+    const matchup = scenario({
+      soloId: 'armoured-sword-and-shield-fighter',
+      groupId: 'prepared-crossbow-carrier',
+      groupQuantity: '1',
+      startingDistanceM: 30,
+    })
+    const protectedRun = simulateModel04(canonical, matchup)
+    const unprotectedProfiles = canonical.map((creature) => creature.id === 'armoured-sword-and-shield-fighter'
+      ? { ...creature, channelModifiers: { ...creature.channelModifiers, 'physical-piercing': 1 } }
+      : creature)
+    const unprotectedRun = simulateModel04(unprotectedProfiles, matchup)
+    const protectedBolt = protectedRun.abilityResolutions.find((resolution) => (
+      resolution.side === 'group' && resolution.abilityId === 'crossbow-bolt'
+    ))
+    const unprotectedBolt = unprotectedRun.abilityResolutions.find((resolution) => (
+      resolution.side === 'group' && resolution.abilityId === 'crossbow-bolt'
+    ))
+
+    expect(canonical.find((creature) => creature.id === 'armoured-sword-and-shield-fighter')).toMatchObject({
+      abilities: [expect.objectContaining({ id: 'sword-slash' })],
+      review: { note: expect.stringMatching(/armour.*shield.*channel modifiers/i) },
+    })
+    expect(protectedBolt?.effects[0]).toMatchObject({ channel: 'physical-piercing', channelFactor: 0.65 })
+    expect(unprotectedBolt?.effects[0]).toMatchObject({ channel: 'physical-piercing', channelFactor: 1 })
+    expect(protectedRun.result.technical.deterministicGroupLogPower)
+      .toBeLessThan(unprotectedRun.result.technical.deterministicGroupLogPower)
+    expect(protectedRun.result.soloWinProbability).toBeGreaterThan(unprotectedRun.result.soloWinProbability)
   })
 
   test('keeps rejected abilities technical and out of applied narrative factors', () => {

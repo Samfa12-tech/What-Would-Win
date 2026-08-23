@@ -1,17 +1,17 @@
 # Known Feature Requests
 
-This document records requested additions and enhancements that are not yet
-implemented. Requests remain descriptive until they are promoted into a
-scoped implementation task.
+This document records requests and their delivery state. Requests remain
+descriptive until they are promoted into a scoped implementation task.
 
 ## Roster
 
 ### Piranha
 
-- Status: planned for the next roster update
+- Status: delivered in application 0.9.0 / data 0.6.0
 - Request: add Piranha as a built-in creature profile
-- Notes: preserve the existing canonical-data generator, schema validation,
-  synchronized app bundle, and roster-count tests when implementation begins.
+- Delivery: the canonical-data generator, synchronized app bundle, schema
+  validation, roster-count tests, provenance and public notices now include
+  Piranha as one of the 159 built-in profiles.
 
 ## Maintenance
 

@@ -44,4 +44,20 @@ describe('semantic creature-data audit', () => {
       'hill-giant': true,
     })
   })
+
+  test('treats sword as contact slashing and crossbow as unambiguous ranged delivery', () => {
+    const armouredFighter = canonicalCreatures.find((creature) => creature.id === 'armoured-sword-and-shield-fighter')
+    const crossbowCarrier = canonicalCreatures.find((creature) => creature.id === 'prepared-crossbow-carrier')
+
+    expect(armouredFighter).toMatchObject({
+      ranged: false,
+      attack_modes: expect.arrayContaining(['sword', 'shield']),
+    })
+    expect(crossbowCarrier).toMatchObject({
+      ranged: true,
+      attack_modes: expect.arrayContaining(['crossbow']),
+      traits: expect.arrayContaining(['limited-ammunition']),
+    })
+    expect(auditCreatureSemantics([armouredFighter!, crossbowCarrier!], vocabularyJson)).toEqual([])
+  })
 })

@@ -1,6 +1,6 @@
 # What Would Win
 
-A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 139-profile database, structured abilities and counters, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
+A mock-serious, textual **one-versus-X** creature simulator. The repository includes a working React/TypeScript app, a 159-profile database, structured abilities and counters, saveable private custom profiles, versioned reproducible shares, simulation and data specifications, schemas, 16 calibration fixtures and Codex handoff notes.
 
 The numerical engine is authoritative. It combines a deterministic model with seeded Monte Carlo variation; generated text does not choose or alter the winner.
 
@@ -24,7 +24,7 @@ node scripts/check-build-budgets.mjs
 node scripts/check-static-subpath.mjs
 ```
 
-`npm run audit:release` runs automatically before tests and production builds. It validates the controlled semantic vocabulary, model-0.4 migration contract, 139-profile provenance record and public legal notices. Install the supported browsers once, then run the production-build browser matrix:
+`npm run audit:release` runs automatically before tests and production builds. It validates the controlled semantic vocabulary, model-0.4 migration contract, 159-profile provenance record and public legal notices. Install the supported browsers once, then run the production-build browser matrix:
 
 The release audit also runs `npm run audit:model04-abilities`, which deterministically verifies that every defining built-in source mechanic reaches an activated structured ability, physiology/locomotion rule or reviewed interpretation.
 
@@ -39,15 +39,15 @@ The production identity assets live under `app/public/icons/`; the full-resoluti
 
 ## Current model
 
-The active reproducibility identity is **application 0.8.2, model 0.5.0, data 0.5.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
+The active reproducibility identity is **application 0.9.0, model 0.5.0, data 0.6.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
 
 Model 0.5.0 keeps the model-0.4 physical, ability and endurance ledger, fixes every report depth at 15,000 seeded trials, weights group access by each executable route's actual contribution, and adds explicit one-way-win versus mutual non-engagement resolution. Quantity-one symmetry is locked so equal mobility does not manufacture a side advantage. The active contract also supports reviewed arboreal locomotion and preparation-dependent abilities.
 
-The roster now contains **139 profiles**: 76 living animals, 21 extinct animals, 38 fantasy/mythology profiles and 4 generic humans. The five additions are Bearded capuchin monkey, Bornean orangutan, Giant anteater, Quetzalcoatlus and Generic wraith. Existing primates and other complex profiles received reviewed structured overrides; the release audit routes 130 defining mechanical source tokens.
+The roster now contains **159 profiles**: 86 living animals, 25 extinct animals, 38 fantasy/mythology profiles and 10 generic humans. The 0.9 data slice adds twenty canonical profiles spanning aquatic specialists, flight, armour, venom, restraint, sword-and-shield and finite crossbow mechanics; the release audit routes 140 defining mechanical source tokens.
 
 The v5 share codec embeds the current structured scenario and migrates released v4 identities without changing their inputs. V2 custom/history stores are copied forward to v3 with untouched recovery bytes; prior numerical outcomes remain snapshots pending model-0.5 recalculation. Result JSON exports preserve the exact scenario, contestants, resolutions, sensitivity and outcome. A draw export contains no winner storyboard or battle narrative.
 
-Application 0.8.2 keeps that shared layperson account but separates simultaneous attackers from real reserves, ranks precise causal claims before rendering, and uses profile-backed contact details without inventing injuries. Simple mode uses the same validated account; Analyst mode and the complete seven-phase record remain opt-in. The numerical result, model/data versions, share format and storyboard contract are unchanged. See `docs/NARRATIVE_ROBUSTNESS_0.8.2.md`, `docs/NARRATIVE_CLARITY_0.8.1.md` and `docs/BATTLE_RECONSTRUCTION.md`.
+Application 0.9.0 retains the shared layperson account, simultaneous-versus-reserve distinction, precise causal ranking and profile-backed contact details without inventing injuries. Simple mode uses the same validated account; Analyst mode and the complete seven-phase record remain opt-in. The numerical engine, share v5, storyboard v3 and custom/history v3 contracts are unchanged. See `docs/NARRATIVE_ROBUSTNESS_0.8.2.md`, `docs/NARRATIVE_CLARITY_0.8.1.md` and `docs/BATTLE_RECONSTRUCTION.md` for the preserved presentation contracts.
 ## Documentation
 
 - `docs/What_Would_Win_Product_Plan.md` — canonical product, active model and roadmap specification.

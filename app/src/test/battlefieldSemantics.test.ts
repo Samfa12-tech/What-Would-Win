@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import creaturesJson from '../../../data/creatures.json'
 import type { Ability, AbilityResolution, CreatureV4Draft } from '../model04/contracts'
-import { Model04Runtime } from '../model04/runtime'
+import { createModel04Runtime } from './fixtures/model04Runtime'
 import { defaultScenario } from '../simulation/engine'
 import type { Creature, Scenario } from '../types'
 import {
@@ -16,7 +16,7 @@ import {
 import type { BattleReconstructionInput, StoryboardSide } from '../storyboard/contracts'
 
 const creatures = creaturesJson as Creature[]
-const runtime = new Model04Runtime(creatures)
+const runtime = createModel04Runtime(creatures)
 const resources = {
   solo: { defaultPercent: 100, abilityPercent: {} },
   group: { defaultPercent: 100, abilityPercent: {} },

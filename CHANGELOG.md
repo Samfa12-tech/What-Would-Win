@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 — 2026-08-23
+
+- Advanced the application to 0.9.0 and the canonical data to 0.6.0 while retaining model 0.5.0, share v5, storyboard v3 and custom/history storage v3.
+- Added twenty reviewed canonical profiles, including the delivered Piranha request, bringing the roster to 159 profiles: 86 living animals, 25 extinct animals, 38 fantasy/mythology profiles and 10 generic humans.
+- Added reviewed structured water/land access, flight, armour, venom, restraint, sword-and-shield and finite-crossbow mechanics without changing model coefficients, trial count, probability calculation or draw boundary.
+- Regenerated the 159-record provenance audit, public legal notices and checksum manifest. Public-notice rendering now canonicalizes line endings so a Windows CRLF checkout cannot cause a false stale-notice failure.
+- Re-measured and raised only the affected roster, lazy model-runtime, aggregate JavaScript, core-deployable and total-payload build ceilings; eager entry, presentation, tactical, CSS and external-asset ceilings remain unchanged.
+
 ## 0.8.2 — 2026-08-01
 
 - Split small simultaneous groups from reserve-supported crowds, so a fully active pair is described as two-on-one pressure rather than a queue of fresh attackers.

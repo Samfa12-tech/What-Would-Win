@@ -19,14 +19,14 @@ Use `npm run dev` for local iteration. Deploy only the exact tested contents of 
 
 ## Current state
 
-- React/TypeScript/Vite static application **0.8.2**.
-- Active identity: **model 0.5.0, data 0.5.0, share v5, storyboard v3, custom/history storage v3**.
-- **139 canonical profiles**: 76 living, 21 extinct, 38 fantasy/mythology and 4 generic humans.
+- React/TypeScript/Vite static application **0.9.0**.
+- Active identity: **model 0.5.0, data 0.6.0, share v5, storyboard v3, custom/history storage v3**.
+- **159 canonical profiles**: 86 living, 25 extinct, 38 fantasy/mythology and 10 generic humans.
 - Model 0.5 uses 15,000 seeded trials at every report depth. Report depth changes explanation only.
 - The structured model-0.4 ability/physical/endurance ledger remains the foundation: explicit delivery, geometry, access, conditions, counters, bounded resources, physiology, senses, locomotion, channel resolution, stopping, frontage, reserves, occupancy and sensitivity.
 - Group access is contribution-weighted across executable routes. Rejected/inaccessible routes contribute zero.
 - Outcome resolution exposes `solo-win`, `group-win` or mutual non-engagement `draw`; a one-way executable route remains a one-way win.
-- Optional arboreal locomotion and preparation-dependent conditions are versioned active mechanics.
+- Optional arboreal locomotion, water/land gating, flight, armour channel modifiers, venom, restraint, sword slashing and finite crossbow ammunition are versioned active mechanics.
 - Quantities such as `10^100` remain logarithmic; no literal opposing force is allocated per member.
 - Seeded Monte Carlo remains subordinate to deterministic/versioned inputs. Text and tactical presentation never select a winner.
 - Storyboard inputs are decisive-only. Draw views and exports do not manufacture story beats, attacks, injuries or a winner.
@@ -122,4 +122,4 @@ Run commands from `app/`. Record exact current counts and sizes in `docs/QA_REPO
 
 ## Handoff prompt for Codex
 
-> Continue What Would Win from application 0.8.2, model/data 0.5.0, share v5, storyboard v3 and custom/history v3. Read the 0.8.2 narrative-robustness record, 0.8.1 narrative-clarity record, 0.8.0 quality pass, product plan, model notes, model04 runtime/persistence contracts, model05 authoritative tests and battle reconstruction contracts before editing. Preserve deterministic numerical authority, 15,000 trials at every report depth, seeded reproducibility, logarithmic quantity handling, contribution-weighted executable access, explicit draw/non-engagement, static subpath hosting and factor-ledger truth. Story and tactical views may present only validated evidence and must never imply a Monte Carlo replay or force a draw into a winner. Run release/ability audits, full unit and persistence suites, typecheck, build budgets, static-subpath check and the complete browser matrix for every material change.
+> Continue What Would Win from application 0.9.0, model 0.5.0/data 0.6.0, share v5, storyboard v3 and custom/history v3. Read the 0.8.2 narrative-robustness record, 0.8.1 narrative-clarity record, 0.8.0 quality pass, product plan, model notes, model04 runtime/persistence contracts, model05 authoritative tests and battle reconstruction contracts before editing. Preserve deterministic numerical authority, 15,000 trials at every report depth, seeded reproducibility, logarithmic quantity handling, contribution-weighted executable access, explicit draw/non-engagement, static subpath hosting and factor-ledger truth. Story and tactical views may present only validated evidence and must never imply a Monte Carlo replay or force a draw into a winner. Run release/ability audits, full unit and persistence suites, typecheck, build budgets, static-subpath check and the complete browser matrix for every material change.

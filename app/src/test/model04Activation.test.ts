@@ -13,13 +13,14 @@ import {
   MODEL_04_HISTORY_STORAGE_KEY,
   decodeModel04Scenario,
 } from '../model04/persistence'
-import { Model04Runtime, type Model04RuntimeResult } from '../model04/runtime'
+import { type Model04RuntimeResult } from '../model04/runtime'
+import { createModel04Runtime } from './fixtures/model04Runtime'
 import { defaultScenario } from '../simulation/engine'
 import type { Creature, Scenario } from '../types'
 import { APPLICATION_VERSION, DATA_VERSION, MODEL_VERSION, SHARE_FORMAT_VERSION } from '../version'
 
 const creatures = creaturesJson as Creature[]
-const runtime = new Model04Runtime(creatures)
+const runtime = createModel04Runtime(creatures)
 
 const frozenLegacyShares = [
   {

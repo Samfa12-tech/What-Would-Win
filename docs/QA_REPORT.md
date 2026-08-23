@@ -12,7 +12,7 @@ The release does not change the numerical engine coefficients, trial count, auth
 
 ## Current automated evidence
 
-- `npm test`: **427/427 tests passed across 31 Vitest files** after the complete release audit.
+- `npm test`: **429/429 tests passed across 32 Vitest files** after the complete release audit.
 - `npm run audit:narrative`: **111/111 passed**.
 - `npm run audit:narrative-semantics`: **96/96 passed**.
 - Full-roster layman audit: every one of the **159 profiles** entered the story pipeline in both matchup roles.
@@ -42,21 +42,26 @@ The release does not change the numerical engine coefficients, trial count, auth
 
 ## Production build snapshot
 
+The 57 reviewed complex-profile overrides are emitted as one 54,536-byte
+minified JSON asset and fetched alongside the roster before lazy model-runtime
+construction. The build budget check requires exactly one such asset, while
+the full payload budget continues to account for its bytes.
+
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 452,962 bytes | 460,000 bytes |
+| Entry JavaScript | 453,409 bytes | 460,000 bytes |
 | Optional UI JavaScript | 58,286 bytes | 60,000 bytes |
 | Presentation JavaScript | 149,072 bytes | 150,000 bytes |
 | Lazy tactical runtime JavaScript | 949,380 bytes | 980,000 bytes |
-| Model runtime JavaScript | 126,907 bytes | 135,000 bytes |
-| Core JavaScript | 511,248 bytes | 625,000 bytes |
-| Total JavaScript | 1,736,607 bytes | 1,775,000 bytes |
+| Model runtime JavaScript | 77,335 bytes | 90,000 bytes |
+| Core JavaScript | 589,030 bytes | 625,000 bytes |
+| Total JavaScript | 1,687,482 bytes | 1,775,000 bytes |
 | Creature roster | 143,031 bytes | 150,000 bytes |
 | Core CSS | 41,704 bytes | 42,000 bytes |
 | Reconstruction CSS | 11,986 bytes | 12,000 bytes |
 | Total CSS | 53,690 bytes | 54,000 bytes |
-| Core deployable payload | 970,936 bytes | 1,000,000 bytes |
-| Total deployable payload | 2,081,374 bytes | 2,125,000 bytes |
+| Core deployable payload | 976,588 bytes | 1,000,000 bytes |
+| Total deployable payload | 2,087,026 bytes | 2,125,000 bytes |
 
 ## Browser and visual evidence
 

@@ -20,7 +20,7 @@
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — reviewed profile decisions, exact calibration comparison, versioning and compatibility evidence.
 - `docs/MODEL_0.4.1_RECTIFICATION_AUDIT.md` — active rectification decisions, calibration movement, build evidence and remaining limits.
 - `docs/BATTLE_RECONSTRUCTION.md` — application-0.6 storyboard, narrative, quantity, guided tactical renderer, accessibility and performance contract.
-- `docs/QA_REPORT.md` and `docs/MODEL_0.4_BUILD_BUDGET.md` — exact application-0.6.0 verification, accessibility, runtime and artifact-budget evidence.
+- `docs/QA_REPORT.md` — current application-0.9.0/data-0.6.0 QA, accessibility, runtime and artifact-budget evidence; `docs/MODEL_0.4_BUILD_BUDGET.md` retains the historical application-0.6.0 budget record.
 - `docs/PR_0.6.0_DRAFT.md` — draft pull-request summary, invariants, test evidence and explicit manual limits.
 - `docs/assets/evidence-0.6.0/` — tracked exact-candidate dragon/eagle desktop/mobile captures and browser runtime evidence; source Playwright output remains ignored.
 - `app/src/storyboard/` — deterministic storyboard contracts, hashes, builder, validator, narrative templates and stable JSON export.

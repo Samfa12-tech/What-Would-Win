@@ -20,8 +20,8 @@ The release does not change the numerical engine coefficients, trial count, auth
 - Ability audit: **140 defining mechanical source tokens** routed across all 159 profiles.
 - Provenance: **159/159 generated records** verified.
 - `npm run typecheck`: passed after a clean `npm ci`.
-- `npm run test:simulation-budget`: **1/1 passed in 78 ms**, below the two-second gate.
-- `npm run build`: passed with Vite 8.1.5 and **4,723 transformed modules**.
+- `npm run test:simulation-budget`: **1/1 passed in 70 ms**, below the two-second gate.
+- `npm run build`: passed with Vite 8.1.5 and **4,724 transformed modules**.
 - `node scripts/check-static-subpath.mjs`: **8/8 local references** resolved inside `/apps/what-would-win/`.
 - `node scripts/check-build-budgets.mjs`: every reviewed ceiling passed.
 
@@ -49,25 +49,27 @@ the full payload budget continues to account for its bytes.
 
 | Budget group | Observed | Ceiling |
 |---|---:|---:|
-| Entry JavaScript | 453,409 bytes | 460,000 bytes |
+| Entry JavaScript | 453,630 bytes | 460,000 bytes |
 | Optional UI JavaScript | 58,286 bytes | 60,000 bytes |
 | Presentation JavaScript | 149,072 bytes | 150,000 bytes |
 | Lazy tactical runtime JavaScript | 949,380 bytes | 980,000 bytes |
-| Model runtime JavaScript | 77,335 bytes | 90,000 bytes |
-| Core JavaScript | 589,030 bytes | 625,000 bytes |
-| Total JavaScript | 1,687,482 bytes | 1,775,000 bytes |
+| Model runtime JavaScript | 77,334 bytes | 90,000 bytes |
+| Core JavaScript | 589,250 bytes | 625,000 bytes |
+| Total JavaScript | 1,687,702 bytes | 1,775,000 bytes |
 | Creature roster | 143,031 bytes | 150,000 bytes |
 | Core CSS | 41,704 bytes | 42,000 bytes |
 | Reconstruction CSS | 11,986 bytes | 12,000 bytes |
 | Total CSS | 53,690 bytes | 54,000 bytes |
-| Core deployable payload | 976,588 bytes | 1,000,000 bytes |
-| Total deployable payload | 2,087,026 bytes | 2,125,000 bytes |
+| Core deployable payload | 976,808 bytes | 1,000,000 bytes |
+| Total deployable payload | 2,087,246 bytes | 2,125,000 bytes |
 
 ## Browser and visual evidence
 
-`npm run test:e2e` rebuilt the production app and passed **228 tests with 20 declared project-specific skips** in **9.0 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
+`npm run test:e2e` rebuilt the production app and passed **236 tests with 20 declared project-specific skips** in **8.2 minutes** across `desktop-chromium`, `mobile-chromium` (360 × 800), `desktop-firefox` and `desktop-webkit`. The exact run included fresh automated keyboard, axe, reflow and responsive coverage.
 
 `e2e/roster-expansion.spec.ts` independently exercises all twenty 0.9 additions through both Deep Dive contestant selectors rather than deriving them at runtime from source data: each hard-coded name is searched, found and selected as both The one and The many. It also smoke-tests fixed additions through both contestant sides of the separate Simple-mode implementation, asserts the surfaced roster total and kind groups as **159 / 86 / 25 / 38 / 10**, checks page reflow at each project's viewport and records zero browser-console errors on that flow. The HTML report is generated under ignored `output/playwright/html-report/`; no new human-reviewed screenshot or physical-device claim is made here.
+
+The final matrix also reloads the application and proves the required 57-profile override JSON asset returns successfully (including valid cache revalidation), with no browser-console errors or failed browser requests. It exercises both released-share and released-history identity-transition notices before recalculation.
 
 ## Evidence boundaries
 

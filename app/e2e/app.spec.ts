@@ -108,6 +108,32 @@ test('loads the production app with its interpretation and privacy disclosures',
   await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
 })
 
+test('loads the required reviewed override payload without browser console or network errors', async ({ page }) => {
+  const consoleErrors: string[] = []
+  const failedRequests: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('requestfailed', (request) => failedRequests.push(`${request.method()} ${request.url()}`))
+
+  const overrideResponse = page.waitForResponse((response) => (
+    /\/assets\/complex-profile-overrides-[^/]+\.json$/.test(new URL(response.url()).pathname)
+  ))
+  await page.reload()
+
+  const response = await overrideResponse
+  expect(response.status()).toBeLessThan(400)
+  const payloadResponse = response.status() === 304 ? await page.request.get(response.url()) : response
+  expect(payloadResponse.ok()).toBe(true)
+  await openDeepDive(page)
+  await expect(page.getByRole('button', { name: 'Run simulation' })).toBeEnabled()
+  const payload = await payloadResponse.json() as { schemaVersion: number; targetModel: string; profiles: unknown[] }
+  expect(payload).toMatchObject({ schemaVersion: 1, targetModel: '0.5.0' })
+  expect(payload.profiles).toHaveLength(57)
+  expect(consoleErrors).toEqual([])
+  expect(failedRequests).toEqual([])
+})
+
 test('shows a durable roster error and retries without mutating stored data', async ({ page }) => {
   const storedHistory = '{"sentinel":"leave untouched"}'
   await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: HISTORY_STORAGE_KEY, value: storedHistory })

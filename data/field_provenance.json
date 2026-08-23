@@ -1085,6 +1085,89 @@
       ]
     },
     {
+      "creature_id": "musk-ox",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Musk ox orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Muskox",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Musk ox”; article and contributor history available at https://en.wikipedia.org/wiki/Muskox",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "mountain-goat",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "orientation-only",
@@ -2247,6 +2330,89 @@
       ]
     },
     {
+      "creature_id": "tasmanian-devil",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Tasmanian devil orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Tasmanian_devil",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Tasmanian devil”; article and contributor history available at https://en.wikipedia.org/wiki/Tasmanian_devil",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "silverback-gorilla",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "orientation-only",
@@ -2745,6 +2911,89 @@
       ]
     },
     {
+      "creature_id": "giant-armadillo",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Giant armadillo orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Giant_armadillo",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Giant armadillo”; article and contributor history available at https://en.wikipedia.org/wiki/Giant_armadillo",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "giant-anteater",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "orientation-only",
@@ -2761,6 +3010,89 @@
           "reuse_basis": "linked-orientation-and-facts",
           "copied_expression": false,
           "attribution": "Wikipedia contributors, “Giant anteater”; article and contributor history available at https://en.wikipedia.org/wiki/Giant_anteater",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "capybara",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Capybara orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Capybara",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Capybara”; article and contributor history available at https://en.wikipedia.org/wiki/Capybara",
           "fields": [
             "name",
             "kind",
@@ -4488,6 +4820,338 @@
       ]
     },
     {
+      "creature_id": "harpy-eagle",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Harpy eagle orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Harpy_eagle",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Harpy eagle”; article and contributor history available at https://en.wikipedia.org/wiki/Harpy_eagle",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "piranha",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Piranha orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Piranha",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Piranha”; article and contributor history available at https://en.wikipedia.org/wiki/Piranha",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "giant-otter",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Giant otter orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Giant_otter",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Giant otter”; article and contributor history available at https://en.wikipedia.org/wiki/Giant_otter",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "leopard-seal",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Leopard seal orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Leopard_seal",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Leopard seal”; article and contributor history available at https://en.wikipedia.org/wiki/Leopard_seal",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "great-white-shark",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "orientation-only",
@@ -5069,6 +5733,89 @@
       ]
     },
     {
+      "creature_id": "giant-freshwater-stingray",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Giant freshwater stingray orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Urogymnus_polylepis",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Giant freshwater stingray”; article and contributor history available at https://en.wikipedia.org/wiki/Urogymnus_polylepis",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "peacock-mantis-shrimp",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "orientation-only",
@@ -5085,6 +5832,89 @@
           "reuse_basis": "linked-orientation-and-facts",
           "copied_expression": false,
           "attribution": "Wikipedia contributors, “Peacock mantis shrimp”; article and contributor history available at https://en.wikipedia.org/wiki/Odontodactylus_scyllarus",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "coconut-crab",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Coconut crab orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Coconut_crab",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Coconut crab”; article and contributor history available at https://en.wikipedia.org/wiki/Coconut_crab",
           "fields": [
             "name",
             "kind",
@@ -6314,6 +7144,338 @@
       ]
     },
     {
+      "creature_id": "utahraptor",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Utahraptor orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Utahraptor",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Utahraptor”; article and contributor history available at https://en.wikipedia.org/wiki/Utahraptor",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "mosasaurus",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Mosasaurus orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Mosasaurus",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Mosasaurus”; article and contributor history available at https://en.wikipedia.org/wiki/Mosasaurus",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "dunkleosteus",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Dunkleosteus orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Dunkleosteus",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Dunkleosteus”; article and contributor history available at https://en.wikipedia.org/wiki/Dunkleosteus",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "glyptodon",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "orientation-only",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Glyptodon orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Glyptodon",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Glyptodon”; article and contributor history available at https://en.wikipedia.org/wiki/Glyptodon",
+          "fields": [
+            "name",
+            "kind",
+            "category",
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "habitats"
+          ],
+          "note": "Orientation and factual inputs only. No prose or media is copied. Exact values remain simulation inputs and need stronger primary sourcing before authoritative zoological claims."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
       "creature_id": "unarmed-peak-adult-human",
       "release_status": "licence-cleared-for-public-beta",
       "scientific_status": "authored-profile",
@@ -6579,6 +7741,504 @@
           "reuse_basis": "linked-orientation-and-facts",
           "copied_expression": false,
           "attribution": "Wikipedia contributors, “Prepared archer”; article and contributor history available at https://en.wikipedia.org/wiki/Archery",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "average-unarmed-adult-human",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Average unarmed adult human orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Human",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Average unarmed adult human”; article and contributor history available at https://en.wikipedia.org/wiki/Human",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "trained-heavyweight-boxer",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Trained heavyweight boxer orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Boxing",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Trained heavyweight boxer”; article and contributor history available at https://en.wikipedia.org/wiki/Boxing",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "trained-wrestler",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Trained wrestler orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Wrestling",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Trained wrestler”; article and contributor history available at https://en.wikipedia.org/wiki/Wrestling",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "sumo-wrestler",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Sumo wrestler orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Sumo",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Sumo wrestler”; article and contributor history available at https://en.wikipedia.org/wiki/Sumo",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "armoured-sword-and-shield-fighter",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Armoured sword-and-shield fighter orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Sword_and_shield",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Armoured sword-and-shield fighter”; article and contributor history available at https://en.wikipedia.org/wiki/Sword_and_shield",
+          "fields": [
+            "name",
+            "kind",
+            "category"
+          ],
+          "note": "Concept orientation only. No prose or media is copied; physical and gameplay values are original app-authored assumptions."
+        },
+        {
+          "source_id": "samfa12-model-v1",
+          "source_type": "authored_model",
+          "label": "What Would Win authored simulation assumptions",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-model",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "representative_peak_mass_kg",
+            "body_length_m",
+            "shoulder_or_body_height_m",
+            "burst_speed_kph",
+            "effective_reach_m",
+            "attack",
+            "defense",
+            "durability",
+            "agility",
+            "stamina",
+            "intelligence",
+            "aggression",
+            "coordination",
+            "morale",
+            "armor",
+            "multi_target",
+            "habitats",
+            "attack_modes",
+            "traits",
+            "model_notes",
+            "can_fly",
+            "aquatic",
+            "venomous",
+            "ranged",
+            "regenerates",
+            "undead_or_construct"
+          ],
+          "note": "Game-model inputs and capability interpretations, not direct zoological measurements."
+        },
+        {
+          "source_id": "samfa12-record-metadata",
+          "source_type": "authored_metadata",
+          "label": "What Would Win record metadata",
+          "publisher": "Samfa12-tech",
+          "license": "CC-BY-SA-4.0",
+          "reuse_basis": "original-authored-metadata",
+          "copied_expression": false,
+          "attribution": "What Would Win creature data by Samfa12-tech, CC BY-SA 4.0",
+          "fields": [
+            "id",
+            "icon",
+            "data_confidence",
+            "source_label",
+            "source_url"
+          ],
+          "note": "Stable IDs, interface locators, confidence labels and source-warning metadata authored for this application."
+        }
+      ]
+    },
+    {
+      "creature_id": "prepared-crossbow-carrier",
+      "release_status": "licence-cleared-for-public-beta",
+      "scientific_status": "authored-profile",
+      "review_note": "Licence classification is complete for this beta record. This is not an expert zoological or cultural review.",
+      "sources": [
+        {
+          "source_id": "wikipedia-orientation",
+          "source_type": "external_orientation",
+          "label": "Prepared crossbow carrier orientation reference",
+          "publisher": "Wikipedia contributors",
+          "url": "https://en.wikipedia.org/wiki/Crossbow",
+          "license": "CC-BY-SA-4.0",
+          "accessed_on": "2026-07-18",
+          "reuse_basis": "linked-orientation-and-facts",
+          "copied_expression": false,
+          "attribution": "Wikipedia contributors, “Prepared crossbow carrier”; article and contributor history available at https://en.wikipedia.org/wiki/Crossbow",
           "fields": [
             "name",
             "kind",

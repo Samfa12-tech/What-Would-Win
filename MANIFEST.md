@@ -11,10 +11,10 @@
 - `THIRD_PARTY_NOTICES.md` — redistributed runtime notices and source attribution.
 - `assets/brand/what-would-win-icon-master.png` — full-resolution generated source for the one-versus-many application mark.
 - `app/public/icons/` and `app/public/site.webmanifest` — optimized deployed icon and install metadata.
-- `data/creatures.json` and `data/creatures.csv` — 134-profile creature database.
+- `data/creatures.json` and `data/creatures.csv` — 159-profile creature database.
 - `data/mechanics-vocabulary.json` and `scripts/verify_creature_semantics.mjs` — controlled built-in mechanics registry and deterministic semantic release gate.
 - `data/*.schema.json` — creature and scenario data contracts.
-- `data/field_provenance.json` — complete licensing provenance/authorship records for all 134 profiles.
+- `data/field_provenance.json` — complete licensing provenance/authorship records for all 159 profiles.
 - `data/test_scenarios.json` and `.csv` — 16 behavioural calibration fixtures.
 - `docs/CODEX_HANDOFF.md` — continuation order, invariants, known limits and paste-ready prompt.
 - `docs/SEMANTIC_DATA_AUDIT_0.3.1.md` — reviewed profile decisions, exact calibration comparison, versioning and compatibility evidence.
@@ -34,7 +34,7 @@
 
 ## Verified snapshot
 
-- 134 profiles: 73 living animals, 20 extinct animals, 37 fantasy/mythological profiles and 4 generic humans.
+- 159 profiles: 86 living animals, 25 extinct animals, 38 fantasy/mythological profiles and 10 generic humans.
 - Unit, data-contract, share/history, calibration and simulation-duration suites are included; final run counts are recorded in `docs/QA_REPORT.md`.
 - Playwright production-browser coverage is included for desktop Chromium, 360 px mobile Chromium, Firefox and WebKit; final run counts are recorded in `docs/QA_REPORT.md`.
 - Sixteen calibration fixtures cover ordinary matchups, extreme resizing, stopping-power gaps, access mismatches and dry-land aquatic mismatch.
@@ -42,15 +42,15 @@
 - Vite production build passing.
 - Creature JSON validated against the supplied Draft 2020-12 schema.
 - CSV and JSON profile IDs/order match.
-- Application 0.6.0, model/data 0.4.1, storyboard v2, share format v4 and custom/history storage v2 are explicit. Frozen v3/v2/v1/unversioned migrations, unavailable-profile recovery and incompatible-share rejection are covered.
-- Ability coverage verifies 118 mechanical source tokens across all 134 profiles; 29 profiles use reviewed explicit overrides and the remaining conservative migrations retain an auditable route.
+- Application 0.9.0, model 0.5.0, data 0.6.0, storyboard v3, share format v5 and custom/history storage v3 are explicit. Frozen v4/v3/v2/v1/unversioned migrations, unavailable-profile recovery and incompatible-share rejection are covered.
+- Ability coverage verifies 140 mechanical source tokens across all 159 profiles; 57 profiles use reviewed explicit overrides and the remaining conservative migrations retain an auditable route.
 - Every original 16-fixture model-0.3 calibration scenario runs through the active v4 engine with reviewed expectations, ledger reconstruction and written movement rationale.
 - Named private custom profiles validated, saved locally, imported/exported and embedded in clean-browser reproducible shares.
 - Compact v3 shares retain deployed v2, v1 and delivered unversioned-link migration coverage.
 - Versioned, validated recent history preserves corrupt/incompatible input and unavailable custom references for recovery.
 - Automated axe and keyboard-operability coverage runs on all four browser projects.
 - CI enforces semantic/ability/provenance/legal audits, typecheck, unit/calibration tests, simulation duration, the browser matrix, production build and asset-size budgets.
-- Canonical semantic audit covers 33 habitats, 58 attack modes and 68 traits across all 134 profiles with stable invalid-fixture diagnostics.
+- Canonical semantic audit covers 33 habitats, 63 attack modes and 71 traits across all 159 profiles with stable invalid-fixture diagnostics.
 - Complete field provenance distinguishes attributed external orientation from authored model and metadata inputs for all profiles.
 - Production favicon, Apple touch and install-manifest assets are verified across all four browser projects.
 - Shared profiles cannot shadow a same-ID saved local profile, and imported/shared reference links are restricted to HTTP(S).
@@ -63,4 +63,4 @@
 
 ## Deliberate limits
 
-The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Licensing provenance now covers all 134 profiles, while stronger primary sourcing and expert review remain future scientific-quality work. Explicit amphibious/land-capable traits improve environment routing but are still authored classifications requiring review. Frontage, reserves, stopping, arena feasibility, duration and losses remain model abstractions. Exact-final SM-S948B recapture, human dragon comprehension sign-off, real assistive-technology checks, physical iOS/Safari and physical downloads remain manual. Application 0.6.0 is not publicly deployed. Custom profiles are deliberately private/local unless explicitly exported or shared.
+The dataset is curated prototype material, not a peer-reviewed zoological database. Physical fields are approximate representative high-end adult values; normalized combat fields are authored game-model inputs. Licensing provenance now covers all 159 profiles, while stronger primary sourcing and expert review remain future scientific-quality work. Explicit amphibious/land-capable traits improve environment routing but are still authored classifications requiring review. Frontage, reserves, stopping, arena feasibility, duration and losses remain model abstractions. Exact-final SM-S948B recapture, human dragon comprehension sign-off, real assistive-technology checks, physical iOS/Safari and physical downloads remain manual. Application 0.9.0 is not publicly deployed. Custom profiles are deliberately private/local unless explicitly exported or shared.

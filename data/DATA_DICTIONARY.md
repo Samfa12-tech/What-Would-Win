@@ -1,12 +1,14 @@
-# What Would Win — 139-profile data dictionary
+# What Would Win — 159-profile data dictionary
 
 ## Purpose
 
-This directory contains the editable model database and behavioural fixtures for the prototype. It contains **139 profiles**: 76 living animals, 21 extinct animals, 38 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 4 generic human profiles.
+This directory contains the editable model database and behavioural fixtures for the prototype. It contains **159 profiles**: 86 living animals, 25 extinct animals, 38 fantasy/mythology profiles (including 8 fixed cryptid interpretations) and 10 generic human profiles.
 
 The database is selected for mechanics coverage and scenario value. It is not a complete taxonomy and is not a validated zoological dataset. The 0.2 breadth pass is documented in `docs/SUBREDDIT_RESEARCH.md`.
 
 The 0.8 quality slice adds exactly five reviewed profiles: Bearded capuchin monkey, Bornean orangutan, giant anteater, Quetzalcoatlus and generic wraith. It also replaces conservative migration for gorilla, chimpanzee and olive baboon with reviewed bite, grapple, strike, prepared-tool and troop routes. Prepared primate tools remain unavailable without declared preparation; arboreal access, spirit physiology, incorporeal interaction and morale pressure are structured mechanics.
+
+The 0.9 roster slice adds exactly twenty reviewed profiles: Piranha, Giant otter, Leopard seal, Tasmanian devil, Harpy eagle, Musk ox, Giant armadillo, Capybara, Coconut crab, Giant freshwater stingray, Utahraptor, Mosasaurus, Dunkleosteus, Glyptodon, Average unarmed adult human, Trained heavyweight boxer, Trained wrestler, Sumo wrestler, Armoured sword-and-shield fighter and Prepared crossbow carrier. Sword is registered as contact slashing, crossbow as finite ranged piercing, and all new water, flight, armour, venom, restraint, pack and ammunition identities are represented with explicit reviewed structured mechanics.
 
 ## Files
 
@@ -21,7 +23,7 @@ The 0.8 quality slice adds exactly five reviewed profiles: Bearded capuchin monk
 
 ## Interpretation rule
 
-Real profiles use a **representative high-end adult**. This means a large, healthy, combat-capable adult, not a species mean and not the largest anecdotal specimen. The creature schema does not yet store sex, age or subspecies. The scenario contract can declare a structured specimen basis and sex, but these are disclosure-only until the user also changes size or authored stats. Production provenance must still add taxon, life stage, condition and sex basis per record.
+Real profiles use a **representative high-end adult**. This means a large, healthy, combat-capable adult, not a species mean and not the largest anecdotal specimen. The explicit Average unarmed adult human profile is the exception and represents an average adult baseline. The creature schema does not yet store sex, age or subspecies. The scenario contract can declare a structured specimen basis and sex, but these are disclosure-only until the user also changes size or authored stats. Production provenance must still add taxon, life stage, condition and sex basis per record.
 
 ## Measurement fields
 

@@ -1,5 +1,6 @@
 import { chromium } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 
 const baseUrl = process.argv[2] ?? 'http://127.0.0.1:4189'
 const phase = process.argv[3] ?? 'after'
@@ -15,11 +16,11 @@ try {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto(baseUrl)
     await page.getByRole('heading', { name: 'Build your matchup' }).waitFor()
-    await page.screenshot({ path: new URL(`${name}-matchup.png`, directory).pathname.replace(/^\/(\w:)/, '$1'), fullPage: true })
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-matchup.png`, directory)), fullPage: true })
     await page.getByRole('button', { name: /Set battle conditions/ }).click()
     await page.getByRole('button', { name: /Who would win/ }).click()
     await page.getByTestId('simple-likely-copy').waitFor()
-    await page.screenshot({ path: new URL(`${name}-result.png`, directory).pathname.replace(/^\/(\w:)/, '$1'), fullPage: true })
+    await page.screenshot({ path: fileURLToPath(new URL(`${name}-result.png`, directory)), fullPage: true })
     await writeFile(new URL(`${name}-result.txt`, directory), await page.getByTestId('simple-result').innerText())
     const layout = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, focused: document.activeElement?.id }))
     evidence.push({ name, width, height, touch: name !== 'desktop', layout, errors })

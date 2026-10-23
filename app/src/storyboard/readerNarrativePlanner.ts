@@ -655,7 +655,7 @@ function minorityPathText(
     .sort((left, right) => Math.abs(right.marginDelta) - Math.abs(left.marginDelta) || ordinal(left.id, right.id))[0]
   if (meaningful) {
     return {
-      text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${haveVerb(loser.grammaticalNumber)} a better chance if the setting changes so that ${meaningful.label.toLocaleLowerCase('en-AU')}${meaningful.reversesDeterministicLeader ? '; in that test, the winner changes' : ''}.`,
+      text: `${capitaliseResolvedLabel(loser.subjectLabel)} ${haveVerb(loser.grammaticalNumber)} a better chance if the setting changes so that ${meaningful.label.toLocaleLowerCase('en-AU')}${meaningful.reversesDeterministicLeader ? '; that comparison reverses the underlying advantage' : ''}.`,
       evidenceId: `sensitivity:${meaningful.id}`,
       concept: selection.minorityPathCandidateId
         ? candidateById(selection, selection.minorityPathCandidateId).narrativeConcept

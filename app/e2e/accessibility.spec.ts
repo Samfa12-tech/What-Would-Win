@@ -44,6 +44,24 @@ test('default simple mode has no serious axe violations', async ({ page }) => {
   await expectNoSeriousAxeViolations(page)
 })
 
+test('Simple story and experiments reflow, retain keyboard focus and have no serious axe violations', async ({ page }) => {
+  test.slow()
+  await page.getByRole('button', { name: 'Simple' }).click()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 320, height: 800 })
+  const preset = page.getByRole('button', { name: /The classic briefing/ })
+  await preset.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: 'Set the scene' })).toBeFocused()
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  await expect(page.locator('#simple-result-title')).toBeFocused()
+  const headingWidth = await page.locator('#simple-result-title').evaluate((element) => element.getBoundingClientRect().width)
+  expect(headingWidth).toBeGreaterThan(230)
+  await page.addStyleTag({ content: '*{letter-spacing:.12em!important;word-spacing:.16em!important}p,li,button{line-height:1.5!important}p{margin-bottom:2em!important}' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+  await expectNoSeriousAxeViolations(page)
+})
+
 test('initial application and expanded custom editor have no serious axe violations', async ({ page }) => {
   test.slow()
   await expectNoSeriousAxeViolations(page)
@@ -113,7 +131,7 @@ test('technical ledger and conceptual results have no serious axe violations', a
   await expectNoSeriousAxeViolations(page)
 })
 
-test('likely battle and tactical reconstruction remain complete and axe-clean', async ({ page }) => {
+test('written battle and detailed evidence remain complete and axe-clean', async ({ page }) => {
   test.slow()
   await page.getByRole('button', { name: 'Run simulation' }).click()
 
@@ -129,16 +147,8 @@ test('likely battle and tactical reconstruction remain complete and axe-clean', 
   await expect(likelyBattle.getByLabel('Seven-phase detailed reconstruction').locator('> section')).toHaveCount(7)
   await expectNoSeriousAxeViolations(page)
 
-  await selectResultView(page, 'Tactical reconstruction')
-  const tactical = page.getByTestId('tactical-reconstruction-panel')
-  await expect(tactical).toBeVisible()
-  expect(await tactical.locator('.tactical-transcript li').count()).toBeGreaterThan(7)
-  const callout = tactical.getByTestId('tactical-callout')
-  const openingBeat = await callout.innerText()
-  await tactical.evaluate((element) => element.focus({ preventScroll: true }))
-  await page.keyboard.press('ArrowRight')
-  await expect(callout).not.toHaveText(openingBeat)
-  await expectNoSeriousAxeViolations(page)
+  await expect(page.getByRole('tab', { name: 'Tactical reconstruction' })).toHaveCount(0)
+
 })
 
 test('reflow and user text spacing keep controls readable without horizontal page overflow', async ({ page }) => {

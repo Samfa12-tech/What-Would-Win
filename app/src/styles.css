@@ -1540,6 +1540,8 @@ footer strong {
   }
 }
 
+
+
 .nav-case {
   display: flex;
   min-width: 0;
@@ -2122,34 +2124,6 @@ footer strong {
 .simple-condition-summary p { margin: 0; color: #f4e7ca; }
 .simple-condition-summary span { color: var(--muted); font-size: 12px; text-transform: capitalize; }
 
-.simple-result { border: 1px solid var(--line-strong); border-radius: 22px; background: #101a29; box-shadow: var(--shadow); }
-.simple-result-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 34px 38px; border-bottom: 1px solid var(--line); }
-.simple-result-hero h2 { margin: 3px 0 8px; color: #f7f1e6; font-family: Georgia, "Times New Roman", serif; font-size: clamp(38px, 5vw, 64px); line-height: 1; }
-.simple-verdict-copy { max-width: 70ch; margin: 0; color: #d8e0ea; font-size: 16px; line-height: 1.55; }
-.simple-outcome-reason { max-width: 70ch; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
-.simple-probability-seal { display: grid; place-items: center; width: 132px; height: 132px; border: 2px solid var(--gold); border-radius: 50%; background: #0b1422; text-align: center; }
-.simple-probability-seal strong { color: var(--gold-light); font-family: Georgia, "Times New Roman", serif; font-size: 31px; }
-.simple-probability-seal span { margin-top: -30px; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.simple-result-warnings { padding: 12px 38px; border-bottom: 1px solid var(--line); color: #e6d1a7; background: #171a1f; font-size: 12px; }
-.simple-result-warnings p { margin: 3px 0; }
-.simple-result-grid { display: grid; grid-template-columns: 1fr 1fr; }
-.simple-result-grid > section { padding: 30px 38px; }
-.simple-result-grid > section + section { border-left: 1px solid var(--line); }
-.simple-result-grid h3 { margin: 4px 0 18px; color: #f7f1e6; font-family: Georgia, "Times New Roman", serif; font-size: 25px; }
-.simple-why ol { display: grid; gap: 13px; margin: 0; padding: 0; list-style: none; }
-.simple-why li { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: start; }
-.simple-why li > span { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--gold-light); font-size: 11px; font-weight: 900; }
-.simple-why li strong { display: block; margin: 2px 0 3px; color: #f4e7ca; font-size: 14px; }
-.simple-why li p, .simple-likely > p, .simple-story-flow p { margin: 1px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
-.simple-story-flow { display: grid; gap: 12px; }
-.simple-story-flow section { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-.simple-story-flow section:last-child { padding-bottom: 0; border-bottom: 0; }
-.simple-story-flow h4 { margin: 0 0 3px; color: #f4e7ca; font-size: 13px; }
-.simple-likely .simple-reconstruction-notice { margin-top: 14px; color: var(--faint); font-size: 11px; line-height: 1.45; }
-.simple-result-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 20px 38px; border-top: 1px solid var(--line); }
-.simple-result-actions button { display: inline-flex; align-items: center; gap: 7px; }
-.simple-model-note { display: flex; align-items: center; gap: 7px; margin: 0; padding: 12px 38px 18px; color: var(--faint); font-size: 11px; }
-
 @media (max-width: 900px) {
   .experience-header { grid-template-columns: 1fr auto; }
   .experience-switch { justify-self: end; }
@@ -2211,3 +2185,15 @@ footer strong {
   .experience-switch button { border: 1px solid ButtonText; color: ButtonText; }
   .experience-switch button.active { border: 3px solid ButtonText; color: ButtonText; background: ButtonFace; }
 }
+
+/* Focused story-first result and optional preset entry points. */
+.simple-presets { margin-top: 28px; }
+.simple-presets h2 { margin-bottom: 12px; font: 700 24px Georgia, serif; color: var(--ink); }
+.simple-preset-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.simple-preset-grid button { display: grid; gap: 7px; padding: 18px; border: 1px solid var(--line-strong); border-radius: 12px; background: #101a29; color: var(--ink); text-align: left; min-height: 44px; }
+.simple-preset-grid button:hover { border-color: var(--gold); }
+.simple-preset-grid strong { color: var(--gold-light); font: 700 19px Georgia, serif; }
+.simple-preset-grid span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.simple-preset-grid small { color: var(--gold-light); }
+
+@media (max-width: 720px) { .simple-preset-grid { grid-template-columns: 1fr; } }

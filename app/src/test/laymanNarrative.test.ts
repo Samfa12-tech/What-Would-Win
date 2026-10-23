@@ -54,6 +54,19 @@ const pilots: Array<[string, Partial<Scenario>]> = [
 ]
 
 describe('layman battle story', () => {
+  test('the finish preserves a selected matchup-specific mechanism within the reading budget', () => {
+    const duck = storyFor({})
+    const dragon = storyFor(pilots[2][1])
+    for (const matchup of [duck, dragon]) {
+      expect(matchup.story.stages[2].sentences.some((sentence) => sentence.templateId === 'layman.story.finish-cause')).toBe(true)
+      expect(matchup.story.stages[2].evidenceIds).toContain(matchup.account.plan.resolution.sentences[0].fragments.find((part) => part.evidenceId)?.evidenceId)
+      expect(matchup.story.storyWordCount).toBeLessThanOrEqual(150)
+      expect(matchup.story.issues).toEqual([])
+    }
+    const normalised = (text: string) => text.replace(/horse-sized mallard duck|duck-sized horses|Western dragon|prepared archers/gi, 'contestant')
+    expect(normalised(duck.story.stages[2].text)).not.toBe(normalised(dragon.story.stages[2].text))
+  })
+
   test.each(pilots)('%s has a short, readable, evidence-backed account', (name, overrides) => {
     const { input, account, storyboard, story, storyText, reasonText, allText } = storyFor(overrides, 90210)
     const knownEvidence = new Set(storyboard.evidence.map((item) => item.id))

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.1 - 2026-10-23
+
+- Put three existing suggested matchups in Simple mode before the contestant controls and describe resizing in plain language.
+- Make the complete matchup, counts and size modifiers the result headline, with per-creature mass comparison, consistent model-estimate wording and a nearby real-world-prediction disclaimer.
+- Lead with the written opening, turning point and finish, then concise winner reasons and the opposing side's best chance. Carry the selected evidence-backed resolution mechanism into the finish when it fits the reading budget.
+- Remove the animated tactical battle from navigation and the production import graph. Retain the written story, complete phase ledger, Analyst evidence and structured exports.
+- Add environment, doubled-group and existing 50/50-crossover shortcuts with bounded exact counts, seed/resource preservation and unavailable-case explanations.
+- Keep model 0.5.0, data 0.6.0, all 159 profiles, share v5 and storage v3 unchanged.
+
 ## 0.9.0 — 2026-08-23
 
 - Advanced the application to 0.9.0 and the canonical data to 0.6.0 while retaining model 0.5.0, share v5, storyboard v3 and custom/history storage v3.

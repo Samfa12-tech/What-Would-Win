@@ -1,0 +1,60 @@
+.simple-result { border: 1px solid var(--line-strong); border-radius: 22px; background: #101a29; box-shadow: var(--shadow); }
+.simple-result-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 34px 38px; border-bottom: 1px solid var(--line); }
+.simple-result-hero h2 { margin: 3px 0 8px; color: #f7f1e6; font-family: Georgia, "Times New Roman", serif; font-size: clamp(38px, 5vw, 64px); line-height: 1; }
+.simple-verdict-copy { max-width: 70ch; margin: 0; color: #d8e0ea; font-size: 16px; line-height: 1.55; }
+.simple-outcome-reason { max-width: 70ch; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.simple-probability-seal { display: grid; place-items: center; width: 132px; height: 132px; border: 2px solid var(--gold); border-radius: 50%; background: #0b1422; text-align: center; }
+.simple-probability-seal strong { color: var(--gold-light); font-family: Georgia, "Times New Roman", serif; font-size: 31px; }
+.simple-probability-seal span { margin-top: -30px; color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.simple-result-warnings { padding: 12px 38px; border-bottom: 1px solid var(--line); color: #e6d1a7; background: #171a1f; font-size: 12px; }
+.simple-result-warnings p { margin: 3px 0; }
+.simple-result-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.simple-result-grid > section { padding: 30px 38px; }
+.simple-result-grid > section + section { border-left: 1px solid var(--line); }
+.simple-result-grid h3 { margin: 4px 0 18px; color: #f7f1e6; font-family: Georgia, "Times New Roman", serif; font-size: 25px; }
+.simple-why ol { display: grid; gap: 13px; margin: 0; padding: 0; list-style: none; }
+.simple-why li { display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: start; }
+.simple-why li > span { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--gold-light); font-size: 11px; font-weight: 900; }
+.simple-why li strong { display: block; margin: 2px 0 3px; color: #f4e7ca; font-size: 14px; }
+.simple-why li p, .simple-likely > p, .simple-story-flow p { margin: 1px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.simple-story-flow { display: grid; gap: 12px; }
+.simple-story-flow section { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.simple-story-flow section:last-child { padding-bottom: 0; border-bottom: 0; }
+.simple-story-flow h4 { margin: 0 0 3px; color: #f4e7ca; font-size: 13px; }
+.simple-likely .simple-reconstruction-notice { margin-top: 14px; color: var(--faint); font-size: 11px; line-height: 1.45; }
+.simple-result-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 20px 38px; border-top: 1px solid var(--line); }
+.simple-result-actions button { display: inline-flex; align-items: center; gap: 7px; }
+.simple-model-note { display: flex; align-items: center; gap: 7px; margin: 0; padding: 12px 38px 18px; color: var(--muted); font-size: 13px; }
+
+
+.simple-result-hero h2 { font-size: clamp(27px, 3.3vw, 45px); line-height: 1.18; overflow-wrap: anywhere; }
+.simple-size-comparison { margin: 12px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; max-width: 65ch; }
+.simple-result-hero { position: relative; padding-bottom: 64px; }
+.simple-estimate-notice { position: absolute; right: 38px; bottom: 14px; margin: 0; color: #d8e0ea; font-size: 13px; }
+.simple-result-grid { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); }
+.simple-story-flow p { font-size: 16px; line-height: 1.65; color: #d8e0ea; max-width: 68ch; }
+.simple-likely .simple-reconstruction-notice { margin: 0 0 18px; font-size: 13px; color: var(--muted); }
+.simple-alternate { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.simple-alternate h4 { color: var(--gold-light); margin: 0 0 5px; }
+.simple-alternate p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; }
+.simple-experiments { padding: 22px 38px; border-top: 1px solid var(--line); }
+.simple-experiments h3 { margin: 0 0 6px; color: var(--ink); font: 700 24px Georgia, serif; }
+.simple-experiments > div { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.simple-experiments p { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 6px 0; }
+.simple-experiments button { min-height: 44px; white-space: normal; }
+.simple-experiments button:disabled { opacity: .55; cursor: not-allowed; }
+.result-matchup, .result-estimate-notice { color: var(--muted); line-height: 1.5; }
+.result-estimate-notice { margin: 10px 0 18px; }
+@media (max-width: 720px) {
+  .simple-result-grid { grid-template-columns: 1fr; }
+  .simple-result-grid > section + section { border-top: 1px solid var(--line); border-left: 0; }
+  .simple-result-hero { grid-template-columns: 1fr; padding: 26px 20px; gap: 18px; }
+  .simple-probability-seal { width: 112px; height: 112px; }
+  .simple-result-grid > section { padding: 24px 20px; }
+  .simple-result-actions { display: grid; padding: 18px 20px; }
+  .simple-result-actions button { justify-content: center; width: 100%; }
+  .simple-model-note { align-items: flex-start; padding: 12px 20px 18px; }
+  .simple-estimate-notice { position: static; }
+  .simple-experiments { padding: 22px 20px; }
+  .simple-experiments > div { display: grid; }
+}

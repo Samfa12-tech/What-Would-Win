@@ -4,6 +4,7 @@ import { ArrowRight } from '@phosphor-icons/react/ArrowRight'
 import { ChartLineUp } from '@phosphor-icons/react/ChartLineUp'
 import { Shuffle } from '@phosphor-icons/react'
 import { SimpleCreaturePanel } from './components/SimpleCreaturePanel'
+import { closeMatchQuantity, doubleGroupQuantity } from './resultExperiments'
 import {
   cloneAsCustom,
   cloneSavedItem,
@@ -69,6 +70,11 @@ const reportDepths: Array<{ value: Scenario['reportDepth']; title: string; descr
 ]
 
 const terrainOptions = ['open', 'forest', 'urban', 'river', 'swamp', 'ocean', 'deep-ocean', 'mountain', 'snow', 'desert', 'cave', 'fortification']
+const simpleScalingCopy = {
+  strict: 'Realistic limits: growing too large can make a creature struggle under its own weight.',
+  functional: 'Resized creatures stay healthy, but strength and stamina still change with size.',
+  magical: 'Resized creatures stay healthy and gain power almost in step with their weight.',
+}
 const weatherOptions = ['clear', 'rain', 'storm', 'fog', 'snow', 'heat']
 
 const fieldBriefs: Array<{
@@ -423,7 +429,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     if (experienceMode !== 'simple') return
     window.requestAnimationFrame(() => {
       document.getElementById(`simple-${simpleStep}-title`)?.focus({ preventScroll: true })
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
     })
   }, [experienceMode, simpleStep])
 
@@ -591,8 +597,18 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
       seed: scenario.seed,
     }
     setScenario(nextScenario)
+    setResources(defaultModel04Resources(nextScenario))
     setError('')
     setShareStatus('')
+  }
+
+  function resultExperiment(kind: 'double' | 'close') {
+    const quantity = kind === 'double'
+      ? doubleGroupQuantity(simulatedScenario.groupQuantity)
+      : closeMatchQuantity(result)
+    if (quantity === null || quantity === simulatedScenario.groupQuantity) return
+    // Branch from the displayed snapshot, including per-ability resources and both seeds.
+    run({ ...simulatedScenario, groupQuantity: quantity }, true, simulatedResources, storySeed)
   }
 
   function randomMatchup() {
@@ -615,7 +631,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
   }
 
   function runAndReveal() {
-    if (!run()) return
+    if (!run(scenario, true, resources, hasSimpleResult ? storySeed : undefined)) return
     setHasSimpleResult(true)
     if (experienceMode === 'simple') setSimpleStep('result')
     else window.requestAnimationFrame(() => document.getElementById('verdict')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
@@ -675,7 +691,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
     }
     setHasSimpleResult(true)
     if (experienceMode === 'simple') setSimpleStep('result')
-    else window.scrollTo({ top: 0, behavior: 'smooth' })
+    else window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
   }
 
   async function copyShareLink() {
@@ -821,6 +837,18 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                 <p>Choose each contender, set their size, and let the model handle the rest.</p>
               </div>
 
+              <section className="simple-presets" aria-labelledby="simple-presets-title">
+                <h2 id="simple-presets-title">Start an argument</h2>
+                <div className="simple-preset-grid">
+                  {fieldBriefs.slice(0, 3).map((brief) => (
+                    <button type="button" key={brief.id} onClick={() => {
+                      applyFieldBrief(brief)
+                      setSimpleStep('conditions')
+                    }}><strong>{brief.title}</strong><span>{brief.description}</span><small>Set the scene →</small></button>
+                  ))}
+                </div>
+              </section>
+
               <div className="simple-matchup-stage">
                 <SimpleCreaturePanel
                   side="solo"
@@ -858,6 +886,8 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                 <button type="button" className="primary-button" onClick={() => setSimpleStep('conditions')}>Set battle conditions <ArrowRight aria-hidden="true" /></button>
                 <button type="button" className="text-button simple-random" onClick={randomMatchup}><Shuffle aria-hidden="true" /> Random matchup</button>
               </div>
+
+
             </section>
           )}
 
@@ -875,7 +905,7 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
                   <select aria-label="Creature resizing" value={scenario.scalingMode} onChange={(event) => update('scalingMode', event.target.value as Scenario['scalingMode'])}>
                     {scalingModes.map((mode) => <option value={mode.value} key={mode.value}>{mode.title}</option>)}
                   </select>
-                  <small>{scalingModes.find((mode) => mode.value === scenario.scalingMode)?.description}</small>
+                  <small>{simpleScalingCopy[scenario.scalingMode]}</small>
                 </label>
                 <label className="simple-condition-card">
                   <span>Battlefield</span>
@@ -920,10 +950,20 @@ function App({ builtInCreatures, model04Runtime }: AppProps) {
             <Suspense fallback={<div className="method-banner" role="status">Preparing the result…</div>}>
               <SimpleResultPanel
                 result={result}
+                scenario={simulatedScenario}
                 solo={simulatedSolo}
                 group={simulatedGroup}
                 reconstructionInput={storyboardInput}
                 shareStatus={shareStatus}
+                error={error}
+                isDirty={isDirty}
+                onChangeEnvironment={() => {
+                  setScenario(simulatedScenario)
+                  setResources(simulatedResources)
+                  setError('')
+                  setSimpleStep('conditions')
+                }}
+                onExperiment={resultExperiment}
                 onEditMatchup={() => setSimpleStep('matchup')}
                 onDeepDive={() => {
                   setExperienceMode('deep')

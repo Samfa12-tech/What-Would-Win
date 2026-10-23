@@ -3,6 +3,7 @@ import type { Creature, ReportDepth, Scenario, SimulationResult } from '../types
 import type { Model04SensitivityPoint } from '../model04/engineV4'
 import type { AbilityResolution, CreatureV4Draft } from '../model04/contracts'
 import type { BattleReconstructionInput } from '../storyboard'
+import { fullMatchupLabel } from '../resultExperiments'
 import { formatLogQuantity } from '../simulation/quantity'
 
 const TechnicalReport = lazy(async () => {
@@ -10,17 +11,12 @@ const TechnicalReport = lazy(async () => {
   return { default: module.TechnicalReport }
 })
 
-const TacticalReconstructionPanel = lazy(async () => {
-  const module = await import('./TacticalReconstructionPanel')
-  return { default: module.TacticalReconstructionPanel }
-})
-
 const LikelyBattlePanel = lazy(async () => {
   const module = await import('./LikelyBattlePanel')
   return { default: module.LikelyBattlePanel }
 })
 
-type ResultView = 'verdict' | 'likely-battle' | 'tactical-reconstruction' | 'technical-record'
+type ResultView = 'verdict' | 'likely-battle' | 'technical-record'
 
 interface ResultPanelProps {
   result: SimulationResult
@@ -76,7 +72,6 @@ function depthAtLeast(current: ReportDepth, target: ReportDepth): boolean {
 const VIEW_LABELS: Array<{ id: ResultView; label: string }> = [
   { id: 'verdict', label: 'Verdict' },
   { id: 'likely-battle', label: 'Likely battle' },
-  { id: 'tactical-reconstruction', label: 'Tactical reconstruction' },
   { id: 'technical-record', label: 'Technical record' },
 ]
 
@@ -86,7 +81,7 @@ function confidenceExplanation(result: SimulationResult): string {
   return `${result.confidenceLabel} reflects ${stability} plausible probability band. It describes model stability, not certainty or a scripted battle.`
 }
 
-function DrawPresentation({ result, view }: { result: SimulationResult; view: 'Likely battle' | 'Tactical reconstruction' }) {
+function DrawPresentation({ result, view }: { result: SimulationResult; view: 'Likely battle' }) {
   return (
     <section className="draw-presentation" data-testid="draw-presentation">
       <p className="eyebrow">MODELLED NON-ENGAGEMENT</p>
@@ -132,14 +127,17 @@ export function ResultPanel({
         <div role="status" aria-live="polite" aria-atomic="true">
           <p className="eyebrow">SIMULATION VERDICT</p>
           <h2>{outcomeTitle(result)}</h2>
+          <p className="result-matchup">{fullMatchupLabel(scenario, solo, group, result)}</p>
           <p className="verdict-copy">{result.verdict}</p>
           <p className={`outcome-reason outcome-${result.outcome}`}>{result.outcomeReason}</p>
         </div>
         <div className={`probability-seal outcome-${result.outcome}`}>
           <strong>{pct(displayedOutcomeProbability)}</strong>
-          <span>{result.outcome === 'draw' ? 'model draw rate' : 'model win rate'}</span>
+          <span>model estimate</span>
         </div>
       </div>
+
+      <p className="result-estimate-notice">In this model, not a real-world prediction.</p>
 
       <div className="result-view-nav" role="tablist" aria-label="Result views" onKeyDown={handleViewKeys}>
         {VIEW_LABELS.map((item) => (
@@ -229,12 +227,6 @@ export function ResultPanel({
         {view === 'likely-battle' && (result.outcome === 'draw' || reconstructionInput === null
           ? <DrawPresentation result={result} view="Likely battle" />
           : <Suspense fallback={<div className="method-banner" role="status">Building the validated likely-battle account…</div>}><LikelyBattlePanel input={reconstructionInput} onAnotherReconstruction={onAnotherReconstruction} /></Suspense>)}
-      </div>
-
-      <div id="result-panel-tactical-reconstruction" role="tabpanel" aria-labelledby="result-tab-tactical-reconstruction" hidden={view !== 'tactical-reconstruction'}>
-        {view === 'tactical-reconstruction' && (result.outcome === 'draw' || reconstructionInput === null
-          ? <DrawPresentation result={result} view="Tactical reconstruction" />
-          : <Suspense fallback={<div className="method-banner" role="status">Loading the optional tactical reconstruction…</div>}><TacticalReconstructionPanel input={reconstructionInput} onAnotherReconstruction={onAnotherReconstruction} /></Suspense>)}
       </div>
 
       <div className="result-view" id="result-panel-technical-record" role="tabpanel" aria-labelledby="result-tab-technical-record" data-testid="technical-record-view" hidden={view !== 'technical-record'}>

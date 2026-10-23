@@ -607,15 +607,31 @@ export function buildLaymanBattleStory(
             sentence.fragments.find((fragment) => fragment.evidenceId)?.evidenceId ?? primaryReason?.evidenceIds[0] ?? 'verdict:outcome',
             narrativeSentenceText(sentence).replace(/^The fight turns when /, 'The turning point comes when '),
           ))
+  // Carry the selected resolution mechanism into the short story instead of
+  // ending every matchup with only a name-swapped defeat condition. Reuse its
+  // evidence, keep the reading budget, and retain the safe fallback contract.
+  const resolution = account.plan.resolution.sentences[0]
+  const resolutionCause = resolution && !account.fallback && !isOneWayRouteDecision(input)
+    ? visibleSentences(narrativeSentenceText(resolution))[0]
+    : undefined
+  const finishSentences = [
+    laymanSentence('finish-condition', 'scenario:win-condition', finishCondition(input, account)),
+    laymanSentence('finish-result', 'verdict:outcome', resultConclusion(input, account)),
+  ]
+  if (resolutionCause && words(resolutionCause) <= 32
+    && words(textFor([...openingSentences, ...turningSentences, ...finishSentences])) + words(resolutionCause) <= 150) {
+    finishSentences.unshift(laymanSentence(
+      'finish-cause',
+      resolution.fragments.find((fragment) => fragment.evidenceId)?.evidenceId ?? 'verdict:outcome',
+      resolutionCause,
+    ))
+  }
   const stages = [
     stage('opening', 'The opening', [
       ...openingSentences,
     ]),
     stage('turning-point', 'The turning point', turningSentences),
-    stage('finish', 'The finish', [
-      laymanSentence('finish-condition', 'scenario:win-condition', finishCondition(input, account)),
-      laymanSentence('finish-result', 'verdict:outcome', resultConclusion(input, account)),
-    ]),
+    stage('finish', 'The finish', finishSentences),
   ]
   const storyWordCount = words(stages.map((item) => item.text).join(' '))
   const alternate = account.fallback

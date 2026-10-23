@@ -37,9 +37,13 @@ npm run test:e2e
 
 The production identity assets live under `app/public/icons/`; the full-resolution raster source is retained at `assets/brand/what-would-win-icon-master.png`. Icon, manifest and application asset paths are relative so the build remains compatible with static subdirectory hosting.
 
+## Story-first experience
+
+Simple mode starts with suggested matchups or your own contestants, then presents the full matchup, a model estimate and an evidence-backed written battle story. Follow-ups change the environment, double a bounded group or try the existing approximate crossover. Deep dive retains sources, calculations, sensitivity, custom profiles, recent arguments and complete written evidence. The animated battle is retired and its runtime is absent from the production build. See `docs/STORY_FIRST_0.9.1.md`.
+
 ## Current model
 
-The active reproducibility identity is **application 0.9.0, model 0.5.0, data 0.6.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
+The active reproducibility identity is **application 0.9.1, model 0.5.0, data 0.6.0, share format v5 and storyboard v3**. Custom-creature and history storage use **v3** recovery-copy formats.
 
 Model 0.5.0 keeps the model-0.4 physical, ability and endurance ledger, fixes every report depth at 15,000 seeded trials, weights group access by each executable route's actual contribution, and adds explicit one-way-win versus mutual non-engagement resolution. Quantity-one symmetry is locked so equal mobility does not manufacture a side advantage. The active contract also supports reviewed arboreal locomotion and preparation-dependent abilities.
 

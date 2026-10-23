@@ -52,22 +52,6 @@ async function openLikelyBattle(page: Page) {
   await expect(page.getByTestId('likely-battle-panel')).toBeVisible({ timeout: 30_000 })
 }
 
-async function openTactical(page: Page) {
-  await selectResultView(page, 'Tactical reconstruction')
-  await expect(page.getByTestId('tactical-reconstruction-panel')).toBeVisible({ timeout: 30_000 })
-}
-
-async function noWebGlPage(browser: Browser) {
-  const context = await browser.newContext()
-  await context.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext
-    HTMLCanvasElement.prototype.getContext = function (contextId: string, ...args: unknown[]) {
-      return contextId === 'webgl2' ? null : (original as Function).apply(this, [contextId, ...args])
-    }
-  })
-  return { context, page: await context.newPage() }
-}
-
 test('verdict exposes probability context, quantity stages, and keyboard-operable result tabs', async ({ page }) => {
   await runDefaultSimulation(page)
 
@@ -75,11 +59,11 @@ test('verdict exposes probability context, quantity stages, and keyboard-operabl
   const likelyTab = page.getByRole('tab', { name: 'Likely battle', exact: true })
   await expect(verdictTab).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByTestId('verdict-view')).toBeVisible()
-  for (const panelId of ['verdict', 'likely-battle', 'tactical-reconstruction', 'technical-record']) {
+  for (const panelId of ['verdict', 'likely-battle', 'technical-record']) {
     await expect(page.locator(`#result-panel-${panelId}`)).toHaveCount(1)
   }
   await expect(page.locator('#result-panel-likely-battle')).toHaveAttribute('hidden', '')
-  await expect(page.locator('#result-panel-tactical-reconstruction')).toHaveAttribute('hidden', '')
+  await expect(page.getByRole('tab', { name: 'Tactical reconstruction' })).toHaveCount(0)
   await expect(page.locator('#result-panel-technical-record')).toHaveAttribute('hidden', '')
   await expect(page.locator('.probability-midpoint')).toBeVisible()
   await expect(page.locator('.probability-band')).toBeVisible()
@@ -114,10 +98,6 @@ test('a modelled draw never mounts decisive story or tactical reconstruction bui
   await selectResultView(page, 'Likely battle')
   await expect(page.getByTestId('draw-presentation')).toBeVisible()
   await expect(page.getByTestId('likely-battle-panel')).toHaveCount(0)
-  await selectResultView(page, 'Tactical reconstruction')
-  await expect(page.getByTestId('draw-presentation')).toBeVisible()
-  await expect(page.getByTestId('tactical-reconstruction-panel')).toHaveCount(0)
-
   await page.getByText('Export files', { exact: true }).click()
   const storyboardExport = page.getByRole('button', { name: 'Download storyboard JSON' })
   const exportNote = page.locator('#draw-storyboard-export-note')
@@ -270,142 +250,6 @@ test('evidence markers work by hover, focus, pin, outside dismissal, and Escape'
   expect((await story.innerText()).trim().length).toBeGreaterThan(300)
 })
 
-test('beat navigation and camera modes keep the active action explicit', async ({ page }) => {
-  test.slow()
-  await runDefaultSimulation(page)
-  await openTactical(page)
-
-  const panel = page.getByTestId('tactical-reconstruction-panel')
-  const callout = panel.getByTestId('tactical-callout')
-  const previous = panel.getByRole('button', { name: 'Previous beat', exact: true })
-  const next = panel.getByRole('button', { name: 'Next beat', exact: true })
-  await expect(panel.getByTestId('tactical-timeline')).toBeVisible()
-  await expect(callout).toBeVisible()
-  await expect(previous).toBeDisabled()
-  await expect(next).toBeEnabled()
-
-  const hud = panel.getByTestId('tactical-hud')
-  await expect(hud).toBeVisible()
-  for (const label of ['Phase', 'Actor', 'Target', 'Outcome', 'Result', 'Model outcome', 'Modelled phase', 'Playback']) {
-    await expect(hud).toContainText(label)
-  }
-  const legend = panel.getByRole('list', { name: 'Tactical map legend' })
-  await expect(legend.getByRole('listitem')).toHaveCount(7)
-  await expect(legend).toContainText('Reserve')
-  await expect(legend).toContainText('Blocked / countered')
-  await expect(panel.locator('.tactical-scale-disclosure')).toBeVisible()
-  await expect(panel.locator('.tactical-state-strips').getByRole('listitem')).toHaveCount(5)
-  await expect(panel.locator('.tactical-state')).toContainText(/Attack access|Reserve pressure|Cohesion|Resources|Retreat state/)
-  await expect(panel.locator('.tactical-count-chips')).toContainText(/declared.*arena usable.*active frontage.*effective pressure/i)
-  await expect(callout).not.toHaveAttribute('aria-live')
-  await expect(panel.locator('p.sr-only[role="status"][aria-live="polite"]')).toContainText(/Phase \d/)
-
-  const firstCallout = await callout.innerText()
-  await next.click()
-  await expect.poll(() => callout.innerText()).not.toBe(firstCallout)
-  await expect(previous).toBeEnabled()
-
-  for (const mode of ['Story camera', 'Tactical map', 'Free look']) {
-    await expect(panel.getByRole('button', { name: mode, exact: true })).toBeVisible()
-  }
-  await panel.getByRole('button', { name: 'Tactical map', exact: true }).click()
-  await expect(panel.getByTestId('tactical-map')).toBeVisible()
-  await expect(panel.getByRole('button', { name: 'Tactical map', exact: true })).toHaveAttribute('aria-pressed', 'true')
-
-  const beforeKeyboard = await callout.innerText()
-  await panel.focus()
-  await page.keyboard.press('ArrowRight')
-  await expect.poll(() => callout.innerText()).not.toBe(beforeKeyboard)
-
-  const play = panel.getByRole('button', { name: 'Play reconstruction', exact: true })
-  if (await play.isEnabled()) {
-    await play.click()
-    await expect(panel.getByRole('button', { name: 'Pause reconstruction', exact: true })).toBeVisible()
-  }
-})
-
-test('the tactical map remains useful when WebGL is unavailable', async ({ browser }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop-chromium', 'One deterministic Chromium context owns forced no-WebGL coverage.')
-  const fallback = await noWebGlPage(browser)
-  try {
-    await runDefaultSimulation(fallback.page)
-    await openTactical(fallback.page)
-    const panel = fallback.page.getByTestId('tactical-reconstruction-panel')
-    await expect(panel.getByTestId('no-webgl-fallback')).toBeVisible()
-    await expect(panel.getByTestId('tactical-map')).toBeVisible()
-    await expect(panel.getByTestId('tactical-callout')).toBeVisible()
-    await expect(panel.getByTestId('tactical-timeline')).toBeVisible()
-    await expect(panel.getByRole('button', { name: 'Story camera', exact: true })).toBeDisabled()
-    await expect(panel.getByRole('button', { name: 'Free look', exact: true })).toBeDisabled()
-  } finally {
-    await fallback.context.close()
-  }
-})
-
-test('reduced motion prevents automatic beat playback', async ({ browser }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop-chromium', 'Existing matrix coverage owns cross-browser reduced-motion details.')
-  const context = await browser.newContext({ reducedMotion: 'reduce' })
-  const page = await context.newPage()
-  try {
-    await runDefaultSimulation(page)
-    await openTactical(page)
-    const panel = page.getByTestId('tactical-reconstruction-panel')
-    await panel.getByText('Display and capture', { exact: true }).click()
-    await expect(panel.getByRole('button', { name: 'Reduced motion' })).toHaveAttribute('aria-pressed', 'true')
-    await expect(panel.getByRole('button', { name: 'Play reconstruction', exact: true })).toBeDisabled()
-    const callout = await panel.getByTestId('tactical-callout').innerText()
-    await page.waitForTimeout(750)
-    expect(await panel.getByTestId('tactical-callout').innerText()).toBe(callout)
-  } finally {
-    await context.close()
-  }
-})
-
-test('mobile puts the battlefield after its notice and before secondary controls', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile-chromium', 'The dedicated mobile project owns the 360 px reading-order contract.')
-  await runDefaultSimulation(page)
-  await openTactical(page)
-
-  const panel = page.getByTestId('tactical-reconstruction-panel')
-  const notice = await panel.locator('.reconstruction-notice').boundingBox()
-  const battlefield = await panel.locator('.tactical-viewport').boundingBox()
-  const callout = await panel.getByTestId('tactical-callout').boundingBox()
-  const viewSwitch = await panel.locator('.tactical-view-switch').boundingBox()
-  const advanced = await panel.locator('.tactical-advanced-controls').boundingBox()
-  const calloutHeader = panel.locator('.tactical-callout header')
-  expect(notice).not.toBeNull()
-  expect(battlefield).not.toBeNull()
-  expect(callout).not.toBeNull()
-  expect(viewSwitch).not.toBeNull()
-  expect(advanced).not.toBeNull()
-  expect(notice!.y).toBeLessThan(battlefield!.y)
-  expect(battlefield!.y).toBeLessThan(callout!.y)
-  expect(viewSwitch!.y).toBeLessThan(advanced!.y)
-  await expect(calloutHeader.locator('.visually-hidden')).toContainText(/Phase \d of 7 · Beat \d of \d/)
-  await expect(calloutHeader.locator('[aria-hidden="true"]')).toHaveText(/P\d\/7 · B\d\/\d/)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
-})
-
-test('mobile Free look accepts orbit and pinch gestures', async ({ page, context }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile-chromium', 'The touch-enabled Chromium project owns multi-touch camera input.')
-  await runDefaultSimulation(page)
-  await openTactical(page)
-  const panel = page.getByTestId('tactical-reconstruction-panel')
-  await panel.getByRole('button', { name: 'Free look', exact: true }).click()
-  const canvas = panel.getByTestId('tactical-canvas')
-  const box = await canvas.boundingBox()
-  expect(box).not.toBeNull()
-  const before = await canvas.screenshot()
-  const session = await context.newCDPSession(page)
-  const first = { x: box!.x + box!.width * 0.35, y: box!.y + box!.height * 0.5, id: 1, radiusX: 5, radiusY: 5, force: 1 }
-  const second = { x: box!.x + box!.width * 0.65, y: box!.y + box!.height * 0.5, id: 2, radiusX: 5, radiusY: 5, force: 1 }
-  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [first, second] })
-  await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...first, x: first.x - 35, y: first.y + 12 }, { ...second, x: second.x + 35, y: second.y + 12 }] })
-  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-  await expect(panel.getByRole('button', { name: 'Reset view' })).toBeVisible()
-  expect((await canvas.screenshot()).equals(before)).toBe(false)
-})
-
 test('412px touch layout preserves evidence under text spacing and forced colours', async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'One Chromium context owns the explicit 412px stress check.')
   test.slow()
@@ -418,23 +262,12 @@ test('412px touch layout preserves evidence under text spacing and forced colour
     await page.addStyleTag({ content: '*{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}p{margin-bottom:2em!important}' })
     await expectNoSeriousAxeViolations(page)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
-    await openTactical(page)
-    const panel = page.getByTestId('tactical-reconstruction-panel')
-    await panel.getByRole('button', { name: 'Tactical map', exact: true }).click()
-    const callout = panel.getByTestId('tactical-callout')
-    for (const label of ['Who', 'What', 'Target', 'Result', 'Why']) {
-      await expect(callout).toContainText(label)
-    }
-    await expect(panel.getByRole('list', { name: 'Tactical map legend' })).toBeVisible()
-    await expect(panel.locator('.tactical-state-strips').getByRole('listitem')).toHaveCount(5)
-    await expectNoSeriousAxeViolations(page)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   } finally {
     await context.close()
   }
 })
 
-test('Story, Analyst, expanded evidence, and tactical map have no serious axe violations', async ({ page }, testInfo) => {
+test('Story, Analyst and expanded evidence have no serious axe violations', async ({ page }, testInfo) => {
   test.skip(!['desktop-chromium', 'mobile-chromium'].includes(testInfo.project.name), 'Chromium desktop and touch layouts own the expanded-state axe pass.')
   test.slow()
   await runDefaultSimulation(page)
@@ -451,9 +284,5 @@ test('Story, Analyst, expanded evidence, and tactical map have no serious axe vi
   await likely.getByRole('button', { name: 'Analyst', exact: true }).click()
   await expectNoSeriousAxeViolations(page)
 
-  await openTactical(page)
-  const tactical = page.getByTestId('tactical-reconstruction-panel')
-  await tactical.getByRole('button', { name: 'Tactical map', exact: true }).click()
-  await expect(tactical.getByTestId('tactical-map')).toBeVisible()
-  await expectNoSeriousAxeViolations(page)
+
 })

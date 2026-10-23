@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import './simple-result.css'
+import { useEffect, useMemo } from 'react'
 import { ArrowCounterClockwise } from '@phosphor-icons/react/ArrowCounterClockwise'
 import { ChartLineUp } from '@phosphor-icons/react/ChartLineUp'
 import { ShareNetwork } from '@phosphor-icons/react/ShareNetwork'
@@ -13,14 +14,20 @@ import {
   RECONSTRUCTION_NOTICE,
   type BattleReconstructionInput,
 } from '../storyboard'
-import type { Creature, SimulationResult } from '../types'
+import type { Creature, Scenario, SimulationResult } from '../types'
+import { closeMatchQuantity, doubleGroupQuantity, fullMatchupLabel, relativeMassLabel } from '../resultExperiments'
 
 interface SimpleResultPanelProps {
   result: SimulationResult
+  scenario: Scenario
   solo: Creature
   group: Creature
   reconstructionInput: BattleReconstructionInput | null
   shareStatus: string
+  error: string
+  isDirty: boolean
+  onChangeEnvironment: () => void
+  onExperiment: (kind: 'double' | 'close') => void
   onEditMatchup: () => void
   onDeepDive: () => void
   onCopyShare: () => void
@@ -53,14 +60,23 @@ function verdictSummary(result: SimulationResult, winner: string, winnerIsPlural
 
 export function SimpleResultPanel({
   result,
+  scenario,
   solo,
   group,
   reconstructionInput,
   shareStatus,
+  error,
+  isDirty,
+  onChangeEnvironment,
+  onExperiment,
   onEditMatchup,
   onDeepDive,
   onCopyShare,
 }: SimpleResultPanelProps) {
+  useEffect(() => { document.getElementById('simple-result-title')?.focus({ preventScroll: true }) }, [result])
+  const doubleQuantity = doubleGroupQuantity(scenario.groupQuantity)
+  const closeQuantity = closeMatchQuantity(result)
+  const massComparison = relativeMassLabel(result)
   const winnerIsPlural = reconstructionInput?.result.winner
     ? buildResolvedContestantIdentities(reconstructionInput)[reconstructionInput.result.winner].grammaticalNumber === 'plural'
     : false
@@ -79,16 +95,21 @@ export function SimpleResultPanel({
     <section className="simple-result" aria-labelledby="simple-result-title" data-testid="simple-result">
       <div className="simple-result-hero">
         <div>
-          <p className="eyebrow">SIMULATION VERDICT</p>
-          <h2 id="simple-result-title" tabIndex={-1}>{winner}</h2>
+          <p className="eyebrow">YOUR MATCHUP</p>
+          <h2 id="simple-result-title" tabIndex={-1}>{fullMatchupLabel(scenario, solo, group, result)}</h2>
           <p className="simple-verdict-copy">{verdictSummary(result, winner, winnerIsPlural)}</p>
+          {massComparison && <p className="simple-size-comparison">{massComparison} This compares mass per creature, not fighting power.</p>}
           {result.outcome === 'draw' && <p className="simple-outcome-reason outcome-draw">Neither side can reach or affect the other enough to produce a win.</p>}
         </div>
         <div className={`simple-probability-seal outcome-${result.outcome}`} aria-label={result.outcomeReason.startsWith('Only the ') ? 'One-way model route decision' : `${pct(winningProbability(result))} ${result.outcome === 'draw' ? 'model draw rate' : 'model comparison result'}`}>
           <strong>{pct(winningProbability(result))}</strong>
-          <span>{result.outcome === 'draw' ? 'draw rate' : result.outcomeReason.startsWith('Only the ') ? 'route result' : 'model edge'}</span>
+          <span>model estimate</span>
         </div>
+        <p className="simple-estimate-notice">In this model, not a real-world prediction.</p>
       </div>
+
+      {isDirty && <p className="stale-banner" role="status">These are your last result's conditions. Run your edited matchup to update the story.</p>}
+      {error && <div className="error-banner" role="alert">{error}</div>}
 
       {(result.conceptualWarning || result.feasibilityWarning) && (
         <div className="simple-result-warnings" role="note">
@@ -98,6 +119,17 @@ export function SimpleResultPanel({
       )}
 
       <div className="simple-result-grid">
+        <section className="simple-likely" aria-labelledby="simple-likely-heading">
+          <p className="eyebrow">THE BATTLE STORY</p>
+          <h3 id="simple-likely-heading">How the battle plays out</h3>
+          {story && <p className="simple-reconstruction-notice">Illustrative reconstruction. {RECONSTRUCTION_NOTICE}</p>}
+          {story ? (
+            <div className="simple-story-flow" data-testid="simple-likely-copy" data-story-issues={story.issues.length}>
+              {story.stages.map((stage) => <section key={stage.id}><h4>{stage.title}</h4><p>{stage.text}</p></section>)}
+            </div>
+          ) : <p>The sides never establish a workable fight, so no winner sequence is generated.</p>}
+          {story && <aside className="simple-alternate"><h4>The other side’s best chance</h4><p>{story.alternate.text}</p></aside>}
+        </section>
         <section className="simple-why" aria-labelledby="simple-why-heading">
           <p className="eyebrow">THE SHORT ANSWER</p>
           <h3 id="simple-why-heading">Why {winner === 'Draw' ? 'neither side wins' : `${winner} ${winnerIsPlural ? 'win' : 'wins'}`}</h3>
@@ -111,17 +143,19 @@ export function SimpleResultPanel({
           )}
         </section>
 
-        <section className="simple-likely" aria-labelledby="simple-likely-heading">
-          <p className="eyebrow">WHAT LIKELY HAPPENS</p>
-          <h3 id="simple-likely-heading">How the battle plays out</h3>
-          {story ? (
-            <div className="simple-story-flow" data-testid="simple-likely-copy" data-story-issues={story.issues.length}>
-              {story.stages.map((stage) => <section key={stage.id}><h4>{stage.title}</h4><p>{stage.text}</p></section>)}
-            </div>
-          ) : <p>The sides never establish a workable fight, so no winner sequence is generated.</p>}
-          {story && <p className="simple-reconstruction-notice">{RECONSTRUCTION_NOTICE}</p>}
-        </section>
       </div>
+
+      <section className="simple-experiments" aria-labelledby="simple-experiments-title">
+        <h3 id="simple-experiments-title">What changes the story?</h3>
+        <p>Try a new setting or change the group. Each run keeps your seed.</p>
+        <div>
+          <button type="button" className="secondary-button" onClick={onChangeEnvironment}>Change environment</button>
+          <button type="button" className="secondary-button" disabled={doubleQuantity === null} aria-describedby="double-quantity-note" onClick={() => onExperiment('double')}>Double their numbers</button>
+          <button type="button" className="secondary-button" disabled={closeQuantity === null || closeQuantity === scenario.groupQuantity} aria-describedby="close-quantity-note" onClick={() => onExperiment('close')}>Find a close match</button>
+        </div>
+        <p id="double-quantity-note">{doubleQuantity === null ? 'This group is beyond the quick-change limit; edit its quantity in Deep dive.' : `Double to ${Number(doubleQuantity).toLocaleString('en-AU')} opponents.`}</p>
+        <p id="close-quantity-note">{closeQuantity === null ? `50/50 search: ${result.outcome === 'draw' || result.outcomeReason.startsWith('Only the ') ? 'No two-sided contest under these conditions.' : result.coinFlipQuantity}` : `Try ${Number(closeQuantity).toLocaleString('en-AU')} opponents, the model’s approximate crossover. A close result is not guaranteed.`}</p>
+      </section>
 
       <div className="simple-result-actions">
         <button type="button" className="primary-button" onClick={onEditMatchup}><ArrowCounterClockwise aria-hidden="true" /> Try another matchup</button>

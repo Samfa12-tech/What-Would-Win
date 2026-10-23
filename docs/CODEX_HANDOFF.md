@@ -19,7 +19,7 @@ Use `npm run dev` for local iteration. Deploy only the exact tested contents of 
 
 ## Current state
 
-- React/TypeScript/Vite static application **0.9.0**.
+- React/TypeScript/Vite static application **0.9.1**.
 - Active identity: **model 0.5.0, data 0.6.0, share v5, storyboard v3, custom/history storage v3**.
 - **159 canonical profiles**: 86 living, 25 extinct, 38 fantasy/mythology and 10 generic humans.
 - Model 0.5 uses 15,000 seeded trials at every report depth. Report depth changes explanation only.
@@ -31,7 +31,8 @@ Use `npm run dev` for local iteration. Deploy only the exact tested contents of 
 - Seeded Monte Carlo remains subordinate to deterministic/versioned inputs. Text and tactical presentation never select a winner.
 - Storyboard inputs are decisive-only. Draw views and exports do not manufacture story beats, attacks, injuries or a winner.
 - V5 shares migrate released v4 identities without changing scenario inputs. V2 stores copy forward to v3 with untouched recovery bytes and prior outcomes pending recalculation.
-- The result UI exposes probability/draw uncertainty, a shared three-part layperson story, one to three net-positive winner reasons, the quantity pipeline, Analyst evidence, tactical HUD/state strips, relative scale, HTML legend and keyboard/touch/accessibility fallbacks.
+- The result UI leads with the full matchup and a shared three-part written story, net-positive winner reasons, the opposing side's best chance and bounded what-if actions. Deep dive retains probability/draw uncertainty, quantity pipeline, sources and Analyst evidence. The animated tactical route is removed from navigation and the build graph; retained source is historical support, not an active feature.
+- Read `STORY_FIRST_0.9.1.md` for this presentation-only release and its validation evidence.
 - Static hosting requires no account, database, remote AI or server-side simulation.
 
 `app/src/version.ts` and `app/src/model04/contracts.ts` lock the active identity. Separately named `LEGACY_*` model-0.3 constants remain migration/history inputs, not the current release identity.

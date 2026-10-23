@@ -1,5 +1,7 @@
 # Battle reconstruction contract
 
+**Current product direction (0.9.1):** reconstruction means the written causal story and its evidence. The animated tactical/diorama/playback route is retired and excluded from the production build. The historical rendering contract below documents retained source only; it does not promise an available animated feature. See `STORY_FIRST_0.9.1.md`.
+
 Application 0.8.2 develops the explanatory presentation layer over the
 model-0.5.0/data-0.5.0 numerical result into a concise causal reader account,
 a complete Analyst record and a beat-driven tactical explanation. Presentation

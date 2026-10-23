@@ -1,6 +1,6 @@
 # What Would Win — model notes for implementers
 
-This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **application 0.9.0, model 0.5.0, data 0.6.0, share format v5, custom storage v3 and history storage v3**; application presentation uses storyboard v3.
+This file is a compact companion to the canonical product plan. The active executable sources of truth are `app/src/model04/contracts.ts`, `app/src/model04/abilityKernel.ts`, `app/src/model04/engineV4.ts`, `app/src/model04/runtime.ts` and `app/src/model04/persistence.ts`. The current identity is **application 0.9.1, model 0.5.0, data 0.6.0, share format v5, custom storage v3 and history storage v3**; application presentation uses storyboard v3.
 
 `app/src/version.ts` exposes the active identity and separately named frozen `LEGACY_*` model-0.3 constants used only by retained migration/compatibility code.
 

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 const RECONSTRUCTION_NOTICE = 'A likely story based on the result—not a replay of an individual trial.'
 
@@ -39,8 +40,8 @@ test('defaults to a concise stepped matchup instead of the expert workspace', as
 
   const visibleText = await renderedText(page)
   const visibleControls = await page.locator('button:visible, input:visible, select:visible, a:visible').count()
-  expect(visibleWordCount(visibleText)).toBeLessThanOrEqual(150)
-  expect(visibleControls).toBeLessThanOrEqual(20)
+  expect(visibleWordCount(visibleText)).toBeLessThanOrEqual(210)
+  expect(visibleControls).toBeLessThanOrEqual(23)
 })
 
 test('searches the full roster without adding expert controls', async ({ page }) => {
@@ -77,11 +78,11 @@ test('walks a casual user from contestants to a concise, authoritative result', 
   await expect(likelyStory).toBeVisible()
   await expect(likelyStory.locator('section')).toHaveCount(3)
   await expect(likelyStory).toHaveAttribute('data-story-issues', '0')
-  await expect(result.getByText(RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
+  await expect(result.getByText('Illustrative reconstruction. ' + RECONSTRUCTION_NOTICE, { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'See the result' })).toHaveAttribute('aria-current', 'step')
 
   const resultText = await result.innerText()
-  expect(visibleWordCount(resultText)).toBeLessThanOrEqual(260)
+  expect(visibleWordCount(resultText)).toBeLessThanOrEqual(460)
   expect(resultText).not.toMatch(/\b(?:log power|coordination exponent|frontage|causal|factor ids?|ability ids?)\b/i)
   await expect(result).toContainText(/full evidence is in Deep dive/i)
 })
@@ -110,4 +111,70 @@ test('opens shared scenarios at their concise result and preserves deep-dive acc
   await expect(page.getByTestId('simple-result')).toBeVisible()
   await page.getByRole('button', { name: /Open Deep dive/ }).click()
   await expect(page.locator('.results')).toBeVisible()
+})
+
+test('presets lead into editable conditions and a story-first payoff without animation', async ({ page }) => {
+  await page.getByRole('button', { name: /Pressure in deep water/ }).click()
+  await expect(page.getByLabel('Battlefield')).toHaveValue('deep-ocean')
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  const result = page.getByTestId('simple-result')
+  await expect(result.getByRole('heading', { level: 2 })).toContainText(/1 Sperm whale versus 8 × Orca/)
+  await expect(result).toContainText('In this model, not a real-world prediction.')
+  await expect(result.getByTestId('simple-likely-copy')).toHaveAttribute('data-story-issues', '0')
+  expect(await result.locator('.simple-result-grid > section').first().getAttribute('class')).toBe('simple-likely')
+  await expect(result.getByRole('heading', { name: /best chance/ })).toBeVisible()
+  await result.getByRole('button', { name: 'Open Deep dive' }).click()
+  await expect(page.getByRole('tab', { name: 'Tactical reconstruction' })).toHaveCount(0)
+  await expect(page.locator('canvas')).toHaveCount(0)
+})
+
+test('follow-ups branch from the displayed result and preserve both share seeds', async ({ page }) => {
+  test.slow()
+  await page.getByRole('button', { name: /Set battle conditions/ }).click()
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  await page.getByRole('button', { name: /Copy share link/ }).click()
+  await expect(page).toHaveURL(/[?&]r=\d+/)
+  const originalStorySeed = new URL(page.url()).searchParams.get('r')
+  await page.getByRole('button', { name: 'Double their numbers' }).click()
+  await expect(page.getByTestId('simple-result').getByRole('heading', { level: 2 })).toContainText('200 ×')
+  await page.getByRole('button', { name: /Copy share link/ }).click()
+  expect(new URL(page.url()).searchParams.get('r')).toBe(originalStorySeed)
+  const doubled = page.url()
+  const story = await page.getByTestId('simple-likely-copy').innerText()
+  await page.reload()
+  await expect(page.getByTestId('simple-likely-copy')).toHaveText(story, { useInnerText: true })
+  await page.getByRole('button', { name: 'Change environment' }).click()
+  await page.getByLabel('Battlefield').selectOption('river')
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  await page.getByRole('button', { name: /Copy share link/ }).click()
+  expect(page.url()).not.toBe(doubled)
+  expect(new URL(page.url()).searchParams.get('r')).toBe(originalStorySeed)
+  await page.getByRole('button', { name: 'Open Deep dive' }).click()
+  await expect(page.getByLabel('Quantity')).toHaveValue('200')
+  await page.getByText('Export files', { exact: true }).click()
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download result JSON', exact: true }).click()
+  const download = await downloadPromise
+  const exported = JSON.parse(await readFile((await download.path())!, 'utf8'))
+  expect(exported.scenario.seed).toBe(1)
+})
+
+test('a crossover shortcut uses the reported count and extreme counts remain bounded', async ({ page }) => {
+  await page.getByTestId('solo-creature-select').selectOption('african-bush-elephant')
+  await page.getByTestId('group-creature-select').selectOption('gray-wolf')
+  await page.getByLabel('The one size').selectOption('normal')
+  await page.getByLabel('The many size').selectOption('normal')
+  await page.getByRole('button', { name: /Set battle conditions/ }).click()
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  const note = await page.locator('#close-quantity-note').innerText()
+  const count = note.match(/^Try ([\d,]+) opponents/)
+  expect(count).not.toBeNull()
+  await page.getByRole('button', { name: 'Find a close match' }).click()
+  await expect(page.getByTestId('simple-result').getByRole('heading', { level: 2 })).toContainText(`${count![1].replaceAll(',', '')} ×`)
+  await page.getByRole('button', { name: 'Try another matchup' }).click()
+  await page.getByLabel('Quantity').fill('10^100')
+  await page.getByRole('button', { name: /Set battle conditions/ }).click()
+  await page.getByRole('button', { name: /Who would win/ }).click()
+  await expect(page.getByRole('button', { name: 'Double their numbers' })).toBeDisabled()
+  await expect(page.getByTestId('simple-result')).toContainText('beyond the quick-change limit')
 })
